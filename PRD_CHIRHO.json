@@ -5,8 +5,8 @@
   "current_milestone_chirho": "M1_partial",
   "implementation_status_chirho": {
     "completed_chirho": 1,
-    "partial_chirho": 11,
-    "not_started_chirho": 43,
+    "partial_chirho": 12,
+    "not_started_chirho": 42,
     "total_chirho": 55
   },
   "description_chirho": "Cross-platform Bible study application - Codex of Light",
@@ -752,7 +752,16 @@
       "name_chirho": "Settings",
       "category_chirho": "Configuration",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
+      "completed_items_chirho": [
+        "Settings panel UI with modal dialog",
+        "Display settings section (dark mode toggle)",
+        "Font settings section (font size slider)",
+        "Theme settings (dark mode toggle with visual switch)",
+        "Keyboard shortcuts reference list",
+        "About section with version info",
+        "Settings button in toolbar"
+      ],
       "description_chirho": "Application settings panel",
       "requirements_chirho": [
         "Display settings",
