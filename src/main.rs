@@ -1413,13 +1413,11 @@ fn main() -> Result<(), slint::PlatformError> {
                         format!("Navigated to {}", reference_chirho).into()
                     );
                 }
-            } else {
-                if let Some(window_chirho) = window_weak_chirho.upgrade() {
-                    let state_chirho = window_chirho.global::<AppStateChirho>();
-                    state_chirho.set_status_message_chirho(
-                        format!("Could not parse: {}", reference_chirho).into()
-                    );
-                }
+            } else if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                state_chirho.set_status_message_chirho(
+                    format!("Could not parse: {}", reference_chirho).into()
+                );
             }
         });
     }
