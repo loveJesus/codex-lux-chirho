@@ -452,9 +452,10 @@
       "completed_items_chirho": [
         "Dark theme (default) - fully implemented",
         "Light theme - fully implemented",
-        "Theme toggle button in toolbar",
-        "Ctrl+T keyboard shortcut to toggle theme",
-        "Theme preference saved to database",
+        "Sepia/paper theme - fully implemented",
+        "Theme toggle button in toolbar (cycles through 3 themes)",
+        "Ctrl+T keyboard shortcut to cycle themes",
+        "Theme selector in settings (Dark, Light, Sepia buttons)",
         "Accent color (purple) with consistent styling",
         "Professional color scheme via ThemeChirho global"
       ],

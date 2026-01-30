@@ -24,6 +24,7 @@ export global LabelsChirho {
     out property <string> book-count-chirho: "66";
     out property <string> theme-dark-icon-chirho: "🌙";
     out property <string> theme-light-icon-chirho: "☀";
+    out property <string> theme-sepia-icon-chirho: "📜";
     out property <string> copy-icon-chirho: "📋";
     out property <string> bookmark-icon-chirho: "🔖";
     out property <string> goto-icon-chirho: "⏩";
@@ -34,43 +35,102 @@ export global LabelsChirho {
     out property <string> history-icon-chirho: "📖";
 }
 
-// Professional color theme - supports light and dark modes
+// Professional color theme - supports dark, light, and sepia modes
+// Theme index: 0 = dark, 1 = light, 2 = sepia
 export global ThemeChirho {
-    // Theme toggle state
-    in-out property <bool> is-dark-mode-chirho: true;
+    // Theme state - index for 3 themes
+    in-out property <int> theme-index-chirho: 0;
 
-    // Core backgrounds - conditional on theme
-    out property <color> background-primary-chirho: is-dark-mode-chirho ? #1e1e2e : #f8f9fa;
-    out property <color> background-secondary-chirho: is-dark-mode-chirho ? #252536 : #ffffff;
-    out property <color> background-tertiary-chirho: is-dark-mode-chirho ? #2d2d44 : #f0f1f3;
-    out property <color> background-elevated-chirho: is-dark-mode-chirho ? #363650 : #e9ecef;
+    // Convenience property for backwards compatibility
+    out property <bool> is-dark-mode-chirho: theme-index-chirho == 0;
+
+    // Core backgrounds - conditional on theme (dark, light, sepia)
+    out property <color> background-primary-chirho:
+        theme-index-chirho == 0 ? #1e1e2e :
+        theme-index-chirho == 1 ? #f8f9fa :
+        #f4ecd8; // sepia
+
+    out property <color> background-secondary-chirho:
+        theme-index-chirho == 0 ? #252536 :
+        theme-index-chirho == 1 ? #ffffff :
+        #f9f3e3; // sepia
+
+    out property <color> background-tertiary-chirho:
+        theme-index-chirho == 0 ? #2d2d44 :
+        theme-index-chirho == 1 ? #f0f1f3 :
+        #efe6d5; // sepia
+
+    out property <color> background-elevated-chirho:
+        theme-index-chirho == 0 ? #363650 :
+        theme-index-chirho == 1 ? #e9ecef :
+        #e8dcc8; // sepia
 
     // Text hierarchy
-    out property <color> text-primary-chirho: is-dark-mode-chirho ? #e8e8f0 : #1a1a2e;
-    out property <color> text-secondary-chirho: is-dark-mode-chirho ? #b8b8c8 : #4a4a5a;
-    out property <color> text-muted-chirho: is-dark-mode-chirho ? #7878a0 : #7a7a8a;
-    out property <color> text-disabled-chirho: is-dark-mode-chirho ? #505068 : #b0b0c0;
+    out property <color> text-primary-chirho:
+        theme-index-chirho == 0 ? #e8e8f0 :
+        theme-index-chirho == 1 ? #1a1a2e :
+        #3d3225; // sepia - dark brown
+
+    out property <color> text-secondary-chirho:
+        theme-index-chirho == 0 ? #b8b8c8 :
+        theme-index-chirho == 1 ? #4a4a5a :
+        #5c5040; // sepia
+
+    out property <color> text-muted-chirho:
+        theme-index-chirho == 0 ? #7878a0 :
+        theme-index-chirho == 1 ? #7a7a8a :
+        #8b7b65; // sepia
+
+    out property <color> text-disabled-chirho:
+        theme-index-chirho == 0 ? #505068 :
+        theme-index-chirho == 1 ? #b0b0c0 :
+        #b5a890; // sepia
 
     // Accent colors
     out property <color> accent-chirho: #8b5cf6;
     out property <color> accent-hover-chirho: #a78bfa;
-    out property <color> accent-secondary-chirho: is-dark-mode-chirho ? #3b4a6b : #e8e0ff;
+    out property <color> accent-secondary-chirho:
+        theme-index-chirho == 0 ? #3b4a6b :
+        theme-index-chirho == 1 ? #e8e0ff :
+        #d4c8b0; // sepia
 
     // Semantic colors
-    out property <color> highlight-chirho: is-dark-mode-chirho ? #fbbf24 : #f59e0b;
+    out property <color> highlight-chirho:
+        theme-index-chirho == 0 ? #fbbf24 :
+        theme-index-chirho == 1 ? #f59e0b :
+        #d4a020; // sepia
+
     out property <color> success-chirho: #34d399;
     out property <color> warning-chirho: #fb923c;
     out property <color> error-chirho: #f87171;
 
     // Borders and dividers
-    out property <color> border-chirho: is-dark-mode-chirho ? #3d3d5c : #d0d5dd;
-    out property <color> border-subtle-chirho: is-dark-mode-chirho ? #2d2d44 : #e0e5eb;
-    out property <color> divider-chirho: is-dark-mode-chirho ? #3535505a : #d0d5dd5a;
+    out property <color> border-chirho:
+        theme-index-chirho == 0 ? #3d3d5c :
+        theme-index-chirho == 1 ? #d0d5dd :
+        #c5b8a0; // sepia
+
+    out property <color> border-subtle-chirho:
+        theme-index-chirho == 0 ? #2d2d44 :
+        theme-index-chirho == 1 ? #e0e5eb :
+        #d8ccb5; // sepia
+
+    out property <color> divider-chirho:
+        theme-index-chirho == 0 ? #3535505a :
+        theme-index-chirho == 1 ? #d0d5dd5a :
+        #c5b8a05a; // sepia
 
     // Scripture language colors
-    out property <color> hebrew-chirho: is-dark-mode-chirho ? #fcd34d : #d97706;
-    out property <color> greek-chirho: is-dark-mode-chirho ? #67e8f9 : #0891b2;
-    out property <color> verse-number-chirho: is-dark-mode-chirho ? #a78bfa : #7c3aed;
+    out property <color> hebrew-chirho:
+        theme-index-chirho == 0 ? #fcd34d : #d97706;
+
+    out property <color> greek-chirho:
+        theme-index-chirho == 0 ? #67e8f9 : #0891b2;
+
+    out property <color> verse-number-chirho:
+        theme-index-chirho == 0 ? #a78bfa :
+        theme-index-chirho == 1 ? #7c3aed :
+        #8b5cf6; // sepia
 
     // Typography
     out property <length> font-size-xs-chirho: 11px;
@@ -1050,11 +1110,14 @@ component ToolbarChirho inherits Rectangle {
             }
         }
 
-        // Theme toggle button
+        // Theme toggle button (cycles: dark → light → sepia → dark)
         IconButtonChirho {
-            icon-chirho: ThemeChirho.is-dark-mode-chirho ? LabelsChirho.theme-light-icon-chirho : LabelsChirho.theme-dark-icon-chirho;
+            icon-chirho:
+                ThemeChirho.theme-index-chirho == 0 ? LabelsChirho.theme-light-icon-chirho :
+                ThemeChirho.theme-index-chirho == 1 ? LabelsChirho.theme-sepia-icon-chirho :
+                LabelsChirho.theme-dark-icon-chirho;
             clicked-chirho => {
-                ThemeChirho.is-dark-mode-chirho = !ThemeChirho.is-dark-mode-chirho;
+                ThemeChirho.theme-index-chirho = Math.mod(ThemeChirho.theme-index-chirho + 1, 3);
             }
         }
 
@@ -1179,43 +1242,58 @@ component SettingsPanelChirho inherits Rectangle {
                             color: ThemeChirho.text-muted-chirho;
                         }
 
-                        // Theme toggle
+                        // Theme selector (Dark, Light, Sepia)
                         HorizontalLayout {
                             spacing: ThemeChirho.spacing-md-chirho;
                             height: 40px;
 
                             Text {
-                                text: "Dark Mode";
+                                text: "Theme";
                                 font-size: ThemeChirho.font-size-md-chirho;
                                 color: ThemeChirho.text-primary-chirho;
                                 vertical-alignment: center;
                                 horizontal-stretch: 1;
                             }
 
-                            Rectangle {
-                                width: 50px;
-                                height: 26px;
-                                background: ThemeChirho.is-dark-mode-chirho ? ThemeChirho.accent-chirho : ThemeChirho.background-tertiary-chirho;
-                                border-radius: 13px;
-                                border-width: 1px;
-                                border-color: ThemeChirho.border-chirho;
+                            HorizontalLayout {
+                                spacing: ThemeChirho.spacing-xs-chirho;
 
-                                Rectangle {
-                                    x: ThemeChirho.is-dark-mode-chirho ? 26px : 2px;
-                                    y: 2px;
-                                    width: 22px;
-                                    height: 22px;
-                                    background: white;
-                                    border-radius: 11px;
+                                for theme-opt-chirho in [
+                                    { idx-chirho: 0, name-chirho: "Dark", icon-chirho: "🌙" },
+                                    { idx-chirho: 1, name-chirho: "Light", icon-chirho: "☀" },
+                                    { idx-chirho: 2, name-chirho: "Sepia", icon-chirho: "📜" }
+                                ]: Rectangle {
+                                    width: 65px;
+                                    height: 28px;
+                                    background: theme-opt-chirho.idx-chirho == ThemeChirho.theme-index-chirho ?
+                                        ThemeChirho.accent-chirho : ThemeChirho.background-tertiary-chirho;
+                                    border-radius: ThemeChirho.radius-sm-chirho;
 
-                                    animate x { duration: 200ms; easing: ease-out; }
-                                }
+                                    HorizontalLayout {
+                                        padding-left: 6px;
+                                        padding-right: 6px;
+                                        spacing: 4px;
 
-                                TouchArea {
-                                    clicked => {
-                                        ThemeChirho.is-dark-mode-chirho = !ThemeChirho.is-dark-mode-chirho;
+                                        Text {
+                                            text: theme-opt-chirho.icon-chirho;
+                                            font-size: 12px;
+                                            vertical-alignment: center;
+                                        }
+                                        Text {
+                                            text: theme-opt-chirho.name-chirho;
+                                            font-size: ThemeChirho.font-size-sm-chirho;
+                                            color: theme-opt-chirho.idx-chirho == ThemeChirho.theme-index-chirho ?
+                                                white : ThemeChirho.text-secondary-chirho;
+                                            vertical-alignment: center;
+                                        }
                                     }
-                                    mouse-cursor: pointer;
+
+                                    TouchArea {
+                                        clicked => {
+                                            ThemeChirho.theme-index-chirho = theme-opt-chirho.idx-chirho;
+                                        }
+                                        mouse-cursor: pointer;
+                                    }
                                 }
                             }
                         }
@@ -2346,7 +2424,7 @@ export component MainWindowChirho inherits Window {
             }
             // Ctrl+T: Toggle theme
             if (event-chirho.text == "t" && event-chirho.modifiers.control) {
-                ThemeChirho.is-dark-mode-chirho = !ThemeChirho.is-dark-mode-chirho;
+                ThemeChirho.theme-index-chirho = Math.mod(ThemeChirho.theme-index-chirho + 1, 3);
                 return accept;
             }
             // Escape: Close dialogs
