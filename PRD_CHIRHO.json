@@ -59,7 +59,8 @@
         "Support for abbreviated book names",
         "Support for numbered books (1 Samuel, 2 Kings, 1 Corinthians, etc.)",
         "Chapter grid selector dialog (click chapter display to open)",
-        "Visual highlight for current chapter in grid selector"
+        "Visual highlight for current chapter in grid selector",
+        "Previous/Next book navigation buttons (‹‹ ››) with wrap-around"
       ],
       "description_chirho": "Bible navigation with book/chapter/verse selection",
       "requirements_chirho": [
@@ -262,7 +263,10 @@
         "Get highlights with color information function",
         "Dynamic highlight color rendering in UI",
         "Color picker swatches on verse hover for easy color selection",
-        "Border indicator for current highlight color"
+        "Border indicator for current highlight color",
+        "View all highlights list panel (Ctrl+H toggle or toolbar button)",
+        "Highlights panel shows reference, color bar, and verse preview",
+        "Click highlight to navigate to verse"
       ],
       "description_chirho": "Highlight verses with colors",
       "requirements_chirho": [
@@ -293,7 +297,10 @@
         "Unit tests for all note operations",
         "Note editing dialog with save/delete buttons",
         "Note button on verse hover actions",
-        "Open existing note when clicking note button"
+        "Open existing note when clicking note button",
+        "View all notes list panel (Ctrl+N toggle or toolbar button)",
+        "Notes panel shows reference, preview, and update time",
+        "Click note to open in edit dialog"
       ],
       "description_chirho": "Add personal notes to verses",
       "requirements_chirho": [
@@ -491,6 +498,8 @@
         "Ctrl+B for sidebar/books panel toggle",
         "Ctrl+T for theme toggle",
         "Ctrl+D for bookmarks panel toggle",
+        "Ctrl+H for highlights panel toggle",
+        "Ctrl+N for notes panel toggle",
         "Escape to close dialogs",
         "Goto verse dialog with reference parsing",
         "Support for abbreviated book names (Gen, Jn, Rev, etc.)",

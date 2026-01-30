@@ -139,6 +139,28 @@ export struct HistoryEntryChirho {
     timestamp-chirho: string,
 }
 
+// Highlight data for UI display
+export struct HighlightDisplayChirho {
+    id-chirho: int,
+    reference-chirho: string,
+    color-chirho: string,
+    book-chirho: string,
+    chapter-chirho: int,
+    verse-chirho: int,
+    preview-chirho: string,
+}
+
+// Note data for UI display
+export struct NoteDisplayChirho {
+    id-chirho: int,
+    reference-chirho: string,
+    book-chirho: string,
+    chapter-chirho: int,
+    verse-chirho: int,
+    preview-chirho: string,
+    updated-at-chirho: string,
+}
+
 // Application state shared with Rust
 export global AppStateChirho {
     in-out property <string> current-module-chirho: "KJV";
@@ -211,13 +233,21 @@ export global AppStateChirho {
     in-out property <[HistoryEntryChirho]> history-entries-chirho: [];
     callback load-history-chirho();
     callback navigate-to-reference-chirho(string);
-}
 
-// Note data for UI display
-export struct NoteDisplayChirho {
-    verse-ref-chirho: string,
-    content-chirho: string,
-    updated-at-chirho: string,
+    // Book navigation (for prev/next book buttons)
+    callback navigate-prev-book-chirho();
+    callback navigate-next-book-chirho();
+
+    // Highlights panel
+    in-out property <bool> highlights-visible-chirho: false;
+    in-out property <[HighlightDisplayChirho]> all-highlights-chirho: [];
+    callback load-all-highlights-chirho();
+
+    // Notes panel
+    in-out property <bool> notes-visible-chirho: false;
+    in-out property <[NoteDisplayChirho]> all-notes-chirho: [];
+    callback load-all-notes-chirho();
+    callback delete-note-chirho(string);
 }
 
 // Icon button component
@@ -467,6 +497,15 @@ component ChapterBarChirho inherits Rectangle {
         spacing: ThemeChirho.spacing-md-chirho;
         alignment: center;
 
+        // Previous book button
+        NavButtonChirho {
+            label-chirho: "‹‹";
+            clicked-chirho => {
+                AppStateChirho.navigate-prev-book-chirho();
+            }
+        }
+
+        // Previous chapter button
         NavButtonChirho {
             label-chirho: LabelsChirho.nav-prev-chirho;
             disabled-chirho: AppStateChirho.current-chapter-chirho <= 1;
@@ -521,6 +560,7 @@ component ChapterBarChirho inherits Rectangle {
             }
         }
 
+        // Next chapter button
         NavButtonChirho {
             label-chirho: LabelsChirho.nav-next-chirho;
             clicked-chirho => {
@@ -529,6 +569,14 @@ component ChapterBarChirho inherits Rectangle {
                     AppStateChirho.current-chapter-chirho + 1,
                     1
                 );
+            }
+        }
+
+        // Next book button
+        NavButtonChirho {
+            label-chirho: "››";
+            clicked-chirho => {
+                AppStateChirho.navigate-next-book-chirho();
             }
         }
     }
@@ -951,6 +999,26 @@ component ToolbarChirho inherits Rectangle {
             }
         }
 
+        // Highlights button
+        IconButtonChirho {
+            icon-chirho: "✦";
+            active-chirho: AppStateChirho.highlights-visible-chirho;
+            clicked-chirho => {
+                AppStateChirho.load-all-highlights-chirho();
+                AppStateChirho.highlights-visible-chirho = !AppStateChirho.highlights-visible-chirho;
+            }
+        }
+
+        // Notes button
+        IconButtonChirho {
+            icon-chirho: "📝";
+            active-chirho: AppStateChirho.notes-visible-chirho;
+            clicked-chirho => {
+                AppStateChirho.load-all-notes-chirho();
+                AppStateChirho.notes-visible-chirho = !AppStateChirho.notes-visible-chirho;
+            }
+        }
+
         // Theme toggle button
         IconButtonChirho {
             icon-chirho: ThemeChirho.is-dark-mode-chirho ? LabelsChirho.theme-light-icon-chirho : LabelsChirho.theme-dark-icon-chirho;
@@ -1257,6 +1325,16 @@ component SettingsPanelChirho inherits Rectangle {
                                 height: 28px;
                                 Text { text: "Ctrl+D"; font-size: 13px; color: ThemeChirho.accent-chirho; width: 80px; vertical-alignment: center; }
                                 Text { text: "Toggle bookmarks"; font-size: 13px; color: ThemeChirho.text-secondary-chirho; vertical-alignment: center; }
+                            }
+                            HorizontalLayout {
+                                height: 28px;
+                                Text { text: "Ctrl+H"; font-size: 13px; color: ThemeChirho.accent-chirho; width: 80px; vertical-alignment: center; }
+                                Text { text: "Toggle highlights"; font-size: 13px; color: ThemeChirho.text-secondary-chirho; vertical-alignment: center; }
+                            }
+                            HorizontalLayout {
+                                height: 28px;
+                                Text { text: "Ctrl+N"; font-size: 13px; color: ThemeChirho.accent-chirho; width: 80px; vertical-alignment: center; }
+                                Text { text: "Toggle notes"; font-size: 13px; color: ThemeChirho.text-secondary-chirho; vertical-alignment: center; }
                             }
                             HorizontalLayout {
                                 height: 28px;
@@ -1896,6 +1974,259 @@ component BookmarksPanelChirho inherits Rectangle {
     }
 }
 
+// Highlights list panel
+component HighlightsPanelChirho inherits Rectangle {
+    in-out property <bool> visible-chirho: false;
+
+    width: visible-chirho ? 280px : 0px;
+    background: ThemeChirho.background-secondary-chirho;
+    clip: true;
+
+    animate width { duration: 200ms; easing: ease-out; }
+
+    Rectangle {
+        width: 1px;
+        height: 100%;
+        background: ThemeChirho.border-chirho;
+    }
+
+    VerticalLayout {
+        padding: ThemeChirho.spacing-lg-chirho;
+        spacing: ThemeChirho.spacing-md-chirho;
+
+        HorizontalLayout {
+            Text {
+                text: "All Highlights";
+                font-size: ThemeChirho.font-size-lg-chirho;
+                font-weight: 600;
+                color: ThemeChirho.text-primary-chirho;
+                vertical-alignment: center;
+            }
+            Rectangle { horizontal-stretch: 1; }
+            IconButtonChirho {
+                icon-chirho: LabelsChirho.close-icon-chirho;
+                clicked-chirho => {
+                    AppStateChirho.highlights-visible-chirho = false;
+                }
+            }
+        }
+
+        Rectangle {
+            height: 1px;
+            background: ThemeChirho.divider-chirho;
+        }
+
+        if AppStateChirho.all-highlights-chirho.length == 0: VerticalLayout {
+            vertical-stretch: 1;
+            alignment: center;
+
+            Text {
+                text: "No highlights yet";
+                font-size: ThemeChirho.font-size-md-chirho;
+                color: ThemeChirho.text-muted-chirho;
+                horizontal-alignment: center;
+            }
+
+            Text {
+                text: "Click a verse to highlight it";
+                font-size: ThemeChirho.font-size-sm-chirho;
+                color: ThemeChirho.text-disabled-chirho;
+                horizontal-alignment: center;
+                wrap: word-wrap;
+            }
+        }
+
+        ScrollView {
+            vertical-stretch: 1;
+
+            VerticalLayout {
+                spacing: ThemeChirho.spacing-sm-chirho;
+
+                for hl-chirho in AppStateChirho.all-highlights-chirho: Rectangle {
+                    property <color> hl-bg-chirho:
+                        hl-chirho.color-chirho == "green" ? #34d399 :
+                        hl-chirho.color-chirho == "blue" ? #60a5fa :
+                        hl-chirho.color-chirho == "pink" ? #f472b6 :
+                        hl-chirho.color-chirho == "orange" ? #fb923c :
+                        #fbbf24;
+
+                    height: 60px;
+                    background: hl-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : ThemeChirho.background-tertiary-chirho;
+                    border-radius: ThemeChirho.radius-md-chirho;
+
+                    animate background { duration: 150ms; easing: ease-out; }
+
+                    // Left color indicator bar
+                    Rectangle {
+                        x: 0px;
+                        width: 3px;
+                        y: 4px;
+                        height: parent.height - 8px;
+                        background: hl-bg-chirho;
+                        border-radius: 2px;
+                    }
+
+                    hl-touch-chirho := TouchArea {
+                        clicked => {
+                            AppStateChirho.navigate-to-chirho(
+                                hl-chirho.book-chirho,
+                                hl-chirho.chapter-chirho,
+                                hl-chirho.verse-chirho
+                            );
+                        }
+                        mouse-cursor: pointer;
+                    }
+
+                    VerticalLayout {
+                        padding: ThemeChirho.spacing-md-chirho;
+                        padding-left: ThemeChirho.spacing-lg-chirho;
+                        spacing: ThemeChirho.spacing-xs-chirho;
+
+                        Text {
+                            text: hl-chirho.reference-chirho;
+                            font-size: ThemeChirho.font-size-md-chirho;
+                            font-weight: 600;
+                            color: ThemeChirho.accent-chirho;
+                            vertical-alignment: center;
+                        }
+
+                        Text {
+                            text: hl-chirho.preview-chirho;
+                            font-size: ThemeChirho.font-size-sm-chirho;
+                            color: ThemeChirho.text-secondary-chirho;
+                            overflow: elide;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Notes list panel
+component NotesPanelChirho inherits Rectangle {
+    in-out property <bool> visible-chirho: false;
+
+    width: visible-chirho ? 320px : 0px;
+    background: ThemeChirho.background-secondary-chirho;
+    clip: true;
+
+    animate width { duration: 200ms; easing: ease-out; }
+
+    Rectangle {
+        width: 1px;
+        height: 100%;
+        background: ThemeChirho.border-chirho;
+    }
+
+    VerticalLayout {
+        padding: ThemeChirho.spacing-lg-chirho;
+        spacing: ThemeChirho.spacing-md-chirho;
+
+        HorizontalLayout {
+            Text {
+                text: "All Notes";
+                font-size: ThemeChirho.font-size-lg-chirho;
+                font-weight: 600;
+                color: ThemeChirho.text-primary-chirho;
+                vertical-alignment: center;
+            }
+            Rectangle { horizontal-stretch: 1; }
+            IconButtonChirho {
+                icon-chirho: LabelsChirho.close-icon-chirho;
+                clicked-chirho => {
+                    AppStateChirho.notes-visible-chirho = false;
+                }
+            }
+        }
+
+        Rectangle {
+            height: 1px;
+            background: ThemeChirho.divider-chirho;
+        }
+
+        if AppStateChirho.all-notes-chirho.length == 0: VerticalLayout {
+            vertical-stretch: 1;
+            alignment: center;
+
+            Text {
+                text: "No notes yet";
+                font-size: ThemeChirho.font-size-md-chirho;
+                color: ThemeChirho.text-muted-chirho;
+                horizontal-alignment: center;
+            }
+
+            Text {
+                text: "Click the note icon on a verse to add one";
+                font-size: ThemeChirho.font-size-sm-chirho;
+                color: ThemeChirho.text-disabled-chirho;
+                horizontal-alignment: center;
+                wrap: word-wrap;
+            }
+        }
+
+        ScrollView {
+            vertical-stretch: 1;
+
+            VerticalLayout {
+                spacing: ThemeChirho.spacing-sm-chirho;
+
+                for note-chirho in AppStateChirho.all-notes-chirho: Rectangle {
+                    height: 80px;
+                    background: note-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : ThemeChirho.background-tertiary-chirho;
+                    border-radius: ThemeChirho.radius-md-chirho;
+
+                    animate background { duration: 150ms; easing: ease-out; }
+
+                    note-touch-chirho := TouchArea {
+                        clicked => {
+                            AppStateChirho.note-verse-ref-chirho = note-chirho.reference-chirho;
+                            AppStateChirho.get-note-chirho(note-chirho.reference-chirho);
+                            AppStateChirho.note-dialog-visible-chirho = true;
+                        }
+                        mouse-cursor: pointer;
+                    }
+
+                    VerticalLayout {
+                        padding: ThemeChirho.spacing-md-chirho;
+                        spacing: ThemeChirho.spacing-xs-chirho;
+
+                        HorizontalLayout {
+                            Text {
+                                text: "📝";
+                                font-size: 14px;
+                                vertical-alignment: center;
+                            }
+                            Text {
+                                text: note-chirho.reference-chirho;
+                                font-size: ThemeChirho.font-size-md-chirho;
+                                font-weight: 600;
+                                color: ThemeChirho.accent-chirho;
+                                vertical-alignment: center;
+                                horizontal-stretch: 1;
+                            }
+                            Text {
+                                text: note-chirho.updated-at-chirho;
+                                font-size: ThemeChirho.font-size-xs-chirho;
+                                color: ThemeChirho.text-muted-chirho;
+                                vertical-alignment: center;
+                            }
+                        }
+
+                        Text {
+                            text: note-chirho.preview-chirho;
+                            font-size: ThemeChirho.font-size-sm-chirho;
+                            color: ThemeChirho.text-secondary-chirho;
+                            overflow: elide;
+                            wrap: word-wrap;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 // Main application window
 export component MainWindowChirho inherits Window {
     title: "Codex Lux";
@@ -1962,6 +2293,22 @@ export component MainWindowChirho inherits Window {
                 AppStateChirho.bookmarks-visible-chirho = !AppStateChirho.bookmarks-visible-chirho;
                 return accept;
             }
+            // Ctrl+H: Toggle highlights panel
+            if (event-chirho.text == "h" && event-chirho.modifiers.control) {
+                AppStateChirho.highlights-visible-chirho = !AppStateChirho.highlights-visible-chirho;
+                if (AppStateChirho.highlights-visible-chirho) {
+                    AppStateChirho.load-all-highlights-chirho();
+                }
+                return accept;
+            }
+            // Ctrl+N: Toggle notes panel
+            if (event-chirho.text == "n" && event-chirho.modifiers.control) {
+                AppStateChirho.notes-visible-chirho = !AppStateChirho.notes-visible-chirho;
+                if (AppStateChirho.notes-visible-chirho) {
+                    AppStateChirho.load-all-notes-chirho();
+                }
+                return accept;
+            }
             return reject;
         }
 
@@ -1985,6 +2332,14 @@ export component MainWindowChirho inherits Window {
 
                 BookmarksPanelChirho {
                     visible-chirho: AppStateChirho.bookmarks-visible-chirho;
+                }
+
+                HighlightsPanelChirho {
+                    visible-chirho: AppStateChirho.highlights-visible-chirho;
+                }
+
+                NotesPanelChirho {
+                    visible-chirho: AppStateChirho.notes-visible-chirho;
                 }
             }
 

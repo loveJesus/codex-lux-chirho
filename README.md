@@ -35,6 +35,8 @@
 | `Ctrl+G` | Goto verse dialog |
 | `Ctrl+B` | Toggle books sidebar |
 | `Ctrl+D` | Toggle bookmarks panel |
+| `Ctrl+H` | Toggle highlights panel |
+| `Ctrl+N` | Toggle notes panel |
 | `Ctrl+T` | Toggle dark/light theme |
 | `Escape` | Close dialogs/panels |
 

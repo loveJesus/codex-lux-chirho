@@ -305,6 +305,42 @@ mod database_chirho {
         Ok(entries_chirho.filter_map(|r_chirho| r_chirho.ok()).collect())
     }
 
+    /// Highlight data structure
+    #[derive(Debug, Clone)]
+    #[allow(dead_code)]
+    pub struct HighlightChirho {
+        pub id_chirho: i64,
+        pub module_chirho: String,
+        pub book_chirho: String,
+        pub chapter_chirho: i32,
+        pub verse_chirho: i32,
+        pub color_chirho: String,
+    }
+
+    /// Get all highlights
+    pub fn get_all_highlights_chirho(conn_chirho: &Connection) -> Result<Vec<HighlightChirho>> {
+        let mut stmt_chirho = conn_chirho.prepare(
+            "SELECT id_chirho, module_chirho, book_chirho, chapter_chirho, verse_chirho, color_chirho
+             FROM highlights_chirho ORDER BY created_at_chirho DESC"
+        )?;
+
+        let highlights_chirho = stmt_chirho
+            .query_map([], |row_chirho| {
+                Ok(HighlightChirho {
+                    id_chirho: row_chirho.get(0)?,
+                    module_chirho: row_chirho.get(1)?,
+                    book_chirho: row_chirho.get(2)?,
+                    chapter_chirho: row_chirho.get(3)?,
+                    verse_chirho: row_chirho.get(4)?,
+                    color_chirho: row_chirho.get(5)?,
+                })
+            })?
+            .filter_map(|r_chirho| r_chirho.ok())
+            .collect();
+
+        Ok(highlights_chirho)
+    }
+
     /// Bookmark data structure
     #[derive(Debug, Clone)]
     #[allow(dead_code)]
@@ -1422,6 +1458,165 @@ fn main() -> Result<(), slint::PlatformError> {
         });
     }
 
+    // Set up navigate to previous book callback
+    {
+        let backend_clone_chirho = backend_chirho.clone();
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_navigate_prev_book_chirho(move || {
+            let mut backend_mut_chirho = backend_clone_chirho.borrow_mut();
+            let current_book_chirho = backend_mut_chirho.current_book_chirho.clone();
+
+            // Find current book index
+            if let Some(current_index_chirho) = BIBLE_BOOKS_CHIRHO
+                .iter()
+                .position(|(name_chirho, _)| *name_chirho == current_book_chirho)
+            {
+                // Get previous book (wrap to Revelation if at Genesis)
+                let prev_index_chirho = if current_index_chirho == 0 {
+                    BIBLE_BOOKS_CHIRHO.len() - 1
+                } else {
+                    current_index_chirho - 1
+                };
+
+                let (prev_book_chirho, _) = BIBLE_BOOKS_CHIRHO[prev_index_chirho];
+                backend_mut_chirho.navigate_to_chirho(prev_book_chirho, 1);
+
+                if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                    let state_chirho = window_chirho.global::<AppStateChirho>();
+                    state_chirho.set_current_book_chirho(prev_book_chirho.into());
+                    state_chirho.set_current_chapter_chirho(1);
+
+                    // Update chapter count
+                    let chapter_count_chirho = BIBLE_BOOKS_CHIRHO
+                        .iter()
+                        .find(|(name_chirho, _)| *name_chirho == prev_book_chirho)
+                        .map(|(_, count_chirho)| *count_chirho)
+                        .unwrap_or(1);
+                    state_chirho.set_current_book_chapter_count_chirho(chapter_count_chirho);
+
+                    let verses_chirho = backend_mut_chirho.get_verses_chirho();
+                    state_chirho.set_verses_chirho(Rc::new(slint::VecModel::from(verses_chirho)).into());
+
+                    state_chirho.set_status_message_chirho(
+                        format!("Navigated to {} 1", prev_book_chirho).into()
+                    );
+                }
+            }
+        });
+    }
+
+    // Set up navigate to next book callback
+    {
+        let backend_clone_chirho = backend_chirho.clone();
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_navigate_next_book_chirho(move || {
+            let mut backend_mut_chirho = backend_clone_chirho.borrow_mut();
+            let current_book_chirho = backend_mut_chirho.current_book_chirho.clone();
+
+            // Find current book index
+            if let Some(current_index_chirho) = BIBLE_BOOKS_CHIRHO
+                .iter()
+                .position(|(name_chirho, _)| *name_chirho == current_book_chirho)
+            {
+                // Get next book (wrap to Genesis if at Revelation)
+                let next_index_chirho = if current_index_chirho >= BIBLE_BOOKS_CHIRHO.len() - 1 {
+                    0
+                } else {
+                    current_index_chirho + 1
+                };
+
+                let (next_book_chirho, _) = BIBLE_BOOKS_CHIRHO[next_index_chirho];
+                backend_mut_chirho.navigate_to_chirho(next_book_chirho, 1);
+
+                if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                    let state_chirho = window_chirho.global::<AppStateChirho>();
+                    state_chirho.set_current_book_chirho(next_book_chirho.into());
+                    state_chirho.set_current_chapter_chirho(1);
+
+                    // Update chapter count
+                    let chapter_count_chirho = BIBLE_BOOKS_CHIRHO
+                        .iter()
+                        .find(|(name_chirho, _)| *name_chirho == next_book_chirho)
+                        .map(|(_, count_chirho)| *count_chirho)
+                        .unwrap_or(1);
+                    state_chirho.set_current_book_chapter_count_chirho(chapter_count_chirho);
+
+                    let verses_chirho = backend_mut_chirho.get_verses_chirho();
+                    state_chirho.set_verses_chirho(Rc::new(slint::VecModel::from(verses_chirho)).into());
+
+                    state_chirho.set_status_message_chirho(
+                        format!("Navigated to {} 1", next_book_chirho).into()
+                    );
+                }
+            }
+        });
+    }
+
+    // Set up load all highlights callback
+    {
+        let backend_clone_chirho = backend_chirho.clone();
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_load_all_highlights_chirho(move || {
+            let backend_ref_chirho = backend_clone_chirho.borrow();
+            let highlights_chirho = load_highlights_for_ui_chirho(&backend_ref_chirho.db_conn_chirho);
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                state_chirho.set_all_highlights_chirho(Rc::new(slint::VecModel::from(highlights_chirho)).into());
+            }
+        });
+    }
+
+    // Set up load all notes callback
+    {
+        let backend_clone_chirho = backend_chirho.clone();
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_load_all_notes_chirho(move || {
+            let backend_ref_chirho = backend_clone_chirho.borrow();
+            let notes_chirho = load_notes_for_ui_chirho(&backend_ref_chirho.db_conn_chirho);
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                state_chirho.set_all_notes_chirho(Rc::new(slint::VecModel::from(notes_chirho)).into());
+            }
+        });
+    }
+
+    // Set up delete note callback (from notes panel)
+    {
+        let backend_clone_chirho = backend_chirho.clone();
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_delete_note_chirho(move |reference_chirho| {
+            if let Some((book_chirho, chapter_chirho, verse_chirho)) = parse_reference_chirho(&reference_chirho) {
+                let backend_ref_chirho = backend_clone_chirho.borrow();
+                if let Err(e_chirho) = database_chirho::delete_note_chirho(
+                    &backend_ref_chirho.db_conn_chirho,
+                    &backend_ref_chirho.current_module_chirho,
+                    &book_chirho,
+                    chapter_chirho,
+                    verse_chirho,
+                ) {
+                    warn!("Failed to delete note: {}", e_chirho);
+                }
+
+                // Refresh notes list
+                let notes_chirho = load_notes_for_ui_chirho(&backend_ref_chirho.db_conn_chirho);
+                if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                    let state_chirho = window_chirho.global::<AppStateChirho>();
+                    state_chirho.set_all_notes_chirho(Rc::new(slint::VecModel::from(notes_chirho)).into());
+                    state_chirho.set_status_message_chirho(
+                        format!("Deleted note for {}", reference_chirho).into()
+                    );
+                }
+            }
+        });
+    }
+
     // Set initial status
     app_state_chirho.set_status_message_chirho("Welcome to Codex Lux - Your Bible Study Companion".into());
 
@@ -1468,6 +1663,85 @@ fn load_bookmarks_for_ui_chirho(conn_chirho: &Connection) -> Vec<BookmarkDisplay
             .collect(),
         Err(e_chirho) => {
             warn!("Failed to load bookmarks: {}", e_chirho);
+            Vec::new()
+        }
+    }
+}
+
+/// Load all highlights from database and convert to UI model
+fn load_highlights_for_ui_chirho(conn_chirho: &Connection) -> Vec<HighlightDisplayChirho> {
+    match database_chirho::get_all_highlights_chirho(conn_chirho) {
+        Ok(highlights_chirho) => highlights_chirho
+            .into_iter()
+            .map(|hl_chirho| {
+                let reference_chirho = format!(
+                    "{} {}:{}",
+                    hl_chirho.book_chirho,
+                    hl_chirho.chapter_chirho,
+                    hl_chirho.verse_chirho
+                );
+                // Get a preview of the verse text
+                let verses_chirho = get_sample_verses_chirho(&hl_chirho.book_chirho, hl_chirho.chapter_chirho);
+                let preview_chirho = verses_chirho
+                    .iter()
+                    .find(|(num_chirho, _)| num_chirho.parse::<i32>().unwrap_or(0) == hl_chirho.verse_chirho)
+                    .map(|(_, text_chirho)| {
+                        if text_chirho.len() > 80 {
+                            format!("{}...", &text_chirho[..80])
+                        } else {
+                            text_chirho.clone()
+                        }
+                    })
+                    .unwrap_or_default();
+                HighlightDisplayChirho {
+                    id_chirho: hl_chirho.id_chirho as i32,
+                    reference_chirho: reference_chirho.into(),
+                    color_chirho: hl_chirho.color_chirho.into(),
+                    book_chirho: hl_chirho.book_chirho.into(),
+                    chapter_chirho: hl_chirho.chapter_chirho,
+                    verse_chirho: hl_chirho.verse_chirho,
+                    preview_chirho: preview_chirho.into(),
+                }
+            })
+            .collect(),
+        Err(e_chirho) => {
+            warn!("Failed to load highlights: {}", e_chirho);
+            Vec::new()
+        }
+    }
+}
+
+/// Load all notes from database and convert to UI model
+fn load_notes_for_ui_chirho(conn_chirho: &Connection) -> Vec<NoteDisplayChirho> {
+    match database_chirho::get_all_notes_chirho(conn_chirho) {
+        Ok(notes_chirho) => notes_chirho
+            .into_iter()
+            .map(|note_chirho| {
+                let reference_chirho = format!(
+                    "{} {}:{}",
+                    note_chirho.book_chirho,
+                    note_chirho.chapter_chirho,
+                    note_chirho.verse_chirho
+                );
+                // Create a preview of the note content
+                let preview_chirho = if note_chirho.content_chirho.len() > 100 {
+                    format!("{}...", &note_chirho.content_chirho[..100])
+                } else {
+                    note_chirho.content_chirho.clone()
+                };
+                NoteDisplayChirho {
+                    id_chirho: note_chirho.id_chirho as i32,
+                    reference_chirho: reference_chirho.into(),
+                    book_chirho: note_chirho.book_chirho.into(),
+                    chapter_chirho: note_chirho.chapter_chirho,
+                    verse_chirho: note_chirho.verse_chirho,
+                    preview_chirho: preview_chirho.into(),
+                    updated_at_chirho: format_timestamp_chirho(&note_chirho.updated_at_chirho).into(),
+                }
+            })
+            .collect(),
+        Err(e_chirho) => {
+            warn!("Failed to load notes: {}", e_chirho);
             Vec::new()
         }
     }
