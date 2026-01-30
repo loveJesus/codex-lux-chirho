@@ -18,6 +18,10 @@
       "category_chirho": "Core",
       "priority_chirho": "P0",
       "status_chirho": "partial",
+      "completed_items_chirho": [
+        "Load and display Bible modules (RawText, zText) via rsword_chirho",
+        "Module selector in sidebar"
+      ],
       "description_chirho": "Support for multiple SWORD module types",
       "requirements_chirho": [
         "Load and display Bible modules (RawText, zText)",
@@ -34,6 +38,12 @@
       "category_chirho": "Core",
       "priority_chirho": "P0",
       "status_chirho": "partial",
+      "completed_items_chirho": [
+        "Book selector with list of all 66 books",
+        "Chapter navigation via prev/next buttons",
+        "Direct book click navigation",
+        "Reading history stored in database"
+      ],
       "description_chirho": "Bible navigation with book/chapter/verse selection",
       "requirements_chirho": [
         "Book selector with Old/New Testament grouping",
@@ -53,6 +63,13 @@
       "category_chirho": "Core",
       "priority_chirho": "P0",
       "status_chirho": "partial",
+      "completed_items_chirho": [
+        "Proper text wrapping and layout",
+        "Verse numbers with distinct styling",
+        "Adjustable font size with slider",
+        "RTL text support (Hebrew, Arabic) - renders correctly",
+        "Complex script rendering (Hebrew vowels, Greek accents)"
+      ],
       "description_chirho": "Scripture text rendering with formatting",
       "requirements_chirho": [
         "Proper text wrapping and layout",
@@ -200,6 +217,11 @@
       "category_chirho": "User Data",
       "priority_chirho": "P1",
       "status_chirho": "partial",
+      "completed_items_chirho": [
+        "Click verse to highlight (toggle)",
+        "Highlights persisted in SQLite database",
+        "Visual highlight indicator with colored bar"
+      ],
       "description_chirho": "Highlight verses with colors",
       "requirements_chirho": [
         "Click verse to highlight",
@@ -357,6 +379,11 @@
       "category_chirho": "Appearance",
       "priority_chirho": "P1",
       "status_chirho": "partial",
+      "completed_items_chirho": [
+        "Dark theme (default) - fully implemented",
+        "Accent color (purple) with consistent styling",
+        "Professional color scheme via ThemeChirho global"
+      ],
       "description_chirho": "Visual themes and customization",
       "requirements_chirho": [
         "Dark theme (default)",

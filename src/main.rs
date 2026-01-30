@@ -4,8 +4,12 @@
 
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::path::PathBuf;
+use std::collections::HashSet;
 use anyhow::Result;
-use log::info;
+use log::{info, warn, debug};
+use rusqlite::{Connection, params};
+use directories::ProjectDirs;
 
 slint::include_modules!();
 
@@ -34,6 +38,14 @@ const DEFAULT_BOOK_CHIRHO: &str = "Genesis";
 /// Default chapter number
 const DEFAULT_CHAPTER_CHIRHO: i32 = 1;
 
+/// Application identifier for directories
+const APP_QUALIFIER_CHIRHO: &str = "com";
+const APP_ORGANIZATION_CHIRHO: &str = "rsword";
+const APP_NAME_CHIRHO: &str = "codex-lux";
+
+/// Database filename
+const DATABASE_FILENAME_CHIRHO: &str = "codex_lux_chirho.db";
+
 /// Bible book data with chapter counts
 const BIBLE_BOOKS_CHIRHO: &[(&str, i32)] = &[
     // Old Testament
@@ -56,6 +68,314 @@ const BIBLE_BOOKS_CHIRHO: &[(&str, i32)] = &[
     ("1 Peter", 5), ("2 Peter", 3), ("1 John", 5), ("2 John", 1),
     ("3 John", 1), ("Jude", 1), ("Revelation", 22),
 ];
+
+// ============================================================================
+// Database Module
+// ============================================================================
+
+mod database_chirho {
+    use super::*;
+
+    /// Initialize the application database
+    pub fn init_database_chirho(db_path_chirho: &PathBuf) -> Result<Connection> {
+        // Create parent directories if needed
+        if let Some(parent_chirho) = db_path_chirho.parent() {
+            std::fs::create_dir_all(parent_chirho)?;
+        }
+
+        let conn_chirho = Connection::open(db_path_chirho)?;
+
+        // Create tables
+        conn_chirho.execute_batch(
+            "
+            -- Highlights table
+            CREATE TABLE IF NOT EXISTS highlights_chirho (
+                id_chirho INTEGER PRIMARY KEY AUTOINCREMENT,
+                module_chirho TEXT NOT NULL,
+                book_chirho TEXT NOT NULL,
+                chapter_chirho INTEGER NOT NULL,
+                verse_chirho INTEGER NOT NULL,
+                color_chirho TEXT NOT NULL DEFAULT 'yellow',
+                created_at_chirho DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(module_chirho, book_chirho, chapter_chirho, verse_chirho)
+            );
+
+            -- Bookmarks table
+            CREATE TABLE IF NOT EXISTS bookmarks_chirho (
+                id_chirho INTEGER PRIMARY KEY AUTOINCREMENT,
+                module_chirho TEXT NOT NULL,
+                book_chirho TEXT NOT NULL,
+                chapter_chirho INTEGER NOT NULL,
+                verse_chirho INTEGER NOT NULL,
+                verse_end_chirho INTEGER,
+                label_chirho TEXT,
+                folder_id_chirho INTEGER,
+                created_at_chirho DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at_chirho DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+
+            -- Notes table
+            CREATE TABLE IF NOT EXISTS notes_chirho (
+                id_chirho INTEGER PRIMARY KEY AUTOINCREMENT,
+                module_chirho TEXT NOT NULL,
+                book_chirho TEXT NOT NULL,
+                chapter_chirho INTEGER NOT NULL,
+                verse_chirho INTEGER NOT NULL,
+                content_chirho TEXT NOT NULL,
+                created_at_chirho DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at_chirho DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(module_chirho, book_chirho, chapter_chirho, verse_chirho)
+            );
+
+            -- Settings table
+            CREATE TABLE IF NOT EXISTS settings_chirho (
+                key_chirho TEXT PRIMARY KEY,
+                value_chirho TEXT NOT NULL
+            );
+
+            -- Reading history table
+            CREATE TABLE IF NOT EXISTS reading_history_chirho (
+                id_chirho INTEGER PRIMARY KEY AUTOINCREMENT,
+                module_chirho TEXT NOT NULL,
+                book_chirho TEXT NOT NULL,
+                chapter_chirho INTEGER NOT NULL,
+                timestamp_chirho DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+
+            -- Create indexes for faster lookups
+            CREATE INDEX IF NOT EXISTS idx_highlights_location_chirho
+                ON highlights_chirho(module_chirho, book_chirho, chapter_chirho);
+            CREATE INDEX IF NOT EXISTS idx_notes_location_chirho
+                ON notes_chirho(module_chirho, book_chirho, chapter_chirho);
+            CREATE INDEX IF NOT EXISTS idx_bookmarks_location_chirho
+                ON bookmarks_chirho(module_chirho, book_chirho, chapter_chirho);
+            "
+        )?;
+
+        info!("Database initialized at {:?}", db_path_chirho);
+        Ok(conn_chirho)
+    }
+
+    /// Get all highlights for a chapter
+    pub fn get_highlights_chirho(
+        conn_chirho: &Connection,
+        module_chirho: &str,
+        book_chirho: &str,
+        chapter_chirho: i32,
+    ) -> Result<HashSet<i32>> {
+        let mut stmt_chirho = conn_chirho.prepare(
+            "SELECT verse_chirho FROM highlights_chirho
+             WHERE module_chirho = ?1 AND book_chirho = ?2 AND chapter_chirho = ?3"
+        )?;
+
+        let verses_chirho = stmt_chirho
+            .query_map(params![module_chirho, book_chirho, chapter_chirho], |row_chirho| {
+                row_chirho.get::<_, i32>(0)
+            })?
+            .filter_map(|r_chirho| r_chirho.ok())
+            .collect();
+
+        Ok(verses_chirho)
+    }
+
+    /// Toggle a verse highlight
+    pub fn toggle_highlight_chirho(
+        conn_chirho: &Connection,
+        module_chirho: &str,
+        book_chirho: &str,
+        chapter_chirho: i32,
+        verse_chirho: i32,
+    ) -> Result<bool> {
+        // Check if highlight exists
+        let exists_chirho: bool = conn_chirho.query_row(
+            "SELECT 1 FROM highlights_chirho
+             WHERE module_chirho = ?1 AND book_chirho = ?2 AND chapter_chirho = ?3 AND verse_chirho = ?4",
+            params![module_chirho, book_chirho, chapter_chirho, verse_chirho],
+            |_| Ok(true)
+        ).unwrap_or(false);
+
+        if exists_chirho {
+            // Remove highlight
+            conn_chirho.execute(
+                "DELETE FROM highlights_chirho
+                 WHERE module_chirho = ?1 AND book_chirho = ?2 AND chapter_chirho = ?3 AND verse_chirho = ?4",
+                params![module_chirho, book_chirho, chapter_chirho, verse_chirho],
+            )?;
+            Ok(false)
+        } else {
+            // Add highlight
+            conn_chirho.execute(
+                "INSERT INTO highlights_chirho (module_chirho, book_chirho, chapter_chirho, verse_chirho)
+                 VALUES (?1, ?2, ?3, ?4)",
+                params![module_chirho, book_chirho, chapter_chirho, verse_chirho],
+            )?;
+            Ok(true)
+        }
+    }
+
+    /// Check if a verse has a note
+    pub fn get_verses_with_notes_chirho(
+        conn_chirho: &Connection,
+        module_chirho: &str,
+        book_chirho: &str,
+        chapter_chirho: i32,
+    ) -> Result<HashSet<i32>> {
+        let mut stmt_chirho = conn_chirho.prepare(
+            "SELECT verse_chirho FROM notes_chirho
+             WHERE module_chirho = ?1 AND book_chirho = ?2 AND chapter_chirho = ?3"
+        )?;
+
+        let verses_chirho = stmt_chirho
+            .query_map(params![module_chirho, book_chirho, chapter_chirho], |row_chirho| {
+                row_chirho.get::<_, i32>(0)
+            })?
+            .filter_map(|r_chirho| r_chirho.ok())
+            .collect();
+
+        Ok(verses_chirho)
+    }
+
+    /// Save a setting
+    pub fn set_setting_chirho(conn_chirho: &Connection, key_chirho: &str, value_chirho: &str) -> Result<()> {
+        conn_chirho.execute(
+            "INSERT OR REPLACE INTO settings_chirho (key_chirho, value_chirho) VALUES (?1, ?2)",
+            params![key_chirho, value_chirho],
+        )?;
+        Ok(())
+    }
+
+    /// Get a setting
+    pub fn get_setting_chirho(conn_chirho: &Connection, key_chirho: &str) -> Option<String> {
+        conn_chirho.query_row(
+            "SELECT value_chirho FROM settings_chirho WHERE key_chirho = ?1",
+            params![key_chirho],
+            |row_chirho| row_chirho.get(0)
+        ).ok()
+    }
+
+    /// Add to reading history
+    pub fn add_reading_history_chirho(
+        conn_chirho: &Connection,
+        module_chirho: &str,
+        book_chirho: &str,
+        chapter_chirho: i32,
+    ) -> Result<()> {
+        conn_chirho.execute(
+            "INSERT INTO reading_history_chirho (module_chirho, book_chirho, chapter_chirho)
+             VALUES (?1, ?2, ?3)",
+            params![module_chirho, book_chirho, chapter_chirho],
+        )?;
+        Ok(())
+    }
+}
+
+// ============================================================================
+// Bible Engine Module
+// ============================================================================
+
+mod bible_engine_chirho {
+    use super::*;
+    use rsword_chirho::SwMgrChirho;
+
+    /// Bible engine wrapping rsword_chirho
+    pub struct BibleEngineChirho {
+        manager_chirho: Option<SwMgrChirho>,
+        current_module_chirho: String,
+    }
+
+    impl BibleEngineChirho {
+        /// Create a new Bible engine
+        pub fn new_chirho() -> Self {
+            // Try to load SWORD modules from system paths
+            let manager_chirho = match SwMgrChirho::with_system_paths_chirho() {
+                Ok(mgr_chirho) => {
+                    let count_chirho = mgr_chirho.get_module_names_chirho().len();
+                    info!("Loaded {} SWORD modules", count_chirho);
+                    Some(mgr_chirho)
+                }
+                Err(e_chirho) => {
+                    warn!("Could not load SWORD modules: {}. Using sample data.", e_chirho);
+                    None
+                }
+            };
+
+            Self {
+                manager_chirho,
+                current_module_chirho: DEFAULT_MODULE_CHIRHO.to_string(),
+            }
+        }
+
+        /// Get list of available module names
+        pub fn get_module_names_chirho(&self) -> Vec<String> {
+            match &self.manager_chirho {
+                Some(mgr_chirho) => mgr_chirho.get_module_names_chirho()
+                    .into_iter()
+                    .map(|s_chirho| s_chirho.to_string())
+                    .collect(),
+                None => vec![
+                    DEFAULT_MODULE_CHIRHO.to_string(),
+                    "SBLGNT".to_string(),
+                    "WLC".to_string(),
+                ],
+            }
+        }
+
+        /// Get verses for a chapter
+        pub fn get_chapter_verses_chirho(
+            &self,
+            book_chirho: &str,
+            chapter_chirho: i32,
+        ) -> Vec<(String, String)> {
+            // Try to get from SWORD module first
+            if let Some(mgr_chirho) = &self.manager_chirho {
+                if let Ok(loaded_module_chirho) = mgr_chirho.load_module_chirho(&self.current_module_chirho) {
+                    let mut verses_chirho = Vec::new();
+
+                    // Safety limit for verse iteration
+                    let max_verse_chirho = 200;
+
+                    for verse_num_chirho in 1..=max_verse_chirho {
+                        let ref_str_chirho = format!("{} {}:{}", book_chirho, chapter_chirho, verse_num_chirho);
+
+                        match loaded_module_chirho.read_entry_chirho(&ref_str_chirho) {
+                            Ok(text_chirho) if !text_chirho.trim().is_empty() => {
+                                verses_chirho.push((
+                                    verse_num_chirho.to_string(),
+                                    text_chirho,
+                                ));
+                            }
+                            _ => {
+                                // No more verses in this chapter
+                                if verse_num_chirho > 1 {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if !verses_chirho.is_empty() {
+                        return verses_chirho;
+                    }
+                }
+            }
+
+            // Fallback to sample verses
+            get_sample_verses_chirho(book_chirho, chapter_chirho)
+        }
+
+        /// Set the current module
+        pub fn set_module_chirho(&mut self, module_name_chirho: &str) {
+            self.current_module_chirho = module_name_chirho.to_string();
+            info!("Switched to module: {}", module_name_chirho);
+        }
+
+        /// Get current module name
+        #[allow(dead_code)]
+        pub fn current_module_chirho(&self) -> &str {
+            &self.current_module_chirho
+        }
+    }
+}
 
 // ============================================================================
 // Sample Verses (for demo when no SWORD modules installed)
@@ -114,45 +434,138 @@ fn get_sample_verses_chirho(book_chirho: &str, chapter_chirho: i32) -> Vec<(Stri
 struct AppBackendChirho {
     current_book_chirho: String,
     current_chapter_chirho: i32,
-    highlighted_verses_chirho: std::collections::HashSet<String>,
+    current_module_chirho: String,
+    db_conn_chirho: Connection,
+    bible_engine_chirho: bible_engine_chirho::BibleEngineChirho,
 }
 
 impl AppBackendChirho {
     /// Create a new application backend with default state
-    fn new_chirho() -> Self {
-        Self {
-            current_book_chirho: DEFAULT_BOOK_CHIRHO.to_string(),
-            current_chapter_chirho: DEFAULT_CHAPTER_CHIRHO,
-            highlighted_verses_chirho: std::collections::HashSet::new(),
-        }
+    fn new_chirho() -> Result<Self> {
+        // Get application data directory
+        let data_dir_chirho = if let Some(proj_dirs_chirho) = ProjectDirs::from(
+            APP_QUALIFIER_CHIRHO,
+            APP_ORGANIZATION_CHIRHO,
+            APP_NAME_CHIRHO,
+        ) {
+            proj_dirs_chirho.data_dir().to_path_buf()
+        } else {
+            PathBuf::from(".")
+        };
+
+        let db_path_chirho = data_dir_chirho.join(DATABASE_FILENAME_CHIRHO);
+        let db_conn_chirho = database_chirho::init_database_chirho(&db_path_chirho)?;
+
+        // Load saved state from settings
+        let current_module_chirho = database_chirho::get_setting_chirho(&db_conn_chirho, "current_module")
+            .unwrap_or_else(|| DEFAULT_MODULE_CHIRHO.to_string());
+        let current_book_chirho = database_chirho::get_setting_chirho(&db_conn_chirho, "current_book")
+            .unwrap_or_else(|| DEFAULT_BOOK_CHIRHO.to_string());
+        let current_chapter_chirho: i32 = database_chirho::get_setting_chirho(&db_conn_chirho, "current_chapter")
+            .and_then(|s_chirho| s_chirho.parse().ok())
+            .unwrap_or(DEFAULT_CHAPTER_CHIRHO);
+
+        let mut bible_engine_chirho = bible_engine_chirho::BibleEngineChirho::new_chirho();
+        bible_engine_chirho.set_module_chirho(&current_module_chirho);
+
+        Ok(Self {
+            current_book_chirho,
+            current_chapter_chirho,
+            current_module_chirho,
+            db_conn_chirho,
+            bible_engine_chirho,
+        })
     }
 
     /// Get verses for the current book and chapter
     fn get_verses_chirho(&self) -> Vec<VerseChirho> {
-        let sample_verses_chirho = get_sample_verses_chirho(&self.current_book_chirho, self.current_chapter_chirho);
+        let raw_verses_chirho = self.bible_engine_chirho.get_chapter_verses_chirho(
+            &self.current_book_chirho,
+            self.current_chapter_chirho,
+        );
 
-        sample_verses_chirho
+        // Get highlights and notes for this chapter
+        let highlights_chirho = database_chirho::get_highlights_chirho(
+            &self.db_conn_chirho,
+            &self.current_module_chirho,
+            &self.current_book_chirho,
+            self.current_chapter_chirho,
+        ).unwrap_or_default();
+
+        let notes_chirho = database_chirho::get_verses_with_notes_chirho(
+            &self.db_conn_chirho,
+            &self.current_module_chirho,
+            &self.current_book_chirho,
+            self.current_chapter_chirho,
+        ).unwrap_or_default();
+
+        raw_verses_chirho
             .into_iter()
             .map(|(ref_chirho, text_chirho)| {
-                let full_ref_chirho = format!("{}:{}:{}", self.current_book_chirho, self.current_chapter_chirho, ref_chirho);
+                let verse_num_chirho: i32 = ref_chirho.parse().unwrap_or(0);
                 VerseChirho {
                     reference_chirho: ref_chirho.into(),
                     text_chirho: text_chirho.into(),
-                    is_highlighted_chirho: self.highlighted_verses_chirho.contains(&full_ref_chirho),
-                    has_note_chirho: false,
+                    is_highlighted_chirho: highlights_chirho.contains(&verse_num_chirho),
+                    has_note_chirho: notes_chirho.contains(&verse_num_chirho),
                 }
             })
             .collect()
     }
 
+    /// Navigate to a new location
+    fn navigate_to_chirho(&mut self, book_chirho: &str, chapter_chirho: i32) {
+        self.current_book_chirho = book_chirho.to_string();
+        self.current_chapter_chirho = chapter_chirho;
+
+        // Save to settings
+        let _ = database_chirho::set_setting_chirho(&self.db_conn_chirho, "current_book", book_chirho);
+        let _ = database_chirho::set_setting_chirho(&self.db_conn_chirho, "current_chapter", &chapter_chirho.to_string());
+
+        // Add to reading history
+        let _ = database_chirho::add_reading_history_chirho(
+            &self.db_conn_chirho,
+            &self.current_module_chirho,
+            book_chirho,
+            chapter_chirho,
+        );
+
+        debug!("Navigated to {} {}", book_chirho, chapter_chirho);
+    }
+
     /// Toggle highlight state for a verse
-    fn toggle_highlight_chirho(&mut self, reference_chirho: &str) {
-        let full_ref_chirho = format!("{}:{}:{}", self.current_book_chirho, self.current_chapter_chirho, reference_chirho);
-        if self.highlighted_verses_chirho.contains(&full_ref_chirho) {
-            self.highlighted_verses_chirho.remove(&full_ref_chirho);
-        } else {
-            self.highlighted_verses_chirho.insert(full_ref_chirho);
+    fn toggle_highlight_chirho(&mut self, verse_ref_chirho: &str) -> bool {
+        let verse_num_chirho: i32 = verse_ref_chirho.parse().unwrap_or(0);
+
+        match database_chirho::toggle_highlight_chirho(
+            &self.db_conn_chirho,
+            &self.current_module_chirho,
+            &self.current_book_chirho,
+            self.current_chapter_chirho,
+            verse_num_chirho,
+        ) {
+            Ok(is_highlighted_chirho) => {
+                debug!("Toggled highlight for {} {}:{} = {}",
+                    self.current_book_chirho, self.current_chapter_chirho, verse_num_chirho, is_highlighted_chirho);
+                is_highlighted_chirho
+            }
+            Err(e_chirho) => {
+                warn!("Failed to toggle highlight: {}", e_chirho);
+                false
+            }
         }
+    }
+
+    /// Set current module
+    fn set_module_chirho(&mut self, module_name_chirho: &str) {
+        self.current_module_chirho = module_name_chirho.to_string();
+        self.bible_engine_chirho.set_module_chirho(module_name_chirho);
+        let _ = database_chirho::set_setting_chirho(&self.db_conn_chirho, "current_module", module_name_chirho);
+    }
+
+    /// Get module names
+    fn get_module_names_chirho(&self) -> Vec<String> {
+        self.bible_engine_chirho.get_module_names_chirho()
     }
 
     /// Get the total number of chapters for a given book
@@ -180,11 +593,17 @@ fn main() -> Result<(), slint::PlatformError> {
     env_logger::init();
     info!("Starting Codex Lux Chirho...");
 
+    // Create backend state
+    let backend_chirho = match AppBackendChirho::new_chirho() {
+        Ok(backend_chirho) => Rc::new(RefCell::new(backend_chirho)),
+        Err(e_chirho) => {
+            eprintln!("Failed to initialize backend: {}", e_chirho);
+            return Err(slint::PlatformError::Other(e_chirho.to_string()));
+        }
+    };
+
     // Create the main window
     let main_window_chirho = MainWindowChirho::new()?;
-
-    // Create backend state
-    let backend_chirho = Rc::new(RefCell::new(AppBackendChirho::new_chirho()));
 
     // Get the app state global
     let app_state_chirho = main_window_chirho.global::<AppStateChirho>();
@@ -199,13 +618,21 @@ fn main() -> Result<(), slint::PlatformError> {
         .collect();
     app_state_chirho.set_books_chirho(Rc::new(slint::VecModel::from(books_model_chirho)).into());
 
-    // Initialize module names
-    let module_names_chirho = vec![
-        slint::SharedString::from(DEFAULT_MODULE_CHIRHO),
-        slint::SharedString::from("SBLGNT"),
-        slint::SharedString::from("WLC"),
-    ];
-    app_state_chirho.set_module_names_chirho(Rc::new(slint::VecModel::from(module_names_chirho)).into());
+    // Initialize module names from actual available modules
+    {
+        let backend_ref_chirho = backend_chirho.borrow();
+        let module_names_chirho: Vec<slint::SharedString> = backend_ref_chirho
+            .get_module_names_chirho()
+            .into_iter()
+            .map(|s_chirho| s_chirho.into())
+            .collect();
+        app_state_chirho.set_module_names_chirho(Rc::new(slint::VecModel::from(module_names_chirho)).into());
+
+        // Set current state from saved settings
+        app_state_chirho.set_current_module_chirho(backend_ref_chirho.current_module_chirho.clone().into());
+        app_state_chirho.set_current_book_chirho(backend_ref_chirho.current_book_chirho.clone().into());
+        app_state_chirho.set_current_chapter_chirho(backend_ref_chirho.current_chapter_chirho);
+    }
 
     // Load initial verses
     {
@@ -220,12 +647,11 @@ fn main() -> Result<(), slint::PlatformError> {
 
         app_state_chirho.on_navigate_to_chirho(move |book_chirho, chapter_chirho, _verse_chirho| {
             let mut backend_mut_chirho = backend_clone_chirho.borrow_mut();
-            backend_mut_chirho.current_book_chirho = book_chirho.to_string();
-            backend_mut_chirho.current_chapter_chirho = chapter_chirho;
+            backend_mut_chirho.navigate_to_chirho(&book_chirho, chapter_chirho);
 
             if let Some(window_chirho) = window_weak_chirho.upgrade() {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
-                state_chirho.set_current_book_chirho(book_chirho);
+                state_chirho.set_current_book_chirho(book_chirho.clone());
                 state_chirho.set_current_chapter_chirho(chapter_chirho);
 
                 let verses_chirho = backend_mut_chirho.get_verses_chirho();
@@ -265,7 +691,7 @@ fn main() -> Result<(), slint::PlatformError> {
             if let Some(window_chirho) = window_weak_chirho.upgrade() {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
 
-                // Demo search results
+                // Demo search results - TODO: implement real search with Tantivy
                 let results_chirho = vec![
                     VerseChirho {
                         reference_chirho: "John 3:16".into(),
@@ -294,14 +720,23 @@ fn main() -> Result<(), slint::PlatformError> {
 
     // Set up module loading callback
     {
+        let backend_clone_chirho = backend_chirho.clone();
         let window_weak_chirho = main_window_chirho.as_weak();
 
         app_state_chirho.on_load_module_chirho(move |module_chirho| {
             info!("Loading module: {}", module_chirho);
 
+            let mut backend_mut_chirho = backend_clone_chirho.borrow_mut();
+            backend_mut_chirho.set_module_chirho(&module_chirho);
+
             if let Some(window_chirho) = window_weak_chirho.upgrade() {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
                 state_chirho.set_current_module_chirho(module_chirho.clone());
+
+                // Reload verses with new module
+                let verses_chirho = backend_mut_chirho.get_verses_chirho();
+                state_chirho.set_verses_chirho(Rc::new(slint::VecModel::from(verses_chirho)).into());
+
                 state_chirho.set_status_message_chirho(format!("Loaded module: {}", module_chirho).into());
             }
         });
@@ -397,51 +832,100 @@ mod tests_chirho {
     }
 
     #[test]
-    fn test_app_backend_new_chirho() {
-        let backend_chirho = AppBackendChirho::new_chirho();
-        assert_eq!(backend_chirho.current_book_chirho, DEFAULT_BOOK_CHIRHO);
-        assert_eq!(backend_chirho.current_chapter_chirho, DEFAULT_CHAPTER_CHIRHO);
-        assert!(backend_chirho.highlighted_verses_chirho.is_empty());
-    }
-
-    #[test]
-    fn test_app_backend_get_chapter_count_chirho() {
+    fn test_get_chapter_count_chirho() {
         assert_eq!(AppBackendChirho::get_chapter_count_chirho("Genesis"), Some(50));
         assert_eq!(AppBackendChirho::get_chapter_count_chirho("Psalms"), Some(150));
         assert_eq!(AppBackendChirho::get_chapter_count_chirho("InvalidBook"), None);
     }
 
     #[test]
-    fn test_app_backend_is_valid_book_chirho() {
+    fn test_is_valid_book_chirho() {
         assert!(AppBackendChirho::is_valid_book_chirho("Genesis"));
         assert!(AppBackendChirho::is_valid_book_chirho("Revelation"));
         assert!(!AppBackendChirho::is_valid_book_chirho("InvalidBook"));
     }
 
     #[test]
-    fn test_highlight_toggle_chirho() {
-        let mut backend_chirho = AppBackendChirho::new_chirho();
+    fn test_database_init_chirho() {
+        use tempfile::tempdir;
 
-        // Initially no highlights
-        assert!(backend_chirho.highlighted_verses_chirho.is_empty());
+        let temp_dir_chirho = tempdir().unwrap();
+        let db_path_chirho = temp_dir_chirho.path().join("test.db");
 
-        // Toggle highlight on
-        backend_chirho.toggle_highlight_chirho("1");
-        assert_eq!(backend_chirho.highlighted_verses_chirho.len(), 1);
+        let conn_chirho = database_chirho::init_database_chirho(&db_path_chirho).unwrap();
 
-        // Toggle highlight off
-        backend_chirho.toggle_highlight_chirho("1");
-        assert!(backend_chirho.highlighted_verses_chirho.is_empty());
+        // Verify tables exist by querying them
+        let tables_chirho: Vec<String> = conn_chirho
+            .prepare("SELECT name FROM sqlite_master WHERE type='table'")
+            .unwrap()
+            .query_map([], |row| row.get(0))
+            .unwrap()
+            .filter_map(|r| r.ok())
+            .collect();
+
+        assert!(tables_chirho.contains(&"highlights_chirho".to_string()));
+        assert!(tables_chirho.contains(&"bookmarks_chirho".to_string()));
+        assert!(tables_chirho.contains(&"notes_chirho".to_string()));
+        assert!(tables_chirho.contains(&"settings_chirho".to_string()));
     }
 
     #[test]
-    fn test_multiple_highlights_chirho() {
-        let mut backend_chirho = AppBackendChirho::new_chirho();
+    fn test_highlight_toggle_database_chirho() {
+        use tempfile::tempdir;
 
-        backend_chirho.toggle_highlight_chirho("1");
-        backend_chirho.toggle_highlight_chirho("2");
-        backend_chirho.toggle_highlight_chirho("3");
+        let temp_dir_chirho = tempdir().unwrap();
+        let db_path_chirho = temp_dir_chirho.path().join("test_highlight.db");
 
-        assert_eq!(backend_chirho.highlighted_verses_chirho.len(), 3);
+        let conn_chirho = database_chirho::init_database_chirho(&db_path_chirho).unwrap();
+
+        // Toggle on
+        let result_chirho = database_chirho::toggle_highlight_chirho(&conn_chirho, "KJV", "Genesis", 1, 1).unwrap();
+        assert!(result_chirho); // Should be highlighted
+
+        // Verify it's in the set
+        let highlights_chirho = database_chirho::get_highlights_chirho(&conn_chirho, "KJV", "Genesis", 1).unwrap();
+        assert!(highlights_chirho.contains(&1));
+
+        // Toggle off
+        let result_chirho = database_chirho::toggle_highlight_chirho(&conn_chirho, "KJV", "Genesis", 1, 1).unwrap();
+        assert!(!result_chirho); // Should not be highlighted
+
+        // Verify it's removed
+        let highlights_chirho = database_chirho::get_highlights_chirho(&conn_chirho, "KJV", "Genesis", 1).unwrap();
+        assert!(!highlights_chirho.contains(&1));
+    }
+
+    #[test]
+    fn test_settings_chirho() {
+        use tempfile::tempdir;
+
+        let temp_dir_chirho = tempdir().unwrap();
+        let db_path_chirho = temp_dir_chirho.path().join("test_settings.db");
+
+        let conn_chirho = database_chirho::init_database_chirho(&db_path_chirho).unwrap();
+
+        // Set a setting
+        database_chirho::set_setting_chirho(&conn_chirho, "test_key", "test_value").unwrap();
+
+        // Get the setting
+        let value_chirho = database_chirho::get_setting_chirho(&conn_chirho, "test_key");
+        assert_eq!(value_chirho, Some("test_value".to_string()));
+
+        // Get non-existent setting
+        let none_chirho = database_chirho::get_setting_chirho(&conn_chirho, "nonexistent");
+        assert!(none_chirho.is_none());
+    }
+
+    #[test]
+    fn test_bible_engine_chirho() {
+        let engine_chirho = bible_engine_chirho::BibleEngineChirho::new_chirho();
+
+        // Should have at least the default modules
+        let modules_chirho = engine_chirho.get_module_names_chirho();
+        assert!(!modules_chirho.is_empty());
+
+        // Should be able to get sample verses
+        let verses_chirho = engine_chirho.get_chapter_verses_chirho("Genesis", 1);
+        assert!(!verses_chirho.is_empty());
     }
 }
