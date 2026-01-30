@@ -111,10 +111,18 @@ The database stores:
 ## Naming Convention
 
 All identifiers follow the Chirho suffix convention:
+
+### Rust (snake_case + _chirho)
 - Variables: `variable_name_chirho`
 - Functions: `function_name_chirho`
 - Structs: `StructNameChirho`
 - Constants: `CONSTANT_NAME_CHIRHO`
+
+### Slint UI (kebab-case + -chirho)
+Slint language requires kebab-case for identifiers:
+- Properties: `property-name-chirho`
+- Callbacks: `callback-name-chirho`
+- Components: `ComponentNameChirho`
 
 ## License
 
