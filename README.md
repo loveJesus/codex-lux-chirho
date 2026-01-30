@@ -8,7 +8,7 @@
 
 ## Features
 
-### Current (v0.1.3)
+### Current (v0.1.4)
 
 - **Multi-Module Support**: Load and display SWORD Bible modules via rsword_chirho
 - **Navigation**: Browse all 66 books of the Bible with chapter navigation
@@ -21,6 +21,7 @@
 - **State Restoration**: Remembers your last location between sessions
 - **Theme Toggle**: Dark and Light themes with Ctrl+T shortcut
 - **Font Scaling**: Adjustable scripture text size
+- **Settings Panel**: Theme, font, and keyboard shortcuts reference
 - **Keyboard Shortcuts**: Navigate quickly with keyboard
 
 ## Keyboard Shortcuts
