@@ -5,8 +5,8 @@
   "current_milestone_chirho": "M1_partial",
   "implementation_status_chirho": {
     "completed_chirho": 1,
-    "partial_chirho": 5,
-    "not_started_chirho": 49,
+    "partial_chirho": 6,
+    "not_started_chirho": 48,
     "total_chirho": 55
   },
   "description_chirho": "Cross-platform Bible study application - Codex of Light",
@@ -99,7 +99,13 @@
       "name_chirho": "Search Functionality",
       "category_chirho": "Core",
       "priority_chirho": "P0",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
+      "completed_items_chirho": [
+        "Basic text search within sample verses",
+        "Case-insensitive search",
+        "Search results display with reference and preview",
+        "Click to navigate to result (via search panel)"
+      ],
       "description_chirho": "Full-text search across modules",
       "requirements_chirho": [
         "Full-text search with Tantivy index",

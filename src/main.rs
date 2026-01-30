@@ -374,6 +374,38 @@ mod bible_engine_chirho {
         pub fn current_module_chirho(&self) -> &str {
             &self.current_module_chirho
         }
+
+        /// Search for verses containing the query
+        /// Searches only through sample verses for demo/fallback mode
+        pub fn search_chirho(&self, query_chirho: &str, max_results_chirho: usize) -> Vec<(String, String)> {
+            let query_lower_chirho = query_chirho.to_lowercase();
+            let mut results_chirho = Vec::new();
+
+            // Sample chapters to search (those with sample data)
+            let sample_chapters_chirho: &[(&str, i32)] = &[
+                ("Genesis", 1),
+                ("John", 1),
+                ("John", 3),
+                ("Psalms", 23),
+            ];
+
+            // Search through sample chapters
+            for (book_chirho, chapter_chirho) in sample_chapters_chirho {
+                let verses_chirho = self.get_chapter_verses_chirho(book_chirho, *chapter_chirho);
+                for (verse_num_chirho, text_chirho) in verses_chirho {
+                    if text_chirho.to_lowercase().contains(&query_lower_chirho) {
+                        let reference_chirho = format!("{} {}:{}", book_chirho, chapter_chirho, verse_num_chirho);
+                        results_chirho.push((reference_chirho, text_chirho));
+
+                        if results_chirho.len() >= max_results_chirho {
+                            return results_chirho;
+                        }
+                    }
+                }
+            }
+
+            results_chirho
+        }
     }
 }
 
@@ -683,37 +715,42 @@ fn main() -> Result<(), slint::PlatformError> {
 
     // Set up search callback
     {
+        let backend_clone_chirho = backend_chirho.clone();
         let window_weak_chirho = main_window_chirho.as_weak();
 
         app_state_chirho.on_search_chirho(move |query_chirho| {
             info!("Search query: {}", query_chirho);
 
+            if query_chirho.trim().is_empty() {
+                if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                    let state_chirho = window_chirho.global::<AppStateChirho>();
+                    state_chirho.set_search_results_chirho(Rc::new(slint::VecModel::from(Vec::<VerseChirho>::new())).into());
+                    state_chirho.set_status_message_chirho("Enter a search term".into());
+                }
+                return;
+            }
+
+            let backend_ref_chirho = backend_clone_chirho.borrow();
+            let search_results_chirho = backend_ref_chirho.bible_engine_chirho.search_chirho(&query_chirho, 50);
+
             if let Some(window_chirho) = window_weak_chirho.upgrade() {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
 
-                // Demo search results - TODO: implement real search with Tantivy
-                let results_chirho = vec![
-                    VerseChirho {
-                        reference_chirho: "John 3:16".into(),
-                        text_chirho: "For God so loved the world, that he gave his only begotten Son...".into(),
+                let results_chirho: Vec<VerseChirho> = search_results_chirho
+                    .into_iter()
+                    .map(|(ref_chirho, text_chirho)| VerseChirho {
+                        reference_chirho: ref_chirho.into(),
+                        text_chirho: text_chirho.into(),
                         is_highlighted_chirho: false,
                         has_note_chirho: false,
-                    },
-                    VerseChirho {
-                        reference_chirho: "Romans 5:8".into(),
-                        text_chirho: "But God commendeth his love toward us, in that, while we were yet sinners, Christ died for us.".into(),
-                        is_highlighted_chirho: false,
-                        has_note_chirho: false,
-                    },
-                    VerseChirho {
-                        reference_chirho: "1 John 4:8".into(),
-                        text_chirho: "He that loveth not knoweth not God; for God is love.".into(),
-                        is_highlighted_chirho: false,
-                        has_note_chirho: false,
-                    },
-                ];
+                    })
+                    .collect();
+
+                let count_chirho = results_chirho.len();
                 state_chirho.set_search_results_chirho(Rc::new(slint::VecModel::from(results_chirho)).into());
-                state_chirho.set_status_message_chirho(format!("Found 3 results for '{}'", query_chirho).into());
+                state_chirho.set_status_message_chirho(
+                    format!("Found {} result{} for '{}'", count_chirho, if count_chirho == 1 { "" } else { "s" }, query_chirho).into()
+                );
             }
         });
     }
@@ -927,5 +964,50 @@ mod tests_chirho {
         // Should be able to get sample verses
         let verses_chirho = engine_chirho.get_chapter_verses_chirho("Genesis", 1);
         assert!(!verses_chirho.is_empty());
+    }
+
+    #[test]
+    fn test_search_chirho() {
+        let engine_chirho = bible_engine_chirho::BibleEngineChirho::new_chirho();
+
+        // Search for "God" in sample verses
+        let results_chirho = engine_chirho.search_chirho("God", 10);
+
+        // Should find at least one result (Genesis 1:1 has "God")
+        assert!(!results_chirho.is_empty(), "Should find at least one result for 'God'");
+
+        // Check that results contain the search term
+        for (ref_chirho, text_chirho) in &results_chirho {
+            assert!(
+                text_chirho.to_lowercase().contains("god"),
+                "Result '{}' should contain 'god': {}",
+                ref_chirho,
+                text_chirho
+            );
+        }
+    }
+
+    #[test]
+    fn test_search_case_insensitive_chirho() {
+        let engine_chirho = bible_engine_chirho::BibleEngineChirho::new_chirho();
+
+        // Search should be case insensitive
+        let results_upper_chirho = engine_chirho.search_chirho("GOD", 10);
+        let results_lower_chirho = engine_chirho.search_chirho("god", 10);
+
+        // Both should return results
+        assert!(!results_upper_chirho.is_empty());
+        assert!(!results_lower_chirho.is_empty());
+    }
+
+    #[test]
+    fn test_search_no_results_chirho() {
+        let engine_chirho = bible_engine_chirho::BibleEngineChirho::new_chirho();
+
+        // Search for something that won't be found
+        let results_chirho = engine_chirho.search_chirho("xyzabc123nonsense", 10);
+
+        // Should return empty
+        assert!(results_chirho.is_empty());
     }
 }
