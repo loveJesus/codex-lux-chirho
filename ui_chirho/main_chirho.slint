@@ -878,6 +878,26 @@ component SearchPanelChirho inherits Rectangle {
             color: ThemeChirho.text-muted-chirho;
         }
 
+        // No results message
+        if AppStateChirho.search-results-chirho.length == 0 && AppStateChirho.search-query-chirho != "": VerticalLayout {
+            vertical-stretch: 1;
+            alignment: center;
+
+            Text {
+                text: "No results found";
+                font-size: ThemeChirho.font-size-md-chirho;
+                color: ThemeChirho.text-muted-chirho;
+                horizontal-alignment: center;
+            }
+
+            Text {
+                text: "Try different keywords or check your spelling";
+                font-size: ThemeChirho.font-size-sm-chirho;
+                color: ThemeChirho.text-disabled-chirho;
+                horizontal-alignment: center;
+            }
+        }
+
         ScrollView {
             vertical-stretch: 1;
 
