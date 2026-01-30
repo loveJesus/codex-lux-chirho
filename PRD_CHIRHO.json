@@ -5,8 +5,8 @@
   "current_milestone_chirho": "M1_partial",
   "implementation_status_chirho": {
     "completed_chirho": 1,
-    "partial_chirho": 6,
-    "not_started_chirho": 48,
+    "partial_chirho": 7,
+    "not_started_chirho": 47,
     "total_chirho": 55
   },
   "description_chirho": "Cross-platform Bible study application - Codex of Light",
@@ -210,7 +210,15 @@
       "name_chirho": "Bookmarks",
       "category_chirho": "User Data",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
+      "completed_items_chirho": [
+        "Database schema for bookmarks table",
+        "Add bookmark function with optional label",
+        "Remove bookmark function",
+        "Get all bookmarks function",
+        "Check if verse is bookmarked function",
+        "Unit tests for bookmark operations"
+      ],
       "description_chirho": "Save and organize favorite verses",
       "requirements_chirho": [
         "Add bookmark to current verse",

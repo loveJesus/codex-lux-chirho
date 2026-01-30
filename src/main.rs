@@ -267,6 +267,105 @@ mod database_chirho {
         )?;
         Ok(())
     }
+
+    /// Bookmark data structure
+    #[derive(Debug, Clone)]
+    #[allow(dead_code)]
+    pub struct BookmarkChirho {
+        pub id_chirho: i64,
+        pub module_chirho: String,
+        pub book_chirho: String,
+        pub chapter_chirho: i32,
+        pub verse_chirho: i32,
+        pub label_chirho: Option<String>,
+    }
+
+    /// Add a bookmark
+    #[allow(dead_code)]
+    pub fn add_bookmark_chirho(
+        conn_chirho: &Connection,
+        module_chirho: &str,
+        book_chirho: &str,
+        chapter_chirho: i32,
+        verse_chirho: i32,
+        label_chirho: Option<&str>,
+    ) -> Result<i64> {
+        conn_chirho.execute(
+            "INSERT INTO bookmarks_chirho (module_chirho, book_chirho, chapter_chirho, verse_chirho, label_chirho)
+             VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![module_chirho, book_chirho, chapter_chirho, verse_chirho, label_chirho],
+        )?;
+        Ok(conn_chirho.last_insert_rowid())
+    }
+
+    /// Remove a bookmark
+    #[allow(dead_code)]
+    pub fn remove_bookmark_chirho(conn_chirho: &Connection, id_chirho: i64) -> Result<()> {
+        conn_chirho.execute(
+            "DELETE FROM bookmarks_chirho WHERE id_chirho = ?1",
+            params![id_chirho],
+        )?;
+        Ok(())
+    }
+
+    /// Get all bookmarks
+    #[allow(dead_code)]
+    pub fn get_all_bookmarks_chirho(conn_chirho: &Connection) -> Result<Vec<BookmarkChirho>> {
+        let mut stmt_chirho = conn_chirho.prepare(
+            "SELECT id_chirho, module_chirho, book_chirho, chapter_chirho, verse_chirho, label_chirho
+             FROM bookmarks_chirho ORDER BY created_at_chirho DESC"
+        )?;
+
+        let bookmarks_chirho = stmt_chirho
+            .query_map([], |row_chirho| {
+                Ok(BookmarkChirho {
+                    id_chirho: row_chirho.get(0)?,
+                    module_chirho: row_chirho.get(1)?,
+                    book_chirho: row_chirho.get(2)?,
+                    chapter_chirho: row_chirho.get(3)?,
+                    verse_chirho: row_chirho.get(4)?,
+                    label_chirho: row_chirho.get(5)?,
+                })
+            })?
+            .filter_map(|r_chirho| r_chirho.ok())
+            .collect();
+
+        Ok(bookmarks_chirho)
+    }
+
+    /// Check if a verse is bookmarked
+    #[allow(dead_code)]
+    pub fn is_bookmarked_chirho(
+        conn_chirho: &Connection,
+        module_chirho: &str,
+        book_chirho: &str,
+        chapter_chirho: i32,
+        verse_chirho: i32,
+    ) -> bool {
+        conn_chirho.query_row(
+            "SELECT 1 FROM bookmarks_chirho
+             WHERE module_chirho = ?1 AND book_chirho = ?2 AND chapter_chirho = ?3 AND verse_chirho = ?4",
+            params![module_chirho, book_chirho, chapter_chirho, verse_chirho],
+            |_| Ok(true)
+        ).unwrap_or(false)
+    }
+
+    /// Get bookmark ID for a verse (if bookmarked)
+    #[allow(dead_code)]
+    pub fn get_bookmark_id_chirho(
+        conn_chirho: &Connection,
+        module_chirho: &str,
+        book_chirho: &str,
+        chapter_chirho: i32,
+        verse_chirho: i32,
+    ) -> Option<i64> {
+        conn_chirho.query_row(
+            "SELECT id_chirho FROM bookmarks_chirho
+             WHERE module_chirho = ?1 AND book_chirho = ?2 AND chapter_chirho = ?3 AND verse_chirho = ?4",
+            params![module_chirho, book_chirho, chapter_chirho, verse_chirho],
+            |row_chirho| row_chirho.get(0)
+        ).ok()
+    }
 }
 
 // ============================================================================
@@ -1009,5 +1108,50 @@ mod tests_chirho {
 
         // Should return empty
         assert!(results_chirho.is_empty());
+    }
+
+    #[test]
+    fn test_bookmarks_chirho() {
+        use tempfile::tempdir;
+
+        let temp_dir_chirho = tempdir().unwrap();
+        let db_path_chirho = temp_dir_chirho.path().join("test_bookmarks.db");
+
+        let conn_chirho = database_chirho::init_database_chirho(&db_path_chirho).unwrap();
+
+        // Initially no bookmarks
+        let bookmarks_chirho = database_chirho::get_all_bookmarks_chirho(&conn_chirho).unwrap();
+        assert!(bookmarks_chirho.is_empty());
+
+        // Add a bookmark
+        let id_chirho = database_chirho::add_bookmark_chirho(
+            &conn_chirho,
+            "KJV",
+            "John",
+            3,
+            16,
+            Some("John 3:16 - God's Love")
+        ).unwrap();
+        assert!(id_chirho > 0);
+
+        // Verify bookmark exists
+        let bookmarks_chirho = database_chirho::get_all_bookmarks_chirho(&conn_chirho).unwrap();
+        assert_eq!(bookmarks_chirho.len(), 1);
+        assert_eq!(bookmarks_chirho[0].book_chirho, "John");
+        assert_eq!(bookmarks_chirho[0].chapter_chirho, 3);
+        assert_eq!(bookmarks_chirho[0].verse_chirho, 16);
+
+        // Check is_bookmarked
+        assert!(database_chirho::is_bookmarked_chirho(&conn_chirho, "KJV", "John", 3, 16));
+        assert!(!database_chirho::is_bookmarked_chirho(&conn_chirho, "KJV", "John", 3, 17));
+
+        // Get bookmark ID
+        let found_id_chirho = database_chirho::get_bookmark_id_chirho(&conn_chirho, "KJV", "John", 3, 16);
+        assert_eq!(found_id_chirho, Some(id_chirho));
+
+        // Remove bookmark
+        database_chirho::remove_bookmark_chirho(&conn_chirho, id_chirho).unwrap();
+        let bookmarks_chirho = database_chirho::get_all_bookmarks_chirho(&conn_chirho).unwrap();
+        assert!(bookmarks_chirho.is_empty());
     }
 }
