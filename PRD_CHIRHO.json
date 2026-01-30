@@ -246,7 +246,11 @@
       "completed_items_chirho": [
         "Click verse to highlight (toggle)",
         "Highlights persisted in SQLite database",
-        "Visual highlight indicator with colored bar"
+        "Visual highlight indicator with colored bar",
+        "Multiple highlight colors (yellow, green, blue, pink, orange) - backend complete",
+        "Add highlight with specific color function",
+        "Get highlights with color information function",
+        "Dynamic highlight color rendering in UI"
       ],
       "description_chirho": "Highlight verses with colors",
       "requirements_chirho": [

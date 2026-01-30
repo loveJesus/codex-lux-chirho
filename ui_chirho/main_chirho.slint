@@ -88,11 +88,18 @@ export global ThemeChirho {
     out property <length> radius-lg-chirho: 12px;
 }
 
+// Highlight color options
+export struct HighlightColorChirho {
+    name-chirho: string,
+    color-chirho: color,
+}
+
 // Verse data structure
 export struct VerseChirho {
     reference-chirho: string,
     text-chirho: string,
     is-highlighted-chirho: bool,
+    highlight-color-chirho: string,
     has-note-chirho: bool,
 }
 
@@ -133,10 +140,20 @@ export global AppStateChirho {
     in-out property <bool> goto-dialog-visible-chirho: false;
     in-out property <string> goto-reference-chirho: "";
 
+    // Available highlight colors
+    in-out property <[HighlightColorChirho]> highlight-colors-chirho: [
+        { name-chirho: "yellow", color-chirho: #fbbf24 },
+        { name-chirho: "green", color-chirho: #34d399 },
+        { name-chirho: "blue", color-chirho: #60a5fa },
+        { name-chirho: "pink", color-chirho: #f472b6 },
+        { name-chirho: "orange", color-chirho: #fb923c }
+    ];
+
     callback navigate-to-chirho(string, int, int);
     callback search-chirho(string);
     callback load-module-chirho(string);
     callback toggle-highlight-chirho(string);
+    callback set-highlight-color-chirho(string, string);
     callback add-note-chirho(string, string);
     callback copy-verse-chirho(string, string);
     callback goto-verse-chirho(string);
@@ -389,8 +406,16 @@ component ChapterBarChirho inherits Rectangle {
 component VerseViewChirho inherits Rectangle {
     in property <VerseChirho> verse-chirho;
 
+    // Compute highlight color from name
+    property <color> active-highlight-color-chirho:
+        verse-chirho.highlight-color-chirho == "green" ? #34d399 :
+        verse-chirho.highlight-color-chirho == "blue" ? #60a5fa :
+        verse-chirho.highlight-color-chirho == "pink" ? #f472b6 :
+        verse-chirho.highlight-color-chirho == "orange" ? #fb923c :
+        #fbbf24; // default yellow
+
     background: verse-chirho.is-highlighted-chirho ?
-        ThemeChirho.highlight-chirho.with-alpha(0.12) :
+        active-highlight-color-chirho.with-alpha(0.12) :
         (verse-touch-chirho.has-hover ? ThemeChirho.background-tertiary-chirho.with-alpha(0.5) : transparent);
     border-radius: ThemeChirho.radius-md-chirho;
 
@@ -399,7 +424,7 @@ component VerseViewChirho inherits Rectangle {
         width: 3px;
         y: 8px;
         height: parent.height - 16px;
-        background: ThemeChirho.highlight-chirho;
+        background: active-highlight-color-chirho;
         border-radius: 2px;
     }
 

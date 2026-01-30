@@ -160,7 +160,8 @@ mod database_chirho {
         Ok(conn_chirho)
     }
 
-    /// Get all highlights for a chapter
+    /// Get all highlights for a chapter (just verse numbers)
+    #[allow(dead_code)]
     pub fn get_highlights_chirho(
         conn_chirho: &Connection,
         module_chirho: &str,
@@ -811,13 +812,19 @@ impl AppBackendChirho {
             self.current_chapter_chirho,
         );
 
-        // Get highlights and notes for this chapter
-        let highlights_chirho = database_chirho::get_highlights_chirho(
+        // Get highlights with colors for this chapter
+        let highlights_chirho = database_chirho::get_highlights_with_colors_chirho(
             &self.db_conn_chirho,
             &self.current_module_chirho,
             &self.current_book_chirho,
             self.current_chapter_chirho,
         ).unwrap_or_default();
+
+        // Build a map of verse -> color
+        let highlight_map_chirho: std::collections::HashMap<i32, String> = highlights_chirho
+            .into_iter()
+            .map(|h_chirho| (h_chirho.verse_chirho, h_chirho.color_chirho))
+            .collect();
 
         let notes_chirho = database_chirho::get_verses_with_notes_chirho(
             &self.db_conn_chirho,
@@ -830,10 +837,14 @@ impl AppBackendChirho {
             .into_iter()
             .map(|(ref_chirho, text_chirho)| {
                 let verse_num_chirho: i32 = ref_chirho.parse().unwrap_or(0);
+                let highlight_color_chirho = highlight_map_chirho.get(&verse_num_chirho)
+                    .cloned()
+                    .unwrap_or_default();
                 VerseChirho {
                     reference_chirho: ref_chirho.into(),
                     text_chirho: text_chirho.into(),
-                    is_highlighted_chirho: highlights_chirho.contains(&verse_num_chirho),
+                    is_highlighted_chirho: highlight_map_chirho.contains_key(&verse_num_chirho),
+                    highlight_color_chirho: highlight_color_chirho.into(),
                     has_note_chirho: notes_chirho.contains(&verse_num_chirho),
                 }
             })
@@ -1037,6 +1048,7 @@ fn main() -> Result<(), slint::PlatformError> {
                         reference_chirho: ref_chirho.into(),
                         text_chirho: text_chirho.into(),
                         is_highlighted_chirho: false,
+                        highlight_color_chirho: slint::SharedString::default(),
                         has_note_chirho: false,
                     })
                     .collect();
