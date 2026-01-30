@@ -1,0 +1,46 @@
+# For God so loved the world that he gave his only begotten Son,
+# that whoever believes in him should not perish but have eternal life.
+# John 3:16
+
+# Rust build artifacts
+/target/
+**/*.rs.bk
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# Logs
+*.log
+logs/
+
+# Database files (local)
+*.db
+*.sqlite
+*.sqlite3
+
+# Coverage
+*.profraw
+coverage/
+lcov.info
+
+# Benchmarks output
+criterion/
+
+# Claude
+.claude/

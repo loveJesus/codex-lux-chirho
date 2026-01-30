@@ -1,0 +1,111 @@
+# Codex Lux Chirho
+
+> For God so loved the world that he gave his only begotten Son,
+> that whoever believes in him should not perish but have eternal life.
+> — John 3:16
+
+**Codex Lux** (Latin: "Codex of Light") is a cross-platform Bible study application built with Rust and Slint UI framework.
+
+## Features
+
+### Current (v0.1.0)
+
+- **Multi-Module Support**: Load and display SWORD Bible modules
+- **Navigation**: Browse all 66 books of the Bible with chapter navigation
+- **Text Display**: Proper rendering of Hebrew (RTL with vowel points) and Greek (with accents)
+- **Highlights**: Click verses to highlight them
+- **Dark Theme**: Professional dark theme with purple accents
+- **Font Scaling**: Adjustable scripture text size
+- **Search Panel**: Search interface (demo mode)
+
+### Planned Features
+
+See [PRD_CHIRHO.json](PRD_CHIRHO.json) for the complete product roadmap with 55+ features including:
+
+- Full-text search with Tantivy
+- Strong's numbers and morphology
+- Cross-references and footnotes
+- Parallel view (multiple translations)
+- Interlinear display with word-by-word gloss
+- Bookmarks, notes, and reading plans
+- Commentary integration
+- Module management (install/uninstall)
+- Mac App Store, iOS, and Android distribution
+
+## Tech Stack
+
+- **Language**: Rust
+- **UI Framework**: [Slint](https://slint.dev/) - Native cross-platform UI
+- **Bible Engine**: rsword_chirho - Pure Rust SWORD library port
+- **Database**: SQLite via rusqlite
+- **Search**: Tantivy full-text search engine
+
+## Building
+
+### Prerequisites
+
+- Rust 1.70 or later
+- Cargo
+
+### Build & Run
+
+```bash
+# Development build
+cargo build
+
+# Run the application
+cargo run
+
+# Release build
+cargo build --release
+
+# Run tests
+cargo test
+
+# Run clippy
+cargo clippy
+```
+
+## Project Structure
+
+```
+codex_lux_chirho/
+├── Cargo.toml              # Rust dependencies
+├── build.rs                # Slint UI compilation
+├── PRD_CHIRHO.json         # Product requirements document
+├── README.md               # This file
+├── src/
+│   └── main.rs             # Application entry point and backend
+└── ui_chirho/
+    └── main_chirho.slint   # Slint UI definition
+```
+
+## Naming Convention
+
+All identifiers follow the Chirho suffix convention:
+- Variables: `variable_name_chirho`
+- Functions: `function_name_chirho`
+- Structs: `StructNameChirho`
+- Constants: `CONSTANT_NAME_CHIRHO`
+
+## License
+
+GPL-2.0-or-later
+
+## Contributing
+
+Contributions welcome! Please ensure:
+- All new code follows the Chirho naming convention
+- John 3:16 comment header on all source files
+- Tests for new functionality
+- No secrets in git (use `.env` files)
+
+## Credits
+
+- SWORD Project for the module format specification
+- Slint UI framework
+- rsword_chirho Rust SWORD library
+
+---
+
+*Soli Deo Gloria*

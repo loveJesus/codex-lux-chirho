@@ -1,0 +1,1109 @@
+{
+  "_comment_chirho": "For God so loved the world that he gave his only begotten Son, that whoever believes in him should not perish but have eternal life. John 3:16",
+  "product_name_chirho": "Codex Lux",
+  "version_chirho": "1.0.0",
+  "description_chirho": "Cross-platform Bible study application - Codex of Light",
+  "tech_stack_chirho": {
+    "language_chirho": "Rust",
+    "ui_framework_chirho": "Slint",
+    "bible_engine_chirho": "rsword_chirho",
+    "database_chirho": "SQLite (rusqlite)",
+    "search_engine_chirho": "Tantivy",
+    "platforms_chirho": ["macOS", "Windows", "Linux", "iOS", "Android"]
+  },
+
+  "features_chirho": {
+    "CLX-001": {
+      "name_chirho": "Multi-Module Support",
+      "category_chirho": "Core",
+      "priority_chirho": "P0",
+      "status_chirho": "partial",
+      "description_chirho": "Support for multiple SWORD module types",
+      "requirements_chirho": [
+        "Load and display Bible modules (RawText, zText)",
+        "Load and display Commentary modules",
+        "Load and display Lexicon/Dictionary modules",
+        "Load and display General Book modules",
+        "Module metadata display (language, version, description)",
+        "Module icons based on type and language"
+      ]
+    },
+
+    "CLX-002": {
+      "name_chirho": "Navigation System",
+      "category_chirho": "Core",
+      "priority_chirho": "P0",
+      "status_chirho": "partial",
+      "description_chirho": "Bible navigation with book/chapter/verse selection",
+      "requirements_chirho": [
+        "Book selector with Old/New Testament grouping",
+        "Chapter grid selector",
+        "Verse jump with autocomplete",
+        "Previous/Next chapter navigation",
+        "Previous/Next book navigation",
+        "Navigation history with back/forward",
+        "Keyboard shortcuts for navigation (Ctrl+G go to verse)",
+        "URL-style reference parsing (John 3:16, Jn 3:16, etc.)",
+        "Support for verse ranges (Gen 1:1-10)"
+      ]
+    },
+
+    "CLX-003": {
+      "name_chirho": "Text Display",
+      "category_chirho": "Core",
+      "priority_chirho": "P0",
+      "status_chirho": "partial",
+      "description_chirho": "Scripture text rendering with formatting",
+      "requirements_chirho": [
+        "Proper text wrapping and layout",
+        "Verse numbers with distinct styling",
+        "Paragraph formatting option",
+        "Poetry/verse formatting preservation",
+        "Red letter display (words of Jesus)",
+        "Section headings display",
+        "Pilcrow markers for paragraph breaks",
+        "Adjustable font size with slider",
+        "Adjustable line height",
+        "Multiple font family selection",
+        "RTL text support (Hebrew, Arabic)",
+        "Complex script rendering (Hebrew vowels, Greek accents)",
+        "Verse-per-line vs paragraph mode toggle"
+      ]
+    },
+
+    "CLX-004": {
+      "name_chirho": "Search Functionality",
+      "category_chirho": "Core",
+      "priority_chirho": "P0",
+      "status_chirho": "not_started",
+      "description_chirho": "Full-text search across modules",
+      "requirements_chirho": [
+        "Full-text search with Tantivy index",
+        "Search within current module",
+        "Search across multiple modules",
+        "Search scope selection (OT, NT, specific books)",
+        "Phrase search with quotes",
+        "Wildcard search support",
+        "Case-insensitive search",
+        "Search results list with context preview",
+        "Click result to navigate to verse",
+        "Search history",
+        "Highlight search terms in results",
+        "Search result count and statistics",
+        "Export search results"
+      ]
+    },
+
+    "CLX-005": {
+      "name_chirho": "Strong's Numbers",
+      "category_chirho": "Study Tools",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Strong's concordance number display and lookup",
+      "requirements_chirho": [
+        "Display Strong's numbers inline or on hover",
+        "Toggle Strong's numbers visibility",
+        "Click Strong's number to open lexicon entry",
+        "Hebrew Strong's (H1-H8674)",
+        "Greek Strong's (G1-G5624)",
+        "Link to installed lexicon modules",
+        "Strong's number search"
+      ]
+    },
+
+    "CLX-006": {
+      "name_chirho": "Morphology Display",
+      "category_chirho": "Study Tools",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Greek and Hebrew morphological analysis",
+      "requirements_chirho": [
+        "Display morphology codes on hover",
+        "Parse morphology into readable format",
+        "Robinson's morphology for Greek",
+        "OSHM morphology for Hebrew",
+        "Toggle morphology visibility",
+        "Morphology legend/help"
+      ]
+    },
+
+    "CLX-007": {
+      "name_chirho": "Cross-References",
+      "category_chirho": "Study Tools",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Scripture cross-reference display",
+      "requirements_chirho": [
+        "Display cross-references for verses",
+        "Click cross-reference to navigate",
+        "Cross-reference popup preview",
+        "Treasury of Scripture Knowledge integration",
+        "Toggle cross-reference visibility"
+      ]
+    },
+
+    "CLX-008": {
+      "name_chirho": "Footnotes",
+      "category_chirho": "Study Tools",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Display translator and textual footnotes",
+      "requirements_chirho": [
+        "Footnote indicators in text",
+        "Footnote popup on click/hover",
+        "Translator notes",
+        "Alternative readings",
+        "Textual variant notes",
+        "Toggle footnotes visibility"
+      ]
+    },
+
+    "CLX-009": {
+      "name_chirho": "Parallel View",
+      "category_chirho": "Display",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Side-by-side module comparison",
+      "requirements_chirho": [
+        "Two-column parallel view",
+        "Three or more column view",
+        "Synchronized scrolling",
+        "Independent scrolling option",
+        "Mix Bible and commentary in parallel",
+        "Interlinear view (original + translation)",
+        "Verse alignment across translations"
+      ]
+    },
+
+    "CLX-010": {
+      "name_chirho": "Bookmarks",
+      "category_chirho": "User Data",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Save and organize favorite verses",
+      "requirements_chirho": [
+        "Add bookmark to current verse",
+        "Bookmark with custom label",
+        "Bookmark folders/categories",
+        "Bookmark list sidebar",
+        "Click bookmark to navigate",
+        "Edit bookmark label",
+        "Delete bookmark",
+        "Export bookmarks",
+        "Import bookmarks",
+        "Bookmark sync across devices"
+      ]
+    },
+
+    "CLX-011": {
+      "name_chirho": "Highlights",
+      "category_chirho": "User Data",
+      "priority_chirho": "P1",
+      "status_chirho": "partial",
+      "description_chirho": "Highlight verses with colors",
+      "requirements_chirho": [
+        "Click verse to highlight",
+        "Multiple highlight colors (yellow, green, blue, pink, orange)",
+        "Custom highlight colors",
+        "Highlight categories/tags",
+        "Remove highlight",
+        "View all highlights list",
+        "Filter by highlight color",
+        "Export highlights"
+      ]
+    },
+
+    "CLX-012": {
+      "name_chirho": "Personal Notes",
+      "category_chirho": "User Data",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Add personal notes to verses",
+      "requirements_chirho": [
+        "Add note to any verse",
+        "Rich text note editor",
+        "Note indicator on verse",
+        "View note on click",
+        "Edit existing note",
+        "Delete note",
+        "Notes list/browser",
+        "Search within notes",
+        "Export notes",
+        "Timestamps on notes"
+      ]
+    },
+
+    "CLX-013": {
+      "name_chirho": "Commentary Integration",
+      "category_chirho": "Study Tools",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Display commentaries alongside scripture",
+      "requirements_chirho": [
+        "Commentary panel/pane",
+        "Auto-sync commentary with current verse",
+        "Multiple commentary tabs",
+        "Commentary search",
+        "Commentary bookmarks"
+      ]
+    },
+
+    "CLX-014": {
+      "name_chirho": "Lexicon/Dictionary",
+      "category_chirho": "Study Tools",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Dictionary and lexicon lookup",
+      "requirements_chirho": [
+        "Lexicon panel/window",
+        "Search lexicon entries",
+        "Browse lexicon alphabetically",
+        "Link from Strong's numbers",
+        "Multiple lexicon support",
+        "Entry history"
+      ]
+    },
+
+    "CLX-015": {
+      "name_chirho": "Module Manager",
+      "category_chirho": "Module Management",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Install and manage SWORD modules",
+      "requirements_chirho": [
+        "List installed modules",
+        "Browse available modules from repositories",
+        "Filter by language",
+        "Filter by type (Bible, Commentary, Lexicon, Book)",
+        "Module details view",
+        "Install module from repository",
+        "Install module from local file",
+        "Uninstall module",
+        "Update module",
+        "Repository management (add/remove sources)",
+        "Download progress indicator",
+        "Module disk space usage"
+      ]
+    },
+
+    "CLX-016": {
+      "name_chirho": "Reading Plans",
+      "category_chirho": "Devotional",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "Bible reading plans and tracking",
+      "requirements_chirho": [
+        "Pre-built reading plans (1-year, chronological, etc.)",
+        "Custom reading plan creation",
+        "Daily reading assignment",
+        "Mark readings as complete",
+        "Progress tracking and statistics",
+        "Reading streak tracking",
+        "Reminders/notifications",
+        "Catch-up mode for missed days"
+      ]
+    },
+
+    "CLX-017": {
+      "name_chirho": "Daily Devotional",
+      "category_chirho": "Devotional",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "Daily verse and devotional content",
+      "requirements_chirho": [
+        "Verse of the day",
+        "Daily devotional modules support",
+        "Historical devotionals (Spurgeon, etc.)",
+        "Share verse of the day"
+      ]
+    },
+
+    "CLX-018": {
+      "name_chirho": "Copy and Share",
+      "category_chirho": "Export",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Copy and share scripture text",
+      "requirements_chirho": [
+        "Copy verse to clipboard",
+        "Copy verse with reference",
+        "Copy multiple verses",
+        "Copy as plain text",
+        "Copy as formatted text",
+        "Share to other apps",
+        "Custom copy format templates",
+        "Include/exclude verse numbers option"
+      ]
+    },
+
+    "CLX-019": {
+      "name_chirho": "Print",
+      "category_chirho": "Export",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "Print scripture passages",
+      "requirements_chirho": [
+        "Print current chapter",
+        "Print selected verses",
+        "Print with/without verse numbers",
+        "Print with notes and highlights",
+        "Print preview",
+        "PDF export"
+      ]
+    },
+
+    "CLX-020": {
+      "name_chirho": "Themes",
+      "category_chirho": "Appearance",
+      "priority_chirho": "P1",
+      "status_chirho": "partial",
+      "description_chirho": "Visual themes and customization",
+      "requirements_chirho": [
+        "Dark theme (default)",
+        "Light theme",
+        "Sepia/paper theme",
+        "High contrast theme",
+        "Custom theme creation",
+        "Auto dark mode based on system",
+        "Accent color customization"
+      ]
+    },
+
+    "CLX-021": {
+      "name_chirho": "Text-to-Speech",
+      "category_chirho": "Accessibility",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "Read scripture aloud",
+      "requirements_chirho": [
+        "Read current verse",
+        "Read current chapter",
+        "Read selection",
+        "Continuous reading mode",
+        "Voice selection",
+        "Speed control",
+        "Pause/resume",
+        "Highlight current word/verse while reading"
+      ]
+    },
+
+    "CLX-022": {
+      "name_chirho": "Keyboard Shortcuts",
+      "category_chirho": "Accessibility",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Keyboard navigation and shortcuts",
+      "requirements_chirho": [
+        "Navigate with arrow keys",
+        "Ctrl+F for search",
+        "Ctrl+G for go to verse",
+        "Ctrl+B for bookmarks",
+        "Ctrl+H for highlights",
+        "Ctrl+N for new note",
+        "Ctrl+P for print",
+        "Ctrl+C for copy",
+        "Customizable shortcuts",
+        "Keyboard shortcut help dialog"
+      ]
+    },
+
+    "CLX-023": {
+      "name_chirho": "Multi-Window",
+      "category_chirho": "Display",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "Multiple window/tab support",
+      "requirements_chirho": [
+        "Open multiple Bible windows",
+        "Tabbed interface",
+        "Detachable windows",
+        "Window synchronization option",
+        "Save window layout",
+        "Restore window layout"
+      ]
+    },
+
+    "CLX-024": {
+      "name_chirho": "Word Study",
+      "category_chirho": "Study Tools",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "In-depth word analysis",
+      "requirements_chirho": [
+        "Select word for study",
+        "Show all occurrences",
+        "Original language word",
+        "Lexicon definitions",
+        "Usage statistics",
+        "Related words",
+        "Word frequency chart"
+      ]
+    },
+
+    "CLX-025": {
+      "name_chirho": "Verse Comparison",
+      "category_chirho": "Study Tools",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "Compare verse across translations",
+      "requirements_chirho": [
+        "Quick comparison popup",
+        "Select translations to compare",
+        "Side-by-side comparison view",
+        "Difference highlighting"
+      ]
+    },
+
+    "CLX-026": {
+      "name_chirho": "Maps",
+      "category_chirho": "Study Tools",
+      "priority_chirho": "P3",
+      "status_chirho": "not_started",
+      "description_chirho": "Biblical maps and geography",
+      "requirements_chirho": [
+        "Interactive Bible maps",
+        "Place name lookup",
+        "Journey routes",
+        "Zoom and pan",
+        "Link places to verses"
+      ]
+    },
+
+    "CLX-027": {
+      "name_chirho": "Timeline",
+      "category_chirho": "Study Tools",
+      "priority_chirho": "P3",
+      "status_chirho": "not_started",
+      "description_chirho": "Biblical timeline and chronology",
+      "requirements_chirho": [
+        "Interactive timeline",
+        "Events and people",
+        "Link timeline to scripture",
+        "Zoom levels (years, centuries, millennia)"
+      ]
+    },
+
+    "CLX-028": {
+      "name_chirho": "Study Journal",
+      "category_chirho": "User Data",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "Personal Bible study journal",
+      "requirements_chirho": [
+        "Create journal entries",
+        "Link entries to verses",
+        "Rich text editor",
+        "Date-based organization",
+        "Tags and categories",
+        "Search journal",
+        "Export journal"
+      ]
+    },
+
+    "CLX-029": {
+      "name_chirho": "Prayer List",
+      "category_chirho": "Devotional",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "Prayer request tracking",
+      "requirements_chirho": [
+        "Add prayer requests",
+        "Link prayers to verses",
+        "Mark prayers as answered",
+        "Prayer categories",
+        "Prayer reminders",
+        "Prayer history"
+      ]
+    },
+
+    "CLX-030": {
+      "name_chirho": "Data Sync",
+      "category_chirho": "Cloud",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "Sync user data across devices",
+      "requirements_chirho": [
+        "Cloud backup of user data",
+        "Sync bookmarks, highlights, notes",
+        "Sync reading progress",
+        "Conflict resolution",
+        "Offline support",
+        "Optional - can work fully offline"
+      ]
+    },
+
+    "CLX-031": {
+      "name_chirho": "Import/Export",
+      "category_chirho": "Data",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "Import and export user data",
+      "requirements_chirho": [
+        "Export all user data as JSON",
+        "Import user data from backup",
+        "Export to other Bible app formats",
+        "Import from other Bible apps",
+        "Export highlights as document"
+      ]
+    },
+
+    "CLX-032": {
+      "name_chirho": "Versification Support",
+      "category_chirho": "Core",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Support multiple versification systems",
+      "requirements_chirho": [
+        "KJV versification",
+        "Catholic versification",
+        "Orthodox versification",
+        "LXX versification",
+        "Vulgate versification",
+        "Luther versification",
+        "Automatic verse mapping between systems"
+      ]
+    },
+
+    "CLX-033": {
+      "name_chirho": "Original Language Tools",
+      "category_chirho": "Study Tools",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "Tools for Hebrew and Greek study",
+      "requirements_chirho": [
+        "Hebrew keyboard input",
+        "Greek keyboard input",
+        "Transliteration display",
+        "Parsing help",
+        "Accent/vowel point toggles",
+        "Cantillation mark toggles"
+      ]
+    },
+
+    "CLX-034": {
+      "name_chirho": "Quick Navigation Bar",
+      "category_chirho": "Navigation",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Command palette style quick navigation",
+      "requirements_chirho": [
+        "Ctrl+K or Cmd+K to open",
+        "Type verse reference to jump",
+        "Fuzzy search book names",
+        "Recent locations",
+        "Search commands"
+      ]
+    },
+
+    "CLX-035": {
+      "name_chirho": "Context Menu",
+      "category_chirho": "UI",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Right-click context menu for verses",
+      "requirements_chirho": [
+        "Copy verse",
+        "Add bookmark",
+        "Add highlight",
+        "Add note",
+        "Compare translations",
+        "Word study",
+        "Share verse"
+      ]
+    },
+
+    "CLX-036": {
+      "name_chirho": "Info Panel",
+      "category_chirho": "UI",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Contextual information sidebar",
+      "requirements_chirho": [
+        "Show verse details on selection",
+        "Strong's numbers info",
+        "Cross-references",
+        "Footnotes",
+        "Commentary excerpts",
+        "Collapsible sections"
+      ]
+    },
+
+    "CLX-037": {
+      "name_chirho": "Statistics",
+      "category_chirho": "Tracking",
+      "priority_chirho": "P3",
+      "status_chirho": "not_started",
+      "description_chirho": "Reading and study statistics",
+      "requirements_chirho": [
+        "Chapters read count",
+        "Reading time tracking",
+        "Books completed",
+        "Reading streaks",
+        "Highlight statistics",
+        "Note count",
+        "Visual progress charts"
+      ]
+    },
+
+    "CLX-038": {
+      "name_chirho": "Onboarding",
+      "category_chirho": "UX",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "First-run setup and tutorial",
+      "requirements_chirho": [
+        "Welcome screen",
+        "Module installation wizard",
+        "Feature tour",
+        "Keyboard shortcuts guide",
+        "Sample data option"
+      ]
+    },
+
+    "CLX-039": {
+      "name_chirho": "Settings",
+      "category_chirho": "Configuration",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Application settings panel",
+      "requirements_chirho": [
+        "Display settings",
+        "Font settings",
+        "Theme settings",
+        "Module paths",
+        "Keyboard shortcuts",
+        "Default module selection",
+        "Language selection",
+        "Backup/restore settings"
+      ]
+    },
+
+    "CLX-040": {
+      "name_chirho": "Audio Bible",
+      "category_chirho": "Media",
+      "priority_chirho": "P3",
+      "status_chirho": "not_started",
+      "description_chirho": "Audio Bible playback",
+      "requirements_chirho": [
+        "Play audio for current chapter",
+        "Audio Bible module support",
+        "Playback controls",
+        "Speed control",
+        "Verse-synchronized highlighting",
+        "Background playback"
+      ]
+    },
+
+    "CLX-041": {
+      "name_chirho": "Offline Mode",
+      "category_chirho": "Core",
+      "priority_chirho": "P0",
+      "status_chirho": "complete",
+      "description_chirho": "Full functionality without internet",
+      "requirements_chirho": [
+        "All features work offline",
+        "Local module storage",
+        "Local user data storage",
+        "No required cloud dependencies"
+      ]
+    },
+
+    "CLX-042": {
+      "name_chirho": "Mac App Store",
+      "category_chirho": "Distribution",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Mac App Store distribution",
+      "requirements_chirho": [
+        "App sandboxing compliance",
+        "Code signing",
+        "Notarization",
+        "App Store metadata",
+        "Screenshots",
+        "Privacy policy",
+        "In-app purchase for premium features (optional)"
+      ]
+    },
+
+    "CLX-043": {
+      "name_chirho": "iOS App",
+      "category_chirho": "Distribution",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "iOS mobile app",
+      "requirements_chirho": [
+        "Touch-optimized UI",
+        "iOS native gestures",
+        "Share extension",
+        "Widget support",
+        "Siri shortcuts",
+        "iCloud sync option"
+      ]
+    },
+
+    "CLX-044": {
+      "name_chirho": "Android App",
+      "category_chirho": "Distribution",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "Android mobile app",
+      "requirements_chirho": [
+        "Material Design UI",
+        "Touch-optimized navigation",
+        "Share integration",
+        "Widget support",
+        "Google Drive sync option"
+      ]
+    },
+
+    "CLX-045": {
+      "name_chirho": "Performance Optimization",
+      "category_chirho": "Core",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Fast loading and smooth performance",
+      "requirements_chirho": [
+        "Fast app startup (<2 seconds)",
+        "Smooth scrolling",
+        "Lazy loading of large chapters",
+        "Efficient memory usage",
+        "Background indexing",
+        "Caching for frequently accessed content"
+      ]
+    },
+
+    "CLX-046": {
+      "name_chirho": "Accessibility",
+      "category_chirho": "Accessibility",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Full accessibility support",
+      "requirements_chirho": [
+        "Screen reader support",
+        "VoiceOver (macOS/iOS)",
+        "TalkBack (Android)",
+        "High contrast mode",
+        "Reduced motion option",
+        "Focus indicators",
+        "ARIA labels where applicable"
+      ]
+    },
+
+    "CLX-047": {
+      "name_chirho": "Localization",
+      "category_chirho": "Internationalization",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "Multi-language UI",
+      "requirements_chirho": [
+        "English (default)",
+        "Spanish",
+        "Portuguese",
+        "French",
+        "German",
+        "Korean",
+        "Chinese (Simplified/Traditional)",
+        "RTL language support (Arabic, Hebrew)"
+      ]
+    },
+
+    "CLX-048": {
+      "name_chirho": "Verse Memory",
+      "category_chirho": "Devotional",
+      "priority_chirho": "P3",
+      "status_chirho": "not_started",
+      "description_chirho": "Scripture memorization tools",
+      "requirements_chirho": [
+        "Add verses to memorization list",
+        "Flashcard mode",
+        "Fill-in-the-blank practice",
+        "First letter hints",
+        "Progress tracking",
+        "Spaced repetition scheduling",
+        "Review reminders"
+      ]
+    },
+
+    "CLX-049": {
+      "name_chirho": "Topical Index",
+      "category_chirho": "Study Tools",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "Browse Bible by topic",
+      "requirements_chirho": [
+        "Nave's Topical Bible integration",
+        "Topic search",
+        "Topic categories",
+        "Custom topic lists",
+        "Link topics to verses"
+      ]
+    },
+
+    "CLX-050": {
+      "name_chirho": "Bible Study Plans",
+      "category_chirho": "Study Tools",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "Guided Bible study curricula",
+      "requirements_chirho": [
+        "Pre-built study plans",
+        "Book-by-book studies",
+        "Character studies",
+        "Thematic studies",
+        "Study questions and prompts",
+        "Progress tracking"
+      ]
+    },
+
+    "CLX-051": {
+      "name_chirho": "Interlinear Display",
+      "category_chirho": "Study Tools",
+      "priority_chirho": "P1",
+      "status_chirho": "not_started",
+      "description_chirho": "Word-by-word interlinear Bible display with original language, transliteration, and gloss",
+      "requirements_chirho": [
+        "Word-by-word Hebrew/Greek display",
+        "Gloss (English meaning) underneath each word",
+        "Transliteration line (Hebrew/Greek in Latin characters)",
+        "Morphology tags per word",
+        "Strong's numbers per word",
+        "Click word to expand full lexicon entry",
+        "Toggle display layers (original, transliteration, morphology, gloss)",
+        "Configurable display order of layers",
+        "Support for reverse interlinear (English with Hebrew/Greek underneath)",
+        "Color coding by part of speech",
+        "Parsing information popup on hover",
+        "Link to lexicon/dictionary entries",
+        "Support for both Hebrew OT and Greek NT interlinears",
+        "LXX (Septuagint) interlinear support",
+        "Alignment with standard Bible text in parallel column",
+        "Export interlinear as formatted text",
+        "Print interlinear with proper formatting"
+      ]
+    },
+
+    "CLX-052": {
+      "name_chirho": "Grammar Diagrams",
+      "category_chirho": "Study Tools",
+      "priority_chirho": "P3",
+      "status_chirho": "not_started",
+      "description_chirho": "Visual sentence diagrams for original languages",
+      "requirements_chirho": [
+        "Syntax tree visualization",
+        "Clause structure display",
+        "Subject-verb-object highlighting",
+        "Modifier relationships",
+        "Discourse analysis markers",
+        "Exportable diagram images"
+      ]
+    },
+
+    "CLX-053": {
+      "name_chirho": "Manuscript Variants",
+      "category_chirho": "Study Tools",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "Display textual variants from manuscript traditions",
+      "requirements_chirho": [
+        "Critical apparatus display",
+        "Manuscript witness information",
+        "Byzantine vs Alexandrian variants",
+        "Dead Sea Scrolls variants for OT",
+        "Variant reading comparison",
+        "Scholarly notation support"
+      ]
+    },
+
+    "CLX-054": {
+      "name_chirho": "Hebrew Cantillation",
+      "category_chirho": "Study Tools",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "Display and explain Hebrew cantillation marks (te'amim)",
+      "requirements_chirho": [
+        "Cantillation mark display toggle",
+        "Mark name tooltip on hover",
+        "Disjunctive vs conjunctive marking",
+        "Clause division visualization",
+        "Audio pronunciation of cantillation",
+        "Trope pattern identification"
+      ]
+    },
+
+    "CLX-055": {
+      "name_chirho": "Scripture Memory Flashcards",
+      "category_chirho": "Devotional",
+      "priority_chirho": "P2",
+      "status_chirho": "not_started",
+      "description_chirho": "Spaced repetition flashcards for memorizing verses",
+      "requirements_chirho": [
+        "Create flashcard from any verse",
+        "Spaced repetition algorithm (SM-2)",
+        "Multiple card formats (reference→text, text→reference, fill-blank)",
+        "Progress statistics",
+        "Daily review reminders",
+        "Streak tracking",
+        "Export/import card decks"
+      ]
+    }
+  },
+
+  "milestones_chirho": {
+    "M1_chirho": {
+      "name_chirho": "MVP - Basic Bible Reading",
+      "target_date_chirho": "2025-Q1",
+      "features_chirho": ["CLX-001", "CLX-002", "CLX-003", "CLX-020", "CLX-041"]
+    },
+    "M2_chirho": {
+      "name_chirho": "Search and Study Tools",
+      "target_date_chirho": "2025-Q2",
+      "features_chirho": ["CLX-004", "CLX-005", "CLX-006", "CLX-007", "CLX-008", "CLX-014"]
+    },
+    "M3_chirho": {
+      "name_chirho": "User Data and Annotations",
+      "target_date_chirho": "2025-Q2",
+      "features_chirho": ["CLX-010", "CLX-011", "CLX-012", "CLX-018", "CLX-022"]
+    },
+    "M4_chirho": {
+      "name_chirho": "Module Management",
+      "target_date_chirho": "2025-Q3",
+      "features_chirho": ["CLX-015", "CLX-009", "CLX-013", "CLX-032"]
+    },
+    "M5_chirho": {
+      "name_chirho": "Mac App Store Release",
+      "target_date_chirho": "2025-Q3",
+      "features_chirho": ["CLX-042", "CLX-038", "CLX-039", "CLX-045", "CLX-046"]
+    },
+    "M6_chirho": {
+      "name_chirho": "Mobile Apps",
+      "target_date_chirho": "2025-Q4",
+      "features_chirho": ["CLX-043", "CLX-044"]
+    },
+    "M7_chirho": {
+      "name_chirho": "Advanced Study Features",
+      "target_date_chirho": "2026-Q1",
+      "features_chirho": ["CLX-024", "CLX-025", "CLX-033", "CLX-049", "CLX-050", "CLX-051", "CLX-053", "CLX-054"]
+    },
+    "M8_chirho": {
+      "name_chirho": "Devotional Features",
+      "target_date_chirho": "2026-Q2",
+      "features_chirho": ["CLX-016", "CLX-017", "CLX-028", "CLX-029", "CLX-048"]
+    }
+  },
+
+  "database_schema_chirho": {
+    "tables_chirho": {
+      "bookmarks_chirho": {
+        "columns_chirho": [
+          "id_chirho INTEGER PRIMARY KEY",
+          "module_chirho TEXT",
+          "book_chirho TEXT",
+          "chapter_chirho INTEGER",
+          "verse_chirho INTEGER",
+          "verse_end_chirho INTEGER",
+          "label_chirho TEXT",
+          "folder_id_chirho INTEGER",
+          "created_at_chirho DATETIME",
+          "updated_at_chirho DATETIME"
+        ]
+      },
+      "bookmark_folders_chirho": {
+        "columns_chirho": [
+          "id_chirho INTEGER PRIMARY KEY",
+          "name_chirho TEXT",
+          "parent_id_chirho INTEGER",
+          "sort_order_chirho INTEGER"
+        ]
+      },
+      "highlights_chirho": {
+        "columns_chirho": [
+          "id_chirho INTEGER PRIMARY KEY",
+          "module_chirho TEXT",
+          "book_chirho TEXT",
+          "chapter_chirho INTEGER",
+          "verse_chirho INTEGER",
+          "color_chirho TEXT",
+          "created_at_chirho DATETIME"
+        ]
+      },
+      "notes_chirho": {
+        "columns_chirho": [
+          "id_chirho INTEGER PRIMARY KEY",
+          "module_chirho TEXT",
+          "book_chirho TEXT",
+          "chapter_chirho INTEGER",
+          "verse_chirho INTEGER",
+          "content_chirho TEXT",
+          "created_at_chirho DATETIME",
+          "updated_at_chirho DATETIME"
+        ]
+      },
+      "reading_history_chirho": {
+        "columns_chirho": [
+          "id_chirho INTEGER PRIMARY KEY",
+          "module_chirho TEXT",
+          "book_chirho TEXT",
+          "chapter_chirho INTEGER",
+          "timestamp_chirho DATETIME"
+        ]
+      },
+      "reading_plans_chirho": {
+        "columns_chirho": [
+          "id_chirho INTEGER PRIMARY KEY",
+          "name_chirho TEXT",
+          "description_chirho TEXT",
+          "start_date_chirho DATE",
+          "current_day_chirho INTEGER"
+        ]
+      },
+      "reading_plan_entries_chirho": {
+        "columns_chirho": [
+          "id_chirho INTEGER PRIMARY KEY",
+          "plan_id_chirho INTEGER",
+          "day_number_chirho INTEGER",
+          "book_chirho TEXT",
+          "chapter_start_chirho INTEGER",
+          "chapter_end_chirho INTEGER",
+          "completed_chirho BOOLEAN",
+          "completed_at_chirho DATETIME"
+        ]
+      },
+      "journal_entries_chirho": {
+        "columns_chirho": [
+          "id_chirho INTEGER PRIMARY KEY",
+          "title_chirho TEXT",
+          "content_chirho TEXT",
+          "verse_refs_chirho TEXT",
+          "tags_chirho TEXT",
+          "created_at_chirho DATETIME",
+          "updated_at_chirho DATETIME"
+        ]
+      },
+      "settings_chirho": {
+        "columns_chirho": [
+          "key_chirho TEXT PRIMARY KEY",
+          "value_chirho TEXT"
+        ]
+      }
+    }
+  },
+
+  "ui_constants_chirho": {
+    "labels_chirho": {
+      "TRANSLATION_LABEL_CHIRHO": "TRANSLATION",
+      "BOOKS_LABEL_CHIRHO": "BOOKS",
+      "SEARCH_LABEL_CHIRHO": "SEARCH",
+      "NOTE_INDICATOR_CHIRHO": "N",
+      "SEPARATOR_CHIRHO": "•"
+    },
+    "icons_chirho": {
+      "MENU_ICON_CHIRHO": "☰",
+      "SEARCH_ICON_CHIRHO": "🔍",
+      "SETTINGS_ICON_CHIRHO": "⚙",
+      "CLOSE_ICON_CHIRHO": "✕",
+      "STAR_ICON_CHIRHO": "✦",
+      "NAV_PREV_CHIRHO": "‹",
+      "NAV_NEXT_CHIRHO": "›"
+    }
+  }
+}

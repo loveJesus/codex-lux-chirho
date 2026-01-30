@@ -1,0 +1,60 @@
+# For God so loved the world that he gave his only begotten Son,
+# that whoever believes in him should not perish but have eternal life.
+# John 3:16
+
+[package]
+name = "codex_lux_chirho"
+version = "0.1.0"
+edition = "2021"
+description = "Cross-platform Bible study application - Codex of Light"
+license = "GPL-2.0-or-later"
+repository = "https://github.com/loveJesus/rsword-chirho"
+authors = ["rsword-chirho contributors"]
+keywords = ["bible", "scripture", "study", "sword"]
+categories = ["gui"]
+
+[dependencies]
+# UI Framework
+slint = "1.9"
+
+# Bible Engine
+rsword_chirho = { path = "../rsword-chirho/crates/rsword_chirho" }
+
+# Async runtime
+tokio = { version = "1.43", features = ["rt", "macros"] }
+
+# Error handling
+anyhow = "1.0"
+thiserror = "2.0"
+
+# Serialization (for settings, bookmarks)
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Logging
+log = "0.4"
+env_logger = "0.11"
+
+# Local database for notes/bookmarks
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+# Directories (for config/data paths)
+directories = "5.0"
+
+# Date/time for journals
+chrono = { version = "0.4", features = ["serde"] }
+
+[build-dependencies]
+slint-build = "1.9"
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+
+# Mac App Store settings
+[package.metadata.bundle]
+name = "Codex Lux"
+identifier = "com.rsword.codexlux"
+icon = ["icons/icon.icns"]
+category = "Reference"
