@@ -11,6 +11,10 @@ use log::{info, warn, debug};
 use rusqlite::{Connection, params};
 use directories::ProjectDirs;
 
+// For clipboard functionality
+#[cfg(target_os = "macos")]
+use std::process::Command as StdCommand;
+
 slint::include_modules!();
 
 // ============================================================================
@@ -1119,11 +1123,95 @@ fn main() -> Result<(), slint::PlatformError> {
         });
     }
 
+    // Set up copy verse callback
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_copy_verse_chirho(move |reference_chirho, text_chirho| {
+            let formatted_text_chirho = format!("{} - {}", text_chirho, reference_chirho);
+            if copy_to_clipboard_chirho(&formatted_text_chirho) {
+                info!("Copied verse to clipboard: {}", reference_chirho);
+                if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                    let state_chirho = window_chirho.global::<AppStateChirho>();
+                    state_chirho.set_status_message_chirho(
+                        format!("Copied {} to clipboard", reference_chirho).into()
+                    );
+                }
+            } else {
+                warn!("Failed to copy to clipboard");
+            }
+        });
+    }
+
     // Set initial status
     app_state_chirho.set_status_message_chirho("Welcome to Codex Lux - Your Bible Study Companion".into());
 
     // Run the application
     main_window_chirho.run()
+}
+
+// ============================================================================
+// Clipboard Support
+// ============================================================================
+
+/// Copy text to the system clipboard (cross-platform)
+fn copy_to_clipboard_chirho(text_chirho: &str) -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        use std::io::Write;
+        if let Ok(mut child_chirho) = StdCommand::new("pbcopy")
+            .stdin(std::process::Stdio::piped())
+            .spawn()
+        {
+            if let Some(stdin_chirho) = child_chirho.stdin.as_mut() {
+                if stdin_chirho.write_all(text_chirho.as_bytes()).is_ok() {
+                    return child_chirho.wait().map(|s_chirho| s_chirho.success()).unwrap_or(false);
+                }
+            }
+        }
+        false
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        use std::io::Write;
+        // Try xclip first, then xsel
+        if let Ok(mut child_chirho) = std::process::Command::new("xclip")
+            .args(["-selection", "clipboard"])
+            .stdin(std::process::Stdio::piped())
+            .spawn()
+        {
+            if let Some(stdin_chirho) = child_chirho.stdin.as_mut() {
+                if stdin_chirho.write_all(text_chirho.as_bytes()).is_ok() {
+                    return child_chirho.wait().map(|s_chirho| s_chirho.success()).unwrap_or(false);
+                }
+            }
+        }
+        false
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        use std::io::Write;
+        if let Ok(mut child_chirho) = std::process::Command::new("cmd")
+            .args(["/C", "clip"])
+            .stdin(std::process::Stdio::piped())
+            .spawn()
+        {
+            if let Some(stdin_chirho) = child_chirho.stdin.as_mut() {
+                if stdin_chirho.write_all(text_chirho.as_bytes()).is_ok() {
+                    return child_chirho.wait().map(|s_chirho| s_chirho.success()).unwrap_or(false);
+                }
+            }
+        }
+        false
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+    {
+        let _ = text_chirho;
+        false
+    }
 }
 
 // ============================================================================

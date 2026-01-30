@@ -438,6 +438,59 @@ component VerseViewChirho inherits Rectangle {
             horizontal-stretch: 1;
         }
 
+        // Action buttons (visible on hover)
+        if verse-touch-chirho.has-hover: HorizontalLayout {
+            spacing: 4px;
+
+            // Copy button
+            Rectangle {
+                width: 24px;
+                height: 24px;
+                background: copy-touch-chirho.has-hover ? ThemeChirho.accent-chirho : ThemeChirho.background-elevated-chirho;
+                border-radius: 12px;
+
+                Text {
+                    text: LabelsChirho.copy-icon-chirho;
+                    font-size: 12px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+
+                copy-touch-chirho := TouchArea {
+                    clicked => {
+                        AppStateChirho.copy-verse-chirho(
+                            AppStateChirho.current-book-chirho + " " + AppStateChirho.current-chapter-chirho + ":" + verse-chirho.reference-chirho,
+                            verse-chirho.text-chirho
+                        );
+                    }
+                    mouse-cursor: pointer;
+                }
+            }
+
+            // Bookmark button
+            Rectangle {
+                width: 24px;
+                height: 24px;
+                background: bookmark-touch-chirho.has-hover ? ThemeChirho.accent-chirho : ThemeChirho.background-elevated-chirho;
+                border-radius: 12px;
+
+                Text {
+                    text: LabelsChirho.bookmark-icon-chirho;
+                    font-size: 12px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+
+                bookmark-touch-chirho := TouchArea {
+                    clicked => {
+                        // Toggle highlight for now (bookmark UI to be added later)
+                        AppStateChirho.toggle-highlight-chirho(verse-chirho.reference-chirho);
+                    }
+                    mouse-cursor: pointer;
+                }
+            }
+        }
+
         if verse-chirho.has-note-chirho: Rectangle {
             width: 20px;
             height: 20px;

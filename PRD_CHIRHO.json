@@ -5,8 +5,8 @@
   "current_milestone_chirho": "M1_partial",
   "implementation_status_chirho": {
     "completed_chirho": 1,
-    "partial_chirho": 10,
-    "not_started_chirho": 44,
+    "partial_chirho": 11,
+    "not_started_chirho": 43,
     "total_chirho": 55
   },
   "description_chirho": "Cross-platform Bible study application - Codex of Light",
@@ -380,7 +380,13 @@
       "name_chirho": "Copy and Share",
       "category_chirho": "Export",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
+      "completed_items_chirho": [
+        "Copy verse to clipboard (cross-platform: macOS, Linux, Windows)",
+        "Copy verse with reference (format: 'text - Book Chapter:Verse')",
+        "Copy button visible on verse hover",
+        "Status message feedback on copy"
+      ],
       "description_chirho": "Copy and share scripture text",
       "requirements_chirho": [
         "Copy verse to clipboard",
