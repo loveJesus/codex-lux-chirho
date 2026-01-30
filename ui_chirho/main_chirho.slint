@@ -717,25 +717,69 @@ export component MainWindowChirho inherits Window {
     preferred-height: 820px;
     background: ThemeChirho.background-primary-chirho;
 
-    VerticalLayout {
-        ToolbarChirho {}
-
-        SearchPanelChirho {
-            visible-chirho: AppStateChirho.search-active-chirho;
+    // Keyboard shortcuts
+    FocusScope {
+        key-pressed(event-chirho) => {
+            // Left arrow: Previous chapter
+            if (event-chirho.text == Key.LeftArrow && !event-chirho.modifiers.control) {
+                if (AppStateChirho.current-chapter-chirho > 1) {
+                    AppStateChirho.navigate-to-chirho(
+                        AppStateChirho.current-book-chirho,
+                        AppStateChirho.current-chapter-chirho - 1,
+                        1
+                    );
+                }
+                return accept;
+            }
+            // Right arrow: Next chapter
+            if (event-chirho.text == Key.RightArrow && !event-chirho.modifiers.control) {
+                AppStateChirho.navigate-to-chirho(
+                    AppStateChirho.current-book-chirho,
+                    AppStateChirho.current-chapter-chirho + 1,
+                    1
+                );
+                return accept;
+            }
+            // Ctrl+F: Toggle search
+            if (event-chirho.text == "f" && event-chirho.modifiers.control) {
+                AppStateChirho.search-active-chirho = !AppStateChirho.search-active-chirho;
+                return accept;
+            }
+            // Escape: Close search
+            if (event-chirho.text == Key.Escape) {
+                if (AppStateChirho.search-active-chirho) {
+                    AppStateChirho.search-active-chirho = false;
+                    return accept;
+                }
+            }
+            // B: Toggle sidebar (books panel)
+            if (event-chirho.text == "b" && event-chirho.modifiers.control) {
+                AppStateChirho.sidebar-visible-chirho = !AppStateChirho.sidebar-visible-chirho;
+                return accept;
+            }
+            return reject;
         }
 
-        HorizontalLayout {
-            vertical-stretch: 1;
+        VerticalLayout {
+            ToolbarChirho {}
 
-            if AppStateChirho.sidebar-visible-chirho: SidebarChirho {
-                animate width { duration: 200ms; easing: ease-out; }
+            SearchPanelChirho {
+                visible-chirho: AppStateChirho.search-active-chirho;
             }
 
-            BibleViewChirho {
-                horizontal-stretch: 1;
+            HorizontalLayout {
+                vertical-stretch: 1;
+
+                if AppStateChirho.sidebar-visible-chirho: SidebarChirho {
+                    animate width { duration: 200ms; easing: ease-out; }
+                }
+
+                BibleViewChirho {
+                    horizontal-stretch: 1;
+                }
             }
+
+            StatusBarChirho {}
         }
-
-        StatusBarChirho {}
     }
 }

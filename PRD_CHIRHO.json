@@ -49,7 +49,8 @@
         "Book selector with list of all 66 books",
         "Chapter navigation via prev/next buttons",
         "Direct book click navigation",
-        "Reading history stored in database"
+        "Reading history stored in database",
+        "Keyboard shortcuts (Left/Right arrows for chapter, Ctrl+F search, Ctrl+B sidebar, Escape to close)"
       ],
       "description_chirho": "Bible navigation with book/chapter/verse selection",
       "requirements_chirho": [
