@@ -5,8 +5,8 @@
   "current_milestone_chirho": "M1_partial",
   "implementation_status_chirho": {
     "completed_chirho": 1,
-    "partial_chirho": 12,
-    "not_started_chirho": 42,
+    "partial_chirho": 15,
+    "not_started_chirho": 39,
     "total_chirho": 55
   },
   "description_chirho": "Cross-platform Bible study application - Codex of Light",
@@ -46,15 +46,20 @@
       "priority_chirho": "P0",
       "status_chirho": "partial",
       "completed_items_chirho": [
+        "Book selector with Old/New Testament grouping headers",
         "Book selector with list of all 66 books",
         "Chapter navigation via prev/next buttons",
         "Direct book click navigation",
         "Reading history stored in database",
+        "Reading history panel with recent locations",
+        "Click history entry to navigate",
         "Keyboard shortcuts (Left/Right arrows for chapter, Ctrl+F search, Ctrl+B sidebar, Ctrl+G goto, Escape to close)",
         "Ctrl+G goto verse dialog with reference parsing",
         "URL-style reference parsing (John 3:16, Jn 3:16, Gen 1:1, 1Cor 13:4, etc.)",
         "Support for abbreviated book names",
-        "Support for numbered books (1 Samuel, 2 Kings, 1 Corinthians, etc.)"
+        "Support for numbered books (1 Samuel, 2 Kings, 1 Corinthians, etc.)",
+        "Chapter grid selector dialog (click chapter display to open)",
+        "Visual highlight for current chapter in grid selector"
       ],
       "description_chirho": "Bible navigation with book/chapter/verse selection",
       "requirements_chirho": [
@@ -79,8 +84,10 @@
         "Proper text wrapping and layout",
         "Verse numbers with distinct styling",
         "Adjustable font size with slider",
+        "Adjustable line height with slider in settings",
         "RTL text support (Hebrew, Arabic) - renders correctly",
-        "Complex script rendering (Hebrew vowels, Greek accents)"
+        "Complex script rendering (Hebrew vowels, Greek accents)",
+        "Verse-per-line vs paragraph mode toggle in settings"
       ],
       "description_chirho": "Scripture text rendering with formatting",
       "requirements_chirho": [
@@ -221,7 +228,10 @@
         "Remove bookmark function",
         "Get all bookmarks function",
         "Check if verse is bookmarked function",
-        "Unit tests for bookmark operations"
+        "Unit tests for bookmark operations",
+        "Bookmark list sidebar panel (Ctrl+D toggle)",
+        "Click bookmark to navigate to verse",
+        "Toggle bookmark from verse actions"
       ],
       "description_chirho": "Save and organize favorite verses",
       "requirements_chirho": [
@@ -247,10 +257,12 @@
         "Click verse to highlight (toggle)",
         "Highlights persisted in SQLite database",
         "Visual highlight indicator with colored bar",
-        "Multiple highlight colors (yellow, green, blue, pink, orange) - backend complete",
+        "Multiple highlight colors (yellow, green, blue, pink, orange)",
         "Add highlight with specific color function",
         "Get highlights with color information function",
-        "Dynamic highlight color rendering in UI"
+        "Dynamic highlight color rendering in UI",
+        "Color picker swatches on verse hover for easy color selection",
+        "Border indicator for current highlight color"
       ],
       "description_chirho": "Highlight verses with colors",
       "requirements_chirho": [
@@ -278,7 +290,10 @@
         "Get all notes function",
         "Search within notes function",
         "Note indicator displayed on verse (UI)",
-        "Unit tests for all note operations"
+        "Unit tests for all note operations",
+        "Note editing dialog with save/delete buttons",
+        "Note button on verse hover actions",
+        "Open existing note when clicking note button"
       ],
       "description_chirho": "Add personal notes to verses",
       "requirements_chirho": [
@@ -475,10 +490,12 @@
         "Ctrl+G for goto verse dialog",
         "Ctrl+B for sidebar/books panel toggle",
         "Ctrl+T for theme toggle",
+        "Ctrl+D for bookmarks panel toggle",
         "Escape to close dialogs",
         "Goto verse dialog with reference parsing",
         "Support for abbreviated book names (Gen, Jn, Rev, etc.)",
-        "Support for numbered books (1Cor, 2Tim, etc.)"
+        "Support for numbered books (1Cor, 2Tim, etc.)",
+        "Keyboard shortcut help dialog in settings"
       ],
       "description_chirho": "Keyboard navigation and shortcuts",
       "requirements_chirho": [
@@ -757,8 +774,10 @@
         "Settings panel UI with modal dialog",
         "Display settings section (dark mode toggle)",
         "Font settings section (font size slider)",
+        "Line height setting with slider",
+        "Paragraph mode toggle switch",
         "Theme settings (dark mode toggle with visual switch)",
-        "Keyboard shortcuts reference list",
+        "Keyboard shortcuts reference list with all shortcuts",
         "About section with version info",
         "Settings button in toolbar"
       ],

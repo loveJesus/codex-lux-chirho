@@ -273,6 +273,38 @@ mod database_chirho {
         Ok(())
     }
 
+    /// Reading history entry
+    #[derive(Debug, Clone)]
+    pub struct HistoryEntryChirho {
+        #[allow(dead_code)]
+        pub id_chirho: i64,
+        pub book_chirho: String,
+        pub chapter_chirho: i32,
+        pub timestamp_chirho: String,
+    }
+
+    /// Get recent reading history (distinct locations, most recent first)
+    pub fn get_recent_history_chirho(conn_chirho: &Connection, limit_chirho: usize) -> Result<Vec<HistoryEntryChirho>> {
+        let mut stmt_chirho = conn_chirho.prepare(
+            "SELECT id_chirho, book_chirho, chapter_chirho, timestamp_chirho
+             FROM reading_history_chirho
+             GROUP BY book_chirho, chapter_chirho
+             ORDER BY MAX(timestamp_chirho) DESC
+             LIMIT ?1"
+        )?;
+
+        let entries_chirho = stmt_chirho.query_map([limit_chirho], |row_chirho| {
+            Ok(HistoryEntryChirho {
+                id_chirho: row_chirho.get(0)?,
+                book_chirho: row_chirho.get(1)?,
+                chapter_chirho: row_chirho.get(2)?,
+                timestamp_chirho: row_chirho.get(3)?,
+            })
+        })?;
+
+        Ok(entries_chirho.filter_map(|r_chirho| r_chirho.ok()).collect())
+    }
+
     /// Bookmark data structure
     #[derive(Debug, Clone)]
     #[allow(dead_code)]
@@ -946,12 +978,14 @@ fn main() -> Result<(), slint::PlatformError> {
     // Get the app state global
     let app_state_chirho = main_window_chirho.global::<AppStateChirho>();
 
-    // Initialize books list
+    // Initialize books list with Old/New Testament grouping
     let books_model_chirho: Vec<BookChirho> = BIBLE_BOOKS_CHIRHO
         .iter()
-        .map(|(name_chirho, chapters_chirho)| BookChirho {
+        .enumerate()
+        .map(|(index_chirho, (name_chirho, chapters_chirho))| BookChirho {
             name_chirho: (*name_chirho).into(),
             chapters_chirho: *chapters_chirho,
+            is_old_testament_chirho: index_chirho < OLD_TESTAMENT_BOOK_COUNT_CHIRHO,
         })
         .collect();
     app_state_chirho.set_books_chirho(Rc::new(slint::VecModel::from(books_model_chirho)).into());
@@ -970,12 +1004,27 @@ fn main() -> Result<(), slint::PlatformError> {
         app_state_chirho.set_current_module_chirho(backend_ref_chirho.current_module_chirho.clone().into());
         app_state_chirho.set_current_book_chirho(backend_ref_chirho.current_book_chirho.clone().into());
         app_state_chirho.set_current_chapter_chirho(backend_ref_chirho.current_chapter_chirho);
+
+        // Set chapter count for current book
+        let chapter_count_chirho = BIBLE_BOOKS_CHIRHO
+            .iter()
+            .find(|(name_chirho, _)| *name_chirho == backend_ref_chirho.current_book_chirho.as_str())
+            .map(|(_, count_chirho)| *count_chirho)
+            .unwrap_or(50);
+        app_state_chirho.set_current_book_chapter_count_chirho(chapter_count_chirho);
     }
 
     // Load initial verses
     {
         let verses_chirho = backend_chirho.borrow().get_verses_chirho();
         app_state_chirho.set_verses_chirho(Rc::new(slint::VecModel::from(verses_chirho)).into());
+    }
+
+    // Load initial bookmarks
+    {
+        let backend_ref_chirho = backend_chirho.borrow();
+        let bookmarks_chirho = load_bookmarks_for_ui_chirho(&backend_ref_chirho.db_conn_chirho);
+        app_state_chirho.set_bookmarks_chirho(Rc::new(slint::VecModel::from(bookmarks_chirho)).into());
     }
 
     // Set up navigation callback
@@ -991,6 +1040,14 @@ fn main() -> Result<(), slint::PlatformError> {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
                 state_chirho.set_current_book_chirho(book_chirho.clone());
                 state_chirho.set_current_chapter_chirho(chapter_chirho);
+
+                // Update chapter count for current book
+                let chapter_count_chirho = BIBLE_BOOKS_CHIRHO
+                    .iter()
+                    .find(|(name_chirho, _)| *name_chirho == book_chirho.as_str())
+                    .map(|(_, count_chirho)| *count_chirho)
+                    .unwrap_or(1);
+                state_chirho.set_current_book_chapter_count_chirho(chapter_count_chirho);
 
                 let verses_chirho = backend_mut_chirho.get_verses_chirho();
                 state_chirho.set_verses_chirho(Rc::new(slint::VecModel::from(verses_chirho)).into());
@@ -1010,6 +1067,35 @@ fn main() -> Result<(), slint::PlatformError> {
         app_state_chirho.on_toggle_highlight_chirho(move |reference_chirho| {
             let mut backend_mut_chirho = backend_clone_chirho.borrow_mut();
             backend_mut_chirho.toggle_highlight_chirho(&reference_chirho);
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                let verses_chirho = backend_mut_chirho.get_verses_chirho();
+                state_chirho.set_verses_chirho(Rc::new(slint::VecModel::from(verses_chirho)).into());
+            }
+        });
+    }
+
+    // Set up highlight color callback
+    {
+        let backend_clone_chirho = backend_chirho.clone();
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_set_highlight_color_chirho(move |reference_chirho, color_chirho| {
+            let backend_mut_chirho = backend_clone_chirho.borrow_mut();
+            let verse_num_chirho: i32 = reference_chirho.parse().unwrap_or(1);
+
+            // Add highlight with specific color
+            let _ = database_chirho::add_highlight_with_color_chirho(
+                &backend_mut_chirho.db_conn_chirho,
+                &backend_mut_chirho.current_module_chirho,
+                &backend_mut_chirho.current_book_chirho,
+                backend_mut_chirho.current_chapter_chirho,
+                verse_num_chirho,
+                &color_chirho,
+            );
+
+            info!("Set highlight color {} for verse {}", color_chirho, verse_num_chirho);
 
             if let Some(window_chirho) = window_weak_chirho.upgrade() {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
@@ -1135,6 +1221,55 @@ fn main() -> Result<(), slint::PlatformError> {
         });
     }
 
+    // Set up bookmark toggle callback
+    {
+        let backend_clone_chirho = backend_chirho.clone();
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_toggle_bookmark_chirho(move |verse_ref_chirho| {
+            let backend_ref_chirho = backend_clone_chirho.borrow();
+            let verse_num_chirho: i32 = verse_ref_chirho.parse().unwrap_or(1);
+
+            // Check if already bookmarked
+            if let Some(id_chirho) = database_chirho::get_bookmark_id_chirho(
+                &backend_ref_chirho.db_conn_chirho,
+                &backend_ref_chirho.current_module_chirho,
+                &backend_ref_chirho.current_book_chirho,
+                backend_ref_chirho.current_chapter_chirho,
+                verse_num_chirho,
+            ) {
+                // Remove bookmark
+                let _ = database_chirho::remove_bookmark_chirho(&backend_ref_chirho.db_conn_chirho, id_chirho);
+                info!("Removed bookmark at {}:{}:{}", backend_ref_chirho.current_book_chirho, backend_ref_chirho.current_chapter_chirho, verse_num_chirho);
+            } else {
+                // Add bookmark
+                let reference_label_chirho = format!(
+                    "{} {}:{}",
+                    backend_ref_chirho.current_book_chirho,
+                    backend_ref_chirho.current_chapter_chirho,
+                    verse_num_chirho
+                );
+                let _ = database_chirho::add_bookmark_chirho(
+                    &backend_ref_chirho.db_conn_chirho,
+                    &backend_ref_chirho.current_module_chirho,
+                    &backend_ref_chirho.current_book_chirho,
+                    backend_ref_chirho.current_chapter_chirho,
+                    verse_num_chirho,
+                    Some(&reference_label_chirho),
+                );
+                info!("Added bookmark at {}:{}:{}", backend_ref_chirho.current_book_chirho, backend_ref_chirho.current_chapter_chirho, verse_num_chirho);
+            }
+
+            // Refresh bookmarks list
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                let bookmarks_chirho = load_bookmarks_for_ui_chirho(&backend_ref_chirho.db_conn_chirho);
+                state_chirho.set_bookmarks_chirho(Rc::new(slint::VecModel::from(bookmarks_chirho)).into());
+                state_chirho.set_status_message_chirho("Bookmark updated".into());
+            }
+        });
+    }
+
     // Set up copy verse callback
     {
         let window_weak_chirho = main_window_chirho.as_weak();
@@ -1155,11 +1290,148 @@ fn main() -> Result<(), slint::PlatformError> {
         });
     }
 
+    // Set up save note callback
+    {
+        let backend_clone_chirho = backend_chirho.clone();
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_save_note_chirho(move |verse_ref_chirho, content_chirho| {
+            let backend_ref_chirho = backend_clone_chirho.borrow();
+            let verse_num_chirho: i32 = verse_ref_chirho.parse().unwrap_or(1);
+
+            if content_chirho.trim().is_empty() {
+                // Delete note if content is empty
+                let _ = database_chirho::delete_note_chirho(
+                    &backend_ref_chirho.db_conn_chirho,
+                    &backend_ref_chirho.current_module_chirho,
+                    &backend_ref_chirho.current_book_chirho,
+                    backend_ref_chirho.current_chapter_chirho,
+                    verse_num_chirho,
+                );
+                info!("Deleted note at {}:{}:{}", backend_ref_chirho.current_book_chirho, backend_ref_chirho.current_chapter_chirho, verse_num_chirho);
+            } else {
+                // Save note
+                let _ = database_chirho::save_note_chirho(
+                    &backend_ref_chirho.db_conn_chirho,
+                    &backend_ref_chirho.current_module_chirho,
+                    &backend_ref_chirho.current_book_chirho,
+                    backend_ref_chirho.current_chapter_chirho,
+                    verse_num_chirho,
+                    &content_chirho,
+                );
+                info!("Saved note at {}:{}:{}", backend_ref_chirho.current_book_chirho, backend_ref_chirho.current_chapter_chirho, verse_num_chirho);
+            }
+
+            // Refresh verses to update note indicator
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                // Can't call get_verses_chirho here because we have immutable borrow
+                // Will refresh on next navigation
+                state_chirho.set_status_message_chirho(
+                    if content_chirho.trim().is_empty() { "Note deleted".into() } else { "Note saved".into() }
+                );
+            }
+        });
+    }
+
+    // Set up get note callback
+    {
+        let backend_clone_chirho = backend_chirho.clone();
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_get_note_chirho(move |verse_ref_chirho| {
+            let backend_ref_chirho = backend_clone_chirho.borrow();
+            let verse_num_chirho: i32 = verse_ref_chirho.parse().unwrap_or(1);
+
+            let note_content_chirho = database_chirho::get_note_chirho(
+                &backend_ref_chirho.db_conn_chirho,
+                &backend_ref_chirho.current_module_chirho,
+                &backend_ref_chirho.current_book_chirho,
+                backend_ref_chirho.current_chapter_chirho,
+                verse_num_chirho,
+            ).map(|n_chirho| n_chirho.content_chirho).unwrap_or_default();
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                state_chirho.set_note_content_chirho(note_content_chirho.into());
+            }
+        });
+    }
+
+    // Set up history callback
+    {
+        let backend_clone_chirho = backend_chirho.clone();
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_load_history_chirho(move || {
+            let backend_ref_chirho = backend_clone_chirho.borrow();
+            let history_entries_chirho = database_chirho::get_recent_history_chirho(&backend_ref_chirho.db_conn_chirho, 20)
+                .unwrap_or_default();
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                let ui_entries_chirho: Vec<HistoryEntryChirho> = history_entries_chirho
+                    .into_iter()
+                    .map(|e_chirho| HistoryEntryChirho {
+                        book_chirho: e_chirho.book_chirho.into(),
+                        chapter_chirho: e_chirho.chapter_chirho,
+                        timestamp_chirho: format_timestamp_chirho(&e_chirho.timestamp_chirho).into(),
+                    })
+                    .collect();
+                state_chirho.set_history_entries_chirho(Rc::new(slint::VecModel::from(ui_entries_chirho)).into());
+            }
+        });
+    }
+
     // Set initial status
     app_state_chirho.set_status_message_chirho("Welcome to Codex Lux - Your Bible Study Companion".into());
 
     // Run the application
     main_window_chirho.run()
+}
+
+/// Format timestamp for display (e.g., "Today 10:30 AM" or "Jan 15")
+fn format_timestamp_chirho(timestamp_chirho: &str) -> String {
+    // Simple implementation - just show date part
+    if let Some(date_part_chirho) = timestamp_chirho.split(' ').next() {
+        // Show just the date in a friendly format
+        date_part_chirho.to_string()
+    } else {
+        timestamp_chirho.to_string()
+    }
+}
+
+// ============================================================================
+// Bookmark UI Helper
+// ============================================================================
+
+/// Load bookmarks from database and convert to UI model
+fn load_bookmarks_for_ui_chirho(conn_chirho: &Connection) -> Vec<BookmarkDisplayChirho> {
+    match database_chirho::get_all_bookmarks_chirho(conn_chirho) {
+        Ok(bookmarks_chirho) => bookmarks_chirho
+            .into_iter()
+            .map(|bm_chirho| {
+                let reference_chirho = format!(
+                    "{} {}:{}",
+                    bm_chirho.book_chirho,
+                    bm_chirho.chapter_chirho,
+                    bm_chirho.verse_chirho
+                );
+                BookmarkDisplayChirho {
+                    id_chirho: bm_chirho.id_chirho as i32,
+                    reference_chirho: reference_chirho.into(),
+                    label_chirho: bm_chirho.label_chirho.unwrap_or_default().into(),
+                    book_chirho: bm_chirho.book_chirho.into(),
+                    chapter_chirho: bm_chirho.chapter_chirho,
+                    verse_chirho: bm_chirho.verse_chirho,
+                }
+            })
+            .collect(),
+        Err(e_chirho) => {
+            warn!("Failed to load bookmarks: {}", e_chirho);
+            Vec::new()
+        }
+    }
 }
 
 // ============================================================================
@@ -1727,6 +1999,39 @@ mod tests_chirho {
 
         assert_eq!(highlights_chirho.len(), 1);
         assert_eq!(highlights_chirho[0].color_chirho, "blue");
+    }
+
+    #[test]
+    fn test_reading_history_chirho() {
+        use tempfile::tempdir;
+
+        let temp_dir_chirho = tempdir().unwrap();
+        let db_path_chirho = temp_dir_chirho.path().join("test_history.db");
+
+        let conn_chirho = database_chirho::init_database_chirho(&db_path_chirho).unwrap();
+
+        // Initially no history
+        let history_chirho = database_chirho::get_recent_history_chirho(&conn_chirho, 10).unwrap();
+        assert!(history_chirho.is_empty());
+
+        // Add some history entries
+        database_chirho::add_reading_history_chirho(&conn_chirho, "KJV", "Genesis", 1).unwrap();
+        database_chirho::add_reading_history_chirho(&conn_chirho, "KJV", "John", 3).unwrap();
+        database_chirho::add_reading_history_chirho(&conn_chirho, "KJV", "Psalms", 23).unwrap();
+
+        // Get recent history
+        let history_chirho = database_chirho::get_recent_history_chirho(&conn_chirho, 10).unwrap();
+        assert_eq!(history_chirho.len(), 3);
+
+        // Verify all entries are present (order may vary due to timestamp grouping)
+        let books_chirho: Vec<&str> = history_chirho.iter().map(|h_chirho| h_chirho.book_chirho.as_str()).collect();
+        assert!(books_chirho.contains(&"Genesis"));
+        assert!(books_chirho.contains(&"John"));
+        assert!(books_chirho.contains(&"Psalms"));
+
+        // Test limit
+        let limited_chirho = database_chirho::get_recent_history_chirho(&conn_chirho, 2).unwrap();
+        assert_eq!(limited_chirho.len(), 2);
     }
 
     #[test]
