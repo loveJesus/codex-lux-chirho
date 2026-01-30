@@ -210,6 +210,7 @@ export global AppStateChirho {
     in-out property <bool> history-visible-chirho: false;
     in-out property <[HistoryEntryChirho]> history-entries-chirho: [];
     callback load-history-chirho();
+    callback navigate-to-reference-chirho(string);
 }
 
 // Note data for UI display
@@ -832,6 +833,10 @@ component SearchPanelChirho inherits Rectangle {
                     animate background { duration: 150ms; easing: ease-out; }
 
                     result-touch-chirho := TouchArea {
+                        clicked => {
+                            AppStateChirho.navigate-to-reference-chirho(result-chirho.reference-chirho);
+                            AppStateChirho.search-active-chirho = false;
+                        }
                         mouse-cursor: pointer;
                     }
 

@@ -116,7 +116,7 @@
         "Basic text search within sample verses",
         "Case-insensitive search",
         "Search results display with reference and preview",
-        "Click to navigate to result (via search panel)"
+        "Click search result to navigate to verse and close search panel"
       ],
       "description_chirho": "Full-text search across modules",
       "requirements_chirho": [

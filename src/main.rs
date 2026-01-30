@@ -1383,6 +1383,47 @@ fn main() -> Result<(), slint::PlatformError> {
         });
     }
 
+    // Set up navigate to reference callback (for search results)
+    {
+        let backend_clone_chirho = backend_chirho.clone();
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_navigate_to_reference_chirho(move |reference_chirho| {
+            if let Some((book_chirho, chapter_chirho, _verse_chirho)) = parse_reference_chirho(&reference_chirho) {
+                let mut backend_mut_chirho = backend_clone_chirho.borrow_mut();
+                backend_mut_chirho.navigate_to_chirho(&book_chirho, chapter_chirho);
+
+                if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                    let state_chirho = window_chirho.global::<AppStateChirho>();
+                    state_chirho.set_current_book_chirho(book_chirho.clone().into());
+                    state_chirho.set_current_chapter_chirho(chapter_chirho);
+
+                    // Update chapter count
+                    let chapter_count_chirho = BIBLE_BOOKS_CHIRHO
+                        .iter()
+                        .find(|(name_chirho, _)| *name_chirho == book_chirho.as_str())
+                        .map(|(_, count_chirho)| *count_chirho)
+                        .unwrap_or(1);
+                    state_chirho.set_current_book_chapter_count_chirho(chapter_count_chirho);
+
+                    let verses_chirho = backend_mut_chirho.get_verses_chirho();
+                    state_chirho.set_verses_chirho(Rc::new(slint::VecModel::from(verses_chirho)).into());
+
+                    state_chirho.set_status_message_chirho(
+                        format!("Navigated to {}", reference_chirho).into()
+                    );
+                }
+            } else {
+                if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                    let state_chirho = window_chirho.global::<AppStateChirho>();
+                    state_chirho.set_status_message_chirho(
+                        format!("Could not parse: {}", reference_chirho).into()
+                    );
+                }
+            }
+        });
+    }
+
     // Set initial status
     app_state_chirho.set_status_message_chirho("Welcome to Codex Lux - Your Bible Study Companion".into());
 
