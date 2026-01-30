@@ -8,16 +8,18 @@
 
 ## Features
 
-### Current (v0.1.1)
+### Current (v0.1.3)
 
 - **Multi-Module Support**: Load and display SWORD Bible modules via rsword_chirho
 - **Navigation**: Browse all 66 books of the Bible with chapter navigation
+- **Goto Verse**: Jump to any verse with Ctrl+G (supports abbreviations like "Jn 3:16", "Gen 1:1", "1Cor 13:4")
 - **Text Display**: Proper rendering of Hebrew (RTL with vowel points) and Greek (with accents)
-- **Highlights**: Click verses to highlight them (persisted in SQLite)
+- **Highlights**: Click verses to highlight them (persisted in SQLite, multiple colors supported)
+- **Notes**: Personal notes on verses with timestamps (backend complete, UI in progress)
 - **Search**: Case-insensitive text search with results preview
 - **Data Persistence**: SQLite database for highlights, bookmarks, notes, and settings
 - **State Restoration**: Remembers your last location between sessions
-- **Dark Theme**: Professional dark theme with purple accents
+- **Theme Toggle**: Dark and Light themes with Ctrl+T shortcut
 - **Font Scaling**: Adjustable scripture text size
 - **Keyboard Shortcuts**: Navigate quickly with keyboard
 
@@ -27,8 +29,10 @@
 |----------|--------|
 | `←` / `→` | Previous / Next chapter |
 | `Ctrl+F` | Toggle search panel |
+| `Ctrl+G` | Goto verse dialog |
 | `Ctrl+B` | Toggle books sidebar |
-| `Escape` | Close search panel |
+| `Ctrl+T` | Toggle dark/light theme |
+| `Escape` | Close dialogs/panels |
 
 ### Planned Features
 

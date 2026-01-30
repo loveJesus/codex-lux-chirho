@@ -1,12 +1,12 @@
 {
   "_comment_chirho": "For God so loved the world that he gave his only begotten Son, that whoever believes in him should not perish but have eternal life. John 3:16",
   "product_name_chirho": "Codex Lux",
-  "version_chirho": "0.1.1",
+  "version_chirho": "0.1.3",
   "current_milestone_chirho": "M1_partial",
   "implementation_status_chirho": {
     "completed_chirho": 1,
-    "partial_chirho": 7,
-    "not_started_chirho": 47,
+    "partial_chirho": 10,
+    "not_started_chirho": 44,
     "total_chirho": 55
   },
   "description_chirho": "Cross-platform Bible study application - Codex of Light",
@@ -50,7 +50,11 @@
         "Chapter navigation via prev/next buttons",
         "Direct book click navigation",
         "Reading history stored in database",
-        "Keyboard shortcuts (Left/Right arrows for chapter, Ctrl+F search, Ctrl+B sidebar, Escape to close)"
+        "Keyboard shortcuts (Left/Right arrows for chapter, Ctrl+F search, Ctrl+B sidebar, Ctrl+G goto, Escape to close)",
+        "Ctrl+G goto verse dialog with reference parsing",
+        "URL-style reference parsing (John 3:16, Jn 3:16, Gen 1:1, 1Cor 13:4, etc.)",
+        "Support for abbreviated book names",
+        "Support for numbered books (1 Samuel, 2 Kings, 1 Corinthians, etc.)"
       ],
       "description_chirho": "Bible navigation with book/chapter/verse selection",
       "requirements_chirho": [
@@ -261,7 +265,17 @@
       "name_chirho": "Personal Notes",
       "category_chirho": "User Data",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
+      "completed_items_chirho": [
+        "Database schema for notes with timestamps",
+        "Save or update note function (upsert)",
+        "Get note for specific verse",
+        "Delete note function",
+        "Get all notes function",
+        "Search within notes function",
+        "Note indicator displayed on verse (UI)",
+        "Unit tests for all note operations"
+      ],
       "description_chirho": "Add personal notes to verses",
       "requirements_chirho": [
         "Add note to any verse",
@@ -403,6 +417,10 @@
       "status_chirho": "partial",
       "completed_items_chirho": [
         "Dark theme (default) - fully implemented",
+        "Light theme - fully implemented",
+        "Theme toggle button in toolbar",
+        "Ctrl+T keyboard shortcut to toggle theme",
+        "Theme preference saved to database",
         "Accent color (purple) with consistent styling",
         "Professional color scheme via ThemeChirho global"
       ],
@@ -440,7 +458,18 @@
       "name_chirho": "Keyboard Shortcuts",
       "category_chirho": "Accessibility",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
+      "completed_items_chirho": [
+        "Left/Right arrows for chapter navigation",
+        "Ctrl+F for search toggle",
+        "Ctrl+G for goto verse dialog",
+        "Ctrl+B for sidebar/books panel toggle",
+        "Ctrl+T for theme toggle",
+        "Escape to close dialogs",
+        "Goto verse dialog with reference parsing",
+        "Support for abbreviated book names (Gen, Jn, Rev, etc.)",
+        "Support for numbered books (1Cor, 2Tim, etc.)"
+      ],
       "description_chirho": "Keyboard navigation and shortcuts",
       "requirements_chirho": [
         "Navigate with arrow keys",

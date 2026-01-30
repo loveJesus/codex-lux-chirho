@@ -366,6 +366,198 @@ mod database_chirho {
             |row_chirho| row_chirho.get(0)
         ).ok()
     }
+
+    /// Note data structure
+    #[derive(Debug, Clone)]
+    #[allow(dead_code)]
+    pub struct NoteChirho {
+        pub id_chirho: i64,
+        pub module_chirho: String,
+        pub book_chirho: String,
+        pub chapter_chirho: i32,
+        pub verse_chirho: i32,
+        pub content_chirho: String,
+        pub created_at_chirho: String,
+        pub updated_at_chirho: String,
+    }
+
+    /// Save or update a note
+    #[allow(dead_code)]
+    pub fn save_note_chirho(
+        conn_chirho: &Connection,
+        module_chirho: &str,
+        book_chirho: &str,
+        chapter_chirho: i32,
+        verse_chirho: i32,
+        content_chirho: &str,
+    ) -> Result<i64> {
+        conn_chirho.execute(
+            "INSERT INTO notes_chirho (module_chirho, book_chirho, chapter_chirho, verse_chirho, content_chirho)
+             VALUES (?1, ?2, ?3, ?4, ?5)
+             ON CONFLICT(module_chirho, book_chirho, chapter_chirho, verse_chirho)
+             DO UPDATE SET content_chirho = excluded.content_chirho, updated_at_chirho = CURRENT_TIMESTAMP",
+            params![module_chirho, book_chirho, chapter_chirho, verse_chirho, content_chirho],
+        )?;
+        Ok(conn_chirho.last_insert_rowid())
+    }
+
+    /// Get a note for a specific verse
+    #[allow(dead_code)]
+    pub fn get_note_chirho(
+        conn_chirho: &Connection,
+        module_chirho: &str,
+        book_chirho: &str,
+        chapter_chirho: i32,
+        verse_chirho: i32,
+    ) -> Option<NoteChirho> {
+        conn_chirho.query_row(
+            "SELECT id_chirho, module_chirho, book_chirho, chapter_chirho, verse_chirho, content_chirho,
+                    created_at_chirho, updated_at_chirho
+             FROM notes_chirho
+             WHERE module_chirho = ?1 AND book_chirho = ?2 AND chapter_chirho = ?3 AND verse_chirho = ?4",
+            params![module_chirho, book_chirho, chapter_chirho, verse_chirho],
+            |row_chirho| {
+                Ok(NoteChirho {
+                    id_chirho: row_chirho.get(0)?,
+                    module_chirho: row_chirho.get(1)?,
+                    book_chirho: row_chirho.get(2)?,
+                    chapter_chirho: row_chirho.get(3)?,
+                    verse_chirho: row_chirho.get(4)?,
+                    content_chirho: row_chirho.get(5)?,
+                    created_at_chirho: row_chirho.get(6)?,
+                    updated_at_chirho: row_chirho.get(7)?,
+                })
+            }
+        ).ok()
+    }
+
+    /// Delete a note
+    #[allow(dead_code)]
+    pub fn delete_note_chirho(
+        conn_chirho: &Connection,
+        module_chirho: &str,
+        book_chirho: &str,
+        chapter_chirho: i32,
+        verse_chirho: i32,
+    ) -> Result<()> {
+        conn_chirho.execute(
+            "DELETE FROM notes_chirho
+             WHERE module_chirho = ?1 AND book_chirho = ?2 AND chapter_chirho = ?3 AND verse_chirho = ?4",
+            params![module_chirho, book_chirho, chapter_chirho, verse_chirho],
+        )?;
+        Ok(())
+    }
+
+    /// Get all notes
+    #[allow(dead_code)]
+    pub fn get_all_notes_chirho(conn_chirho: &Connection) -> Result<Vec<NoteChirho>> {
+        let mut stmt_chirho = conn_chirho.prepare(
+            "SELECT id_chirho, module_chirho, book_chirho, chapter_chirho, verse_chirho, content_chirho,
+                    created_at_chirho, updated_at_chirho
+             FROM notes_chirho ORDER BY updated_at_chirho DESC"
+        )?;
+
+        let notes_chirho = stmt_chirho
+            .query_map([], |row_chirho| {
+                Ok(NoteChirho {
+                    id_chirho: row_chirho.get(0)?,
+                    module_chirho: row_chirho.get(1)?,
+                    book_chirho: row_chirho.get(2)?,
+                    chapter_chirho: row_chirho.get(3)?,
+                    verse_chirho: row_chirho.get(4)?,
+                    content_chirho: row_chirho.get(5)?,
+                    created_at_chirho: row_chirho.get(6)?,
+                    updated_at_chirho: row_chirho.get(7)?,
+                })
+            })?
+            .filter_map(|r_chirho| r_chirho.ok())
+            .collect();
+
+        Ok(notes_chirho)
+    }
+
+    /// Search notes by content
+    #[allow(dead_code)]
+    pub fn search_notes_chirho(conn_chirho: &Connection, query_chirho: &str) -> Result<Vec<NoteChirho>> {
+        let search_pattern_chirho = format!("%{}%", query_chirho);
+        let mut stmt_chirho = conn_chirho.prepare(
+            "SELECT id_chirho, module_chirho, book_chirho, chapter_chirho, verse_chirho, content_chirho,
+                    created_at_chirho, updated_at_chirho
+             FROM notes_chirho
+             WHERE content_chirho LIKE ?1
+             ORDER BY updated_at_chirho DESC"
+        )?;
+
+        let notes_chirho = stmt_chirho
+            .query_map(params![search_pattern_chirho], |row_chirho| {
+                Ok(NoteChirho {
+                    id_chirho: row_chirho.get(0)?,
+                    module_chirho: row_chirho.get(1)?,
+                    book_chirho: row_chirho.get(2)?,
+                    chapter_chirho: row_chirho.get(3)?,
+                    verse_chirho: row_chirho.get(4)?,
+                    content_chirho: row_chirho.get(5)?,
+                    created_at_chirho: row_chirho.get(6)?,
+                    updated_at_chirho: row_chirho.get(7)?,
+                })
+            })?
+            .filter_map(|r_chirho| r_chirho.ok())
+            .collect();
+
+        Ok(notes_chirho)
+    }
+
+    /// Highlight color data
+    #[derive(Debug, Clone)]
+    #[allow(dead_code)]
+    pub struct HighlightInfoChirho {
+        pub verse_chirho: i32,
+        pub color_chirho: String,
+    }
+
+    /// Get highlights with color information
+    #[allow(dead_code)]
+    pub fn get_highlights_with_colors_chirho(
+        conn_chirho: &Connection,
+        module_chirho: &str,
+        book_chirho: &str,
+        chapter_chirho: i32,
+    ) -> Result<Vec<HighlightInfoChirho>> {
+        let mut stmt_chirho = conn_chirho.prepare(
+            "SELECT verse_chirho, color_chirho FROM highlights_chirho
+             WHERE module_chirho = ?1 AND book_chirho = ?2 AND chapter_chirho = ?3"
+        )?;
+
+        let highlights_chirho = stmt_chirho
+            .query_map(params![module_chirho, book_chirho, chapter_chirho], |row_chirho| {
+                Ok(HighlightInfoChirho {
+                    verse_chirho: row_chirho.get(0)?,
+                    color_chirho: row_chirho.get(1)?,
+                })
+            })?
+            .filter_map(|r_chirho| r_chirho.ok())
+            .collect();
+
+        Ok(highlights_chirho)
+    }
+
+    /// Add highlight with specific color
+    #[allow(dead_code)]
+    pub fn add_highlight_with_color_chirho(
+        conn_chirho: &Connection,
+        module_chirho: &str,
+        book_chirho: &str,
+        chapter_chirho: i32,
+        verse_chirho: i32,
+        color_chirho: &str,
+    ) -> Result<()> {
+        conn_chirho.execute(
+            "INSERT OR REPLACE INTO highlights_chirho (module_chirho, book_chirho, chapter_chirho, verse_chirho, color_chirho)
+             VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![module_chirho, book_chirho, chapter_chirho, verse_chirho, color_chirho],
+        )?;
+        Ok(())
+    }
 }
 
 // ============================================================================
@@ -878,11 +1070,185 @@ fn main() -> Result<(), slint::PlatformError> {
         });
     }
 
+    // Set up goto verse callback
+    {
+        let backend_clone_chirho = backend_chirho.clone();
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_goto_verse_chirho(move |reference_chirho| {
+            info!("Goto verse: {}", reference_chirho);
+
+            // Parse reference like "John 3:16" or "Gen 1:1"
+            if let Some((book_chirho, chapter_chirho, _verse_chirho)) = parse_reference_chirho(&reference_chirho) {
+                let mut backend_mut_chirho = backend_clone_chirho.borrow_mut();
+                backend_mut_chirho.navigate_to_chirho(&book_chirho, chapter_chirho);
+
+                if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                    let state_chirho = window_chirho.global::<AppStateChirho>();
+                    state_chirho.set_current_book_chirho(book_chirho.clone().into());
+                    state_chirho.set_current_chapter_chirho(chapter_chirho);
+
+                    let verses_chirho = backend_mut_chirho.get_verses_chirho();
+                    state_chirho.set_verses_chirho(Rc::new(slint::VecModel::from(verses_chirho)).into());
+
+                    state_chirho.set_status_message_chirho(
+                        format!("Navigated to {} {}", book_chirho, chapter_chirho).into()
+                    );
+                }
+            } else if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                state_chirho.set_status_message_chirho(
+                    format!("Could not parse reference: {}", reference_chirho).into()
+                );
+            }
+        });
+    }
+
+    // Set up theme toggle callback
+    {
+        let backend_clone_chirho = backend_chirho.clone();
+
+        app_state_chirho.on_toggle_theme_chirho(move || {
+            let backend_ref_chirho = backend_clone_chirho.borrow();
+            // Save theme preference to settings
+            let current_theme_chirho = database_chirho::get_setting_chirho(&backend_ref_chirho.db_conn_chirho, "theme")
+                .unwrap_or_else(|| "dark".to_string());
+            let new_theme_chirho = if current_theme_chirho == "dark" { "light" } else { "dark" };
+            let _ = database_chirho::set_setting_chirho(&backend_ref_chirho.db_conn_chirho, "theme", new_theme_chirho);
+            info!("Theme changed to: {}", new_theme_chirho);
+        });
+    }
+
     // Set initial status
     app_state_chirho.set_status_message_chirho("Welcome to Codex Lux - Your Bible Study Companion".into());
 
     // Run the application
     main_window_chirho.run()
+}
+
+// ============================================================================
+// Reference Parsing
+// ============================================================================
+
+/// Parse a verse reference string like "John 3:16" or "Gen 1:1"
+/// Returns (book, chapter, verse) or None if parsing fails
+fn parse_reference_chirho(reference_chirho: &str) -> Option<(String, i32, i32)> {
+    let reference_chirho = reference_chirho.trim();
+
+    // Map common abbreviations to full book names
+    let abbreviations_chirho: &[(&str, &str)] = &[
+        ("genesis", "Genesis"), ("gen", "Genesis"),
+        ("exodus", "Exodus"), ("exo", "Exodus"), ("ex", "Exodus"),
+        ("leviticus", "Leviticus"), ("lev", "Leviticus"),
+        ("numbers", "Numbers"), ("num", "Numbers"),
+        ("deuteronomy", "Deuteronomy"), ("deut", "Deuteronomy"),
+        ("joshua", "Joshua"), ("josh", "Joshua"),
+        ("judges", "Judges"), ("judg", "Judges"), ("jdg", "Judges"),
+        ("ruth", "Ruth"),
+        ("1 samuel", "1 Samuel"), ("1samuel", "1 Samuel"), ("1sam", "1 Samuel"), ("1sa", "1 Samuel"),
+        ("2 samuel", "2 Samuel"), ("2samuel", "2 Samuel"), ("2sam", "2 Samuel"), ("2sa", "2 Samuel"),
+        ("1 kings", "1 Kings"), ("1kings", "1 Kings"), ("1ki", "1 Kings"), ("1kgs", "1 Kings"),
+        ("2 kings", "2 Kings"), ("2kings", "2 Kings"), ("2ki", "2 Kings"), ("2kgs", "2 Kings"),
+        ("1 chronicles", "1 Chronicles"), ("1chronicles", "1 Chronicles"), ("1chr", "1 Chronicles"), ("1ch", "1 Chronicles"),
+        ("2 chronicles", "2 Chronicles"), ("2chronicles", "2 Chronicles"), ("2chr", "2 Chronicles"), ("2ch", "2 Chronicles"),
+        ("ezra", "Ezra"), ("ezr", "Ezra"),
+        ("nehemiah", "Nehemiah"), ("neh", "Nehemiah"),
+        ("esther", "Esther"), ("esth", "Esther"), ("est", "Esther"),
+        ("job", "Job"),
+        ("psalms", "Psalms"), ("psalm", "Psalms"), ("psa", "Psalms"), ("ps", "Psalms"),
+        ("proverbs", "Proverbs"), ("prov", "Proverbs"), ("pro", "Proverbs"),
+        ("ecclesiastes", "Ecclesiastes"), ("eccl", "Ecclesiastes"), ("ecc", "Ecclesiastes"),
+        ("song of solomon", "Song of Solomon"), ("song", "Song of Solomon"), ("sos", "Song of Solomon"),
+        ("isaiah", "Isaiah"), ("isa", "Isaiah"),
+        ("jeremiah", "Jeremiah"), ("jer", "Jeremiah"),
+        ("lamentations", "Lamentations"), ("lam", "Lamentations"),
+        ("ezekiel", "Ezekiel"), ("ezek", "Ezekiel"), ("eze", "Ezekiel"),
+        ("daniel", "Daniel"), ("dan", "Daniel"),
+        ("hosea", "Hosea"), ("hos", "Hosea"),
+        ("joel", "Joel"),
+        ("amos", "Amos"),
+        ("obadiah", "Obadiah"), ("obad", "Obadiah"), ("oba", "Obadiah"),
+        ("jonah", "Jonah"), ("jon", "Jonah"),
+        ("micah", "Micah"), ("mic", "Micah"),
+        ("nahum", "Nahum"), ("nah", "Nahum"),
+        ("habakkuk", "Habakkuk"), ("hab", "Habakkuk"),
+        ("zephaniah", "Zephaniah"), ("zeph", "Zephaniah"), ("zep", "Zephaniah"),
+        ("haggai", "Haggai"), ("hag", "Haggai"),
+        ("zechariah", "Zechariah"), ("zech", "Zechariah"), ("zec", "Zechariah"),
+        ("malachi", "Malachi"), ("mal", "Malachi"),
+        ("matthew", "Matthew"), ("matt", "Matthew"), ("mat", "Matthew"),
+        ("mark", "Mark"), ("mk", "Mark"), ("mar", "Mark"),
+        ("luke", "Luke"), ("lk", "Luke"), ("luk", "Luke"),
+        ("john", "John"), ("jn", "John"), ("joh", "John"),
+        ("acts", "Acts"),
+        ("romans", "Romans"), ("rom", "Romans"),
+        ("1 corinthians", "1 Corinthians"), ("1corinthians", "1 Corinthians"), ("1cor", "1 Corinthians"), ("1co", "1 Corinthians"),
+        ("2 corinthians", "2 Corinthians"), ("2corinthians", "2 Corinthians"), ("2cor", "2 Corinthians"), ("2co", "2 Corinthians"),
+        ("galatians", "Galatians"), ("gal", "Galatians"),
+        ("ephesians", "Ephesians"), ("eph", "Ephesians"),
+        ("philippians", "Philippians"), ("phil", "Philippians"), ("php", "Philippians"),
+        ("colossians", "Colossians"), ("col", "Colossians"),
+        ("1 thessalonians", "1 Thessalonians"), ("1thessalonians", "1 Thessalonians"), ("1thess", "1 Thessalonians"), ("1th", "1 Thessalonians"),
+        ("2 thessalonians", "2 Thessalonians"), ("2thessalonians", "2 Thessalonians"), ("2thess", "2 Thessalonians"), ("2th", "2 Thessalonians"),
+        ("1 timothy", "1 Timothy"), ("1timothy", "1 Timothy"), ("1tim", "1 Timothy"), ("1ti", "1 Timothy"),
+        ("2 timothy", "2 Timothy"), ("2timothy", "2 Timothy"), ("2tim", "2 Timothy"), ("2ti", "2 Timothy"),
+        ("titus", "Titus"), ("tit", "Titus"),
+        ("philemon", "Philemon"), ("phm", "Philemon"), ("phlm", "Philemon"),
+        ("hebrews", "Hebrews"), ("heb", "Hebrews"),
+        ("james", "James"), ("jas", "James"), ("jam", "James"),
+        ("1 peter", "1 Peter"), ("1peter", "1 Peter"), ("1pet", "1 Peter"), ("1pe", "1 Peter"),
+        ("2 peter", "2 Peter"), ("2peter", "2 Peter"), ("2pet", "2 Peter"), ("2pe", "2 Peter"),
+        ("1 john", "1 John"), ("1john", "1 John"), ("1jn", "1 John"), ("1jo", "1 John"),
+        ("2 john", "2 John"), ("2john", "2 John"), ("2jn", "2 John"), ("2jo", "2 John"),
+        ("3 john", "3 John"), ("3john", "3 John"), ("3jn", "3 John"), ("3jo", "3 John"),
+        ("jude", "Jude"),
+        ("revelation", "Revelation"), ("rev", "Revelation"),
+    ];
+
+    // Normalize reference (handle both "1 Cor 13:4" and "1Cor 13:4")
+    let reference_lower_chirho = reference_chirho.to_lowercase();
+
+    // Find the chapter:verse part by looking for the last digit-colon-digit or standalone digit pattern
+    // We need to find where the book name ends and chapter:verse begins
+    // This is tricky because books like "1 Corinthians" have numbers
+
+    // Try to match each abbreviation against the start of the reference
+    for (abbr_chirho, book_name_chirho) in abbreviations_chirho {
+        let abbr_len_chirho = abbr_chirho.len();
+        if reference_lower_chirho.len() > abbr_len_chirho
+            && reference_lower_chirho.starts_with(abbr_chirho)
+        {
+            // Check that next char after abbreviation is space, digit, or nothing
+            let next_char_chirho = reference_lower_chirho.chars().nth(abbr_len_chirho);
+            if matches!(next_char_chirho, Some(' ') | Some(':') | None) ||
+               next_char_chirho.map(|c_chirho| c_chirho.is_ascii_digit()).unwrap_or(false) {
+
+                let remainder_chirho = reference_chirho[abbr_len_chirho..].trim();
+
+                // Parse chapter:verse from remainder
+                let cv_str_chirho = remainder_chirho.trim_start();
+                if cv_str_chirho.is_empty() {
+                    continue;
+                }
+
+                let cv_parts_chirho: Vec<&str> = cv_str_chirho.split(':').collect();
+                if let Ok(chapter_chirho) = cv_parts_chirho.first()
+                    .unwrap_or(&"")
+                    .trim()
+                    .parse::<i32>()
+                {
+                    let verse_chirho: i32 = cv_parts_chirho
+                        .get(1)
+                        .and_then(|v_chirho| v_chirho.trim().parse().ok())
+                        .unwrap_or(1);
+
+                    return Some((book_name_chirho.to_string(), chapter_chirho, verse_chirho));
+                }
+            }
+        }
+    }
+
+    None
 }
 
 // ============================================================================
@@ -1153,5 +1519,181 @@ mod tests_chirho {
         database_chirho::remove_bookmark_chirho(&conn_chirho, id_chirho).unwrap();
         let bookmarks_chirho = database_chirho::get_all_bookmarks_chirho(&conn_chirho).unwrap();
         assert!(bookmarks_chirho.is_empty());
+    }
+
+    #[test]
+    fn test_notes_chirho() {
+        use tempfile::tempdir;
+
+        let temp_dir_chirho = tempdir().unwrap();
+        let db_path_chirho = temp_dir_chirho.path().join("test_notes.db");
+
+        let conn_chirho = database_chirho::init_database_chirho(&db_path_chirho).unwrap();
+
+        // Initially no notes
+        let notes_chirho = database_chirho::get_all_notes_chirho(&conn_chirho).unwrap();
+        assert!(notes_chirho.is_empty());
+
+        // Save a note
+        database_chirho::save_note_chirho(
+            &conn_chirho,
+            "KJV",
+            "John",
+            3,
+            16,
+            "This is the most famous verse in the Bible!"
+        ).unwrap();
+
+        // Get the note
+        let note_chirho = database_chirho::get_note_chirho(&conn_chirho, "KJV", "John", 3, 16);
+        assert!(note_chirho.is_some());
+        let note_chirho = note_chirho.unwrap();
+        assert_eq!(note_chirho.content_chirho, "This is the most famous verse in the Bible!");
+
+        // Update the note
+        database_chirho::save_note_chirho(
+            &conn_chirho,
+            "KJV",
+            "John",
+            3,
+            16,
+            "Updated: God's love for the world."
+        ).unwrap();
+
+        let note_chirho = database_chirho::get_note_chirho(&conn_chirho, "KJV", "John", 3, 16).unwrap();
+        assert_eq!(note_chirho.content_chirho, "Updated: God's love for the world.");
+
+        // Search notes
+        let search_results_chirho = database_chirho::search_notes_chirho(&conn_chirho, "love").unwrap();
+        assert_eq!(search_results_chirho.len(), 1);
+
+        // Get all notes
+        let all_notes_chirho = database_chirho::get_all_notes_chirho(&conn_chirho).unwrap();
+        assert_eq!(all_notes_chirho.len(), 1);
+
+        // Delete the note
+        database_chirho::delete_note_chirho(&conn_chirho, "KJV", "John", 3, 16).unwrap();
+        let note_chirho = database_chirho::get_note_chirho(&conn_chirho, "KJV", "John", 3, 16);
+        assert!(note_chirho.is_none());
+    }
+
+    #[test]
+    fn test_highlight_colors_chirho() {
+        use tempfile::tempdir;
+
+        let temp_dir_chirho = tempdir().unwrap();
+        let db_path_chirho = temp_dir_chirho.path().join("test_highlight_colors.db");
+
+        let conn_chirho = database_chirho::init_database_chirho(&db_path_chirho).unwrap();
+
+        // Add highlight with specific color
+        database_chirho::add_highlight_with_color_chirho(
+            &conn_chirho,
+            "KJV",
+            "Genesis",
+            1,
+            1,
+            "green"
+        ).unwrap();
+
+        // Get highlights with colors
+        let highlights_chirho = database_chirho::get_highlights_with_colors_chirho(
+            &conn_chirho,
+            "KJV",
+            "Genesis",
+            1
+        ).unwrap();
+
+        assert_eq!(highlights_chirho.len(), 1);
+        assert_eq!(highlights_chirho[0].verse_chirho, 1);
+        assert_eq!(highlights_chirho[0].color_chirho, "green");
+
+        // Change color (upsert)
+        database_chirho::add_highlight_with_color_chirho(
+            &conn_chirho,
+            "KJV",
+            "Genesis",
+            1,
+            1,
+            "blue"
+        ).unwrap();
+
+        let highlights_chirho = database_chirho::get_highlights_with_colors_chirho(
+            &conn_chirho,
+            "KJV",
+            "Genesis",
+            1
+        ).unwrap();
+
+        assert_eq!(highlights_chirho.len(), 1);
+        assert_eq!(highlights_chirho[0].color_chirho, "blue");
+    }
+
+    #[test]
+    fn test_parse_reference_full_name_chirho() {
+        let result_chirho = parse_reference_chirho("John 3:16");
+        assert!(result_chirho.is_some());
+        let (book_chirho, chapter_chirho, verse_chirho) = result_chirho.unwrap();
+        assert_eq!(book_chirho, "John");
+        assert_eq!(chapter_chirho, 3);
+        assert_eq!(verse_chirho, 16);
+    }
+
+    #[test]
+    fn test_parse_reference_abbreviated_chirho() {
+        let result_chirho = parse_reference_chirho("Gen 1:1");
+        assert!(result_chirho.is_some());
+        let (book_chirho, chapter_chirho, verse_chirho) = result_chirho.unwrap();
+        assert_eq!(book_chirho, "Genesis");
+        assert_eq!(chapter_chirho, 1);
+        assert_eq!(verse_chirho, 1);
+    }
+
+    #[test]
+    fn test_parse_reference_short_abbreviation_chirho() {
+        let result_chirho = parse_reference_chirho("Jn 3:16");
+        assert!(result_chirho.is_some());
+        let (book_chirho, chapter_chirho, verse_chirho) = result_chirho.unwrap();
+        assert_eq!(book_chirho, "John");
+        assert_eq!(chapter_chirho, 3);
+        assert_eq!(verse_chirho, 16);
+    }
+
+    #[test]
+    fn test_parse_reference_no_verse_chirho() {
+        let result_chirho = parse_reference_chirho("Psalms 23");
+        assert!(result_chirho.is_some());
+        let (book_chirho, chapter_chirho, verse_chirho) = result_chirho.unwrap();
+        assert_eq!(book_chirho, "Psalms");
+        assert_eq!(chapter_chirho, 23);
+        assert_eq!(verse_chirho, 1); // Default to verse 1
+    }
+
+    #[test]
+    fn test_parse_reference_numbered_book_chirho() {
+        let result_chirho = parse_reference_chirho("1Cor 13:4");
+        assert!(result_chirho.is_some());
+        let (book_chirho, chapter_chirho, verse_chirho) = result_chirho.unwrap();
+        assert_eq!(book_chirho, "1 Corinthians");
+        assert_eq!(chapter_chirho, 13);
+        assert_eq!(verse_chirho, 4);
+    }
+
+    #[test]
+    fn test_parse_reference_revelation_chirho() {
+        let result_chirho = parse_reference_chirho("Rev 21:4");
+        assert!(result_chirho.is_some());
+        let (book_chirho, chapter_chirho, verse_chirho) = result_chirho.unwrap();
+        assert_eq!(book_chirho, "Revelation");
+        assert_eq!(chapter_chirho, 21);
+        assert_eq!(verse_chirho, 4);
+    }
+
+    #[test]
+    fn test_parse_reference_case_insensitive_chirho() {
+        let result_chirho = parse_reference_chirho("JOHN 3:16");
+        assert!(result_chirho.is_some());
+        let (book_chirho, _chapter_chirho, _verse_chirho) = result_chirho.unwrap();
+        assert_eq!(book_chirho, "John");
     }
 }
