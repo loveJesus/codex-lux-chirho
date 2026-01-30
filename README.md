@@ -10,10 +10,12 @@
 
 ### Current (v0.1.0)
 
-- **Multi-Module Support**: Load and display SWORD Bible modules
+- **Multi-Module Support**: Load and display SWORD Bible modules via rsword_chirho
 - **Navigation**: Browse all 66 books of the Bible with chapter navigation
 - **Text Display**: Proper rendering of Hebrew (RTL with vowel points) and Greek (with accents)
-- **Highlights**: Click verses to highlight them
+- **Highlights**: Click verses to highlight them (persisted in SQLite)
+- **Data Persistence**: SQLite database for highlights, bookmarks, notes, and settings
+- **State Restoration**: Remembers your last location between sessions
 - **Dark Theme**: Professional dark theme with purple accents
 - **Font Scaling**: Adjustable scripture text size
 - **Search Panel**: Search interface (demo mode)
@@ -76,9 +78,25 @@ codex_lux_chirho/
 ├── README.md               # This file
 ├── src/
 │   └── main.rs             # Application entry point and backend
+│       ├── database_chirho # SQLite database module
+│       └── bible_engine_chirho # rsword_chirho integration
 └── ui_chirho/
     └── main_chirho.slint   # Slint UI definition
 ```
+
+## Data Storage
+
+User data is stored in a SQLite database at:
+- **macOS**: `~/Library/Application Support/com.rsword.codex-lux/codex_lux_chirho.db`
+- **Linux**: `~/.local/share/codex-lux/codex_lux_chirho.db`
+- **Windows**: `%APPDATA%\rsword\codex-lux\codex_lux_chirho.db`
+
+The database stores:
+- Highlights (verse location, color, timestamp)
+- Bookmarks (verse location, label, folder)
+- Notes (verse location, content, timestamps)
+- Settings (key-value pairs)
+- Reading history (navigation log)
 
 ## Naming Convention
 
