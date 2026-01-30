@@ -88,7 +88,8 @@
         "Adjustable line height with slider in settings",
         "RTL text support (Hebrew, Arabic) - renders correctly",
         "Complex script rendering (Hebrew vowels, Greek accents)",
-        "Verse-per-line vs paragraph mode toggle in settings"
+        "Verse-per-line vs paragraph mode toggle in settings",
+        "Multiple font family selection (System, Serif, Sans)"
       ],
       "description_chirho": "Scripture text rendering with formatting",
       "requirements_chirho": [
@@ -117,7 +118,8 @@
         "Basic text search within sample verses",
         "Case-insensitive search",
         "Search results display with reference and preview",
-        "Click search result to navigate to verse and close search panel"
+        "Click search result to navigate to verse and close search panel",
+        "Search result count displayed"
       ],
       "description_chirho": "Full-text search across modules",
       "requirements_chirho": [

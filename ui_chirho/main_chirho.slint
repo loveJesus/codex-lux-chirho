@@ -191,6 +191,7 @@ export global AppStateChirho {
     // Display mode settings
     in-out property <bool> paragraph-mode-chirho: false;
     in-out property <float> line-height-chirho: 1.5;
+    in-out property <int> font-family-index-chirho: 0; // 0=System, 1=Serif, 2=Sans
 
     // Bookmarks panel
     in-out property <bool> bookmarks-visible-chirho: false;
@@ -636,6 +637,9 @@ component VerseViewChirho inherits Rectangle {
         Text {
             text: verse-chirho.text-chirho;
             font-size: ThemeChirho.font-size-scripture-chirho * AppStateChirho.font-scale-chirho;
+            font-family: AppStateChirho.font-family-index-chirho == 1 ? "Georgia, Times New Roman, serif" :
+                         AppStateChirho.font-family-index-chirho == 2 ? "Helvetica, Arial, sans-serif" :
+                         "system-ui";
             color: ThemeChirho.text-primary-chirho;
             wrap: word-wrap;
             horizontal-alignment: left;
@@ -865,6 +869,13 @@ component SearchPanelChirho inherits Rectangle {
                     mouse-cursor: pointer;
                 }
             }
+        }
+
+        // Search result count
+        if AppStateChirho.search-results-chirho.length > 0: Text {
+            text: AppStateChirho.search-results-chirho.length + " results found";
+            font-size: ThemeChirho.font-size-sm-chirho;
+            color: ThemeChirho.text-muted-chirho;
         }
 
         ScrollView {
@@ -1185,6 +1196,52 @@ component SettingsPanelChirho inherits Rectangle {
                                         ThemeChirho.is-dark-mode-chirho = !ThemeChirho.is-dark-mode-chirho;
                                     }
                                     mouse-cursor: pointer;
+                                }
+                            }
+                        }
+
+                        // Font family
+                        HorizontalLayout {
+                            spacing: ThemeChirho.spacing-md-chirho;
+                            height: 40px;
+
+                            Text {
+                                text: "Font Family";
+                                font-size: ThemeChirho.font-size-md-chirho;
+                                color: ThemeChirho.text-primary-chirho;
+                                vertical-alignment: center;
+                                horizontal-stretch: 1;
+                            }
+
+                            HorizontalLayout {
+                                spacing: ThemeChirho.spacing-xs-chirho;
+
+                                for font-idx-chirho in [
+                                    { idx-chirho: 0, name-chirho: "System" },
+                                    { idx-chirho: 1, name-chirho: "Serif" },
+                                    { idx-chirho: 2, name-chirho: "Sans" }
+                                ]: Rectangle {
+                                    width: 60px;
+                                    height: 28px;
+                                    background: font-idx-chirho.idx-chirho == AppStateChirho.font-family-index-chirho ?
+                                        ThemeChirho.accent-chirho : ThemeChirho.background-tertiary-chirho;
+                                    border-radius: ThemeChirho.radius-sm-chirho;
+
+                                    Text {
+                                        text: font-idx-chirho.name-chirho;
+                                        font-size: ThemeChirho.font-size-sm-chirho;
+                                        color: font-idx-chirho.idx-chirho == AppStateChirho.font-family-index-chirho ?
+                                            white : ThemeChirho.text-secondary-chirho;
+                                        horizontal-alignment: center;
+                                        vertical-alignment: center;
+                                    }
+
+                                    TouchArea {
+                                        clicked => {
+                                            AppStateChirho.font-family-index-chirho = font-idx-chirho.idx-chirho;
+                                        }
+                                        mouse-cursor: pointer;
+                                    }
                                 }
                             }
                         }
