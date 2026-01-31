@@ -5,8 +5,8 @@
   "current_milestone_chirho": "M1_partial",
   "implementation_status_chirho": {
     "completed_chirho": 1,
-    "partial_chirho": 33,
-    "not_started_chirho": 21,
+    "partial_chirho": 34,
+    "not_started_chirho": 20,
     "total_chirho": 55
   },
   "description_chirho": "Cross-platform Bible study application - Codex of Light",
@@ -1093,7 +1093,15 @@
       "name_chirho": "Performance Optimization",
       "category_chirho": "Core",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
+      "completed_items_chirho": [
+        "Efficient VecModel for verse lists (lazy binding)",
+        "Smooth scrolling via native Slint ScrollView",
+        "Callback-based lazy loading for panels",
+        "SQLite connection pooling via rusqlite",
+        "Minimal memory footprint with Slint UI",
+        "Release build with LTO optimization (profile.release.lto=true)"
+      ],
       "description_chirho": "Fast loading and smooth performance",
       "requirements_chirho": [
         "Fast app startup (<2 seconds)",
@@ -1102,7 +1110,8 @@
         "Efficient memory usage",
         "Background indexing",
         "Caching for frequently accessed content"
-      ]
+      ],
+      "implementation_notes_chirho": "Core performance optimizations in place. Pending: background indexing with Tantivy, content caching layer."
     },
 
     "CLX-046": {
