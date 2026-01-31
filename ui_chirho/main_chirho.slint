@@ -11,7 +11,7 @@ export global LabelsChirho {
     out property <string> search-label-chirho: "SEARCH";
     out property <string> note-indicator-chirho: "N";
     out property <string> separator-chirho: "•";
-    out property <string> app-name-chirho: "Codex Lux";
+    out property <string> app-name-chirho: "Codex Lux Chirho";
     out property <string> app-icon-chirho: "✦";
     out property <string> menu-icon-chirho: "☰";
     out property <string> search-icon-chirho: "🔍";
@@ -35,102 +35,120 @@ export global LabelsChirho {
     out property <string> history-icon-chirho: "📖";
 }
 
-// Professional color theme - supports dark, light, and sepia modes
-// Theme index: 0 = dark, 1 = light, 2 = sepia
+// Professional color theme - supports dark, light, sepia, and high contrast modes
+// Theme index: 0 = dark, 1 = light, 2 = sepia, 3 = high contrast
 export global ThemeChirho {
-    // Theme state - index for 3 themes
+    // Theme state - index for 4 themes
     in-out property <int> theme-index-chirho: 0;
 
     // Convenience property for backwards compatibility
-    out property <bool> is-dark-mode-chirho: theme-index-chirho == 0;
+    out property <bool> is-dark-mode-chirho: theme-index-chirho == 0 || theme-index-chirho == 3;
 
-    // Core backgrounds - conditional on theme (dark, light, sepia)
+    // Core backgrounds - conditional on theme (dark, light, sepia, high contrast)
     out property <color> background-primary-chirho:
         theme-index-chirho == 0 ? #1e1e2e :
         theme-index-chirho == 1 ? #f8f9fa :
-        #f4ecd8; // sepia
+        theme-index-chirho == 2 ? #f4ecd8 :
+        #000000; // high contrast
 
     out property <color> background-secondary-chirho:
         theme-index-chirho == 0 ? #252536 :
         theme-index-chirho == 1 ? #ffffff :
-        #f9f3e3; // sepia
+        theme-index-chirho == 2 ? #f9f3e3 :
+        #0a0a0a; // high contrast
 
     out property <color> background-tertiary-chirho:
         theme-index-chirho == 0 ? #2d2d44 :
         theme-index-chirho == 1 ? #f0f1f3 :
-        #efe6d5; // sepia
+        theme-index-chirho == 2 ? #efe6d5 :
+        #1a1a1a; // high contrast
 
     out property <color> background-elevated-chirho:
         theme-index-chirho == 0 ? #363650 :
         theme-index-chirho == 1 ? #e9ecef :
-        #e8dcc8; // sepia
+        theme-index-chirho == 2 ? #e8dcc8 :
+        #2a2a2a; // high contrast
 
     // Text hierarchy
     out property <color> text-primary-chirho:
         theme-index-chirho == 0 ? #e8e8f0 :
         theme-index-chirho == 1 ? #1a1a2e :
-        #3d3225; // sepia - dark brown
+        theme-index-chirho == 2 ? #3d3225 :
+        #ffffff; // high contrast - pure white
 
     out property <color> text-secondary-chirho:
         theme-index-chirho == 0 ? #b8b8c8 :
         theme-index-chirho == 1 ? #4a4a5a :
-        #5c5040; // sepia
+        theme-index-chirho == 2 ? #5c5040 :
+        #e0e0e0; // high contrast
 
     out property <color> text-muted-chirho:
         theme-index-chirho == 0 ? #7878a0 :
         theme-index-chirho == 1 ? #7a7a8a :
-        #8b7b65; // sepia
+        theme-index-chirho == 2 ? #8b7b65 :
+        #a0a0a0; // high contrast
 
     out property <color> text-disabled-chirho:
         theme-index-chirho == 0 ? #505068 :
         theme-index-chirho == 1 ? #b0b0c0 :
-        #b5a890; // sepia
+        theme-index-chirho == 2 ? #b5a890 :
+        #606060; // high contrast
 
-    // Accent colors
-    out property <color> accent-chirho: #8b5cf6;
-    out property <color> accent-hover-chirho: #a78bfa;
+    // Accent colors - brighter yellow for high contrast
+    out property <color> accent-chirho:
+        theme-index-chirho == 3 ? #ffff00 : #8b5cf6;
+    out property <color> accent-hover-chirho:
+        theme-index-chirho == 3 ? #ffff66 : #a78bfa;
     out property <color> accent-secondary-chirho:
         theme-index-chirho == 0 ? #3b4a6b :
         theme-index-chirho == 1 ? #e8e0ff :
-        #d4c8b0; // sepia
+        theme-index-chirho == 2 ? #d4c8b0 :
+        #333300; // high contrast
 
     // Semantic colors
     out property <color> highlight-chirho:
         theme-index-chirho == 0 ? #fbbf24 :
         theme-index-chirho == 1 ? #f59e0b :
-        #d4a020; // sepia
+        theme-index-chirho == 2 ? #d4a020 :
+        #ffff00; // high contrast - bright yellow
 
     out property <color> success-chirho: #34d399;
     out property <color> warning-chirho: #fb923c;
     out property <color> error-chirho: #f87171;
 
-    // Borders and dividers
+    // Borders and dividers - high contrast uses visible borders
     out property <color> border-chirho:
         theme-index-chirho == 0 ? #3d3d5c :
         theme-index-chirho == 1 ? #d0d5dd :
-        #c5b8a0; // sepia
+        theme-index-chirho == 2 ? #c5b8a0 :
+        #ffffff; // high contrast - white borders
 
     out property <color> border-subtle-chirho:
         theme-index-chirho == 0 ? #2d2d44 :
         theme-index-chirho == 1 ? #e0e5eb :
-        #d8ccb5; // sepia
+        theme-index-chirho == 2 ? #d8ccb5 :
+        #808080; // high contrast
 
     out property <color> divider-chirho:
         theme-index-chirho == 0 ? #3535505a :
         theme-index-chirho == 1 ? #d0d5dd5a :
-        #c5b8a05a; // sepia
+        theme-index-chirho == 2 ? #c5b8a05a :
+        #ffffff; // high contrast - solid white
 
     // Scripture language colors
     out property <color> hebrew-chirho:
-        theme-index-chirho == 0 ? #fcd34d : #d97706;
+        theme-index-chirho == 3 ? #00ffff : // high contrast - cyan
+        (theme-index-chirho == 0 ? #fcd34d : #d97706);
 
     out property <color> greek-chirho:
-        theme-index-chirho == 0 ? #67e8f9 : #0891b2;
+        theme-index-chirho == 3 ? #00ff00 : // high contrast - green
+        (theme-index-chirho == 0 ? #67e8f9 : #0891b2);
 
     out property <color> verse-number-chirho:
         theme-index-chirho == 0 ? #a78bfa :
         theme-index-chirho == 1 ? #7c3aed :
-        #8b5cf6; // sepia
+        theme-index-chirho == 2 ? #8b5cf6 :
+        #ffff00; // high contrast - yellow
 
     // Typography
     out property <length> font-size-xs-chirho: 11px;
@@ -151,6 +169,20 @@ export global ThemeChirho {
     out property <length> radius-sm-chirho: 4px;
     out property <length> radius-md-chirho: 8px;
     out property <length> radius-lg-chirho: 12px;
+
+    // Accessibility settings
+    in-out property <bool> reduce-motion-chirho: false;
+    in-out property <bool> focus-visible-chirho: true;
+
+    // Animation duration (respects reduce-motion)
+    out property <duration> animation-fast-chirho: reduce-motion-chirho ? 0ms : 150ms;
+    out property <duration> animation-normal-chirho: reduce-motion-chirho ? 0ms : 200ms;
+    out property <duration> animation-slow-chirho: reduce-motion-chirho ? 0ms : 300ms;
+
+    // Focus indicator color (visible ring around focused elements)
+    out property <color> focus-ring-chirho:
+        theme-index-chirho == 3 ? #00ffff : // high contrast - cyan
+        #8b5cf6; // purple accent
 }
 
 // Highlight color options
@@ -219,6 +251,36 @@ export struct NoteDisplayChirho {
     verse-chirho: int,
     preview-chirho: string,
     updated-at-chirho: string,
+}
+
+// Remote module info for module manager
+export struct RemoteModuleChirho {
+    name-chirho: string,
+    description-chirho: string,
+    language-chirho: string,
+    type-chirho: string,
+    is-installed-chirho: bool,
+}
+
+// Journal entry for display
+export struct JournalEntryDisplayChirho {
+    id-chirho: int,
+    title-chirho: string,
+    preview-chirho: string,
+    verse-ref-chirho: string,
+    tags-chirho: string,
+    date-chirho: string,
+}
+
+// Prayer request for display
+export struct PrayerRequestDisplayChirho {
+    id-chirho: int,
+    title-chirho: string,
+    description-chirho: string,
+    verse-ref-chirho: string,
+    category-chirho: string,
+    is-answered-chirho: bool,
+    date-chirho: string,
 }
 
 // Application state shared with Rust
@@ -309,12 +371,123 @@ export global AppStateChirho {
     in-out property <[NoteDisplayChirho]> all-notes-chirho: [];
     callback load-all-notes-chirho();
     callback delete-note-chirho(string);
+
+    // Module Manager panel
+    in-out property <bool> module-manager-visible-chirho: false;
+    in-out property <bool> module-manager-loading-chirho: false;
+    in-out property <string> module-manager-status-chirho: "";
+    in-out property <[RemoteModuleChirho]> remote-modules-chirho: [];
+    in-out property <[string]> installed-modules-chirho: [];
+    callback refresh-remote-modules-chirho();
+    callback install-module-chirho(string);
+    callback uninstall-module-chirho(string);
+
+    // Quick Navigation (Ctrl+K command palette)
+    in-out property <bool> quick-nav-visible-chirho: false;
+    in-out property <string> quick-nav-query-chirho: "";
+    in-out property <[HistoryEntryChirho]> quick-nav-results-chirho: [];
+    callback quick-nav-search-chirho(string);
+
+    // Context Menu (right-click on verse)
+    in-out property <bool> context-menu-visible-chirho: false;
+    in-out property <length> context-menu-x-chirho: 0px;
+    in-out property <length> context-menu-y-chirho: 0px;
+    in-out property <string> context-menu-verse-ref-chirho: "";
+    in-out property <string> context-menu-verse-text-chirho: "";
+
+    // Copy format settings
+    // 0 = "text - reference" (default), 1 = "reference: text", 2 = "text only", 3 = "reference only"
+    in-out property <int> copy-format-index-chirho: 0;
+    in-out property <bool> copy-include-verse-numbers-chirho: true;
+
+    // Multi-verse selection (for copying ranges)
+    in-out property <bool> verse-selection-mode-chirho: false;
+    in-out property <int> selection-start-verse-chirho: 0;
+    in-out property <int> selection-end-verse-chirho: 0;
+    callback copy-selected-verses-chirho();
+    callback clear-selection-chirho();
+
+    // Onboarding wizard (first-run experience)
+    in-out property <bool> onboarding-visible-chirho: false;
+    in-out property <int> onboarding-step-chirho: 0; // 0=welcome, 1=features, 2=shortcuts, 3=modules, 4=complete
+    callback onboarding-complete-chirho();
+    callback onboarding-skip-chirho();
+
+    // Export callbacks for data portability
+    callback export-highlights-chirho();
+    callback export-bookmarks-chirho();
+    callback export-notes-chirho();
+    callback export-all-data-chirho();
+
+    // Import callbacks for data restore
+    callback import-data-chirho(string);
+    callback load-backup-files-chirho();
+    in-out property <[string]> backup-files-chirho: [];
+    in-out property <bool> import-dialog-visible-chirho: false;
+
+    // Parallel View (side-by-side translation comparison)
+    in-out property <bool> parallel-view-enabled-chirho: false;
+    in-out property <string> parallel-module-chirho: "";
+    in-out property <[VerseChirho]> parallel-verses-chirho: [];
+    callback load-parallel-module-chirho(string);
+
+    // Info Panel (contextual verse details)
+    in-out property <bool> info-panel-visible-chirho: false;
+    in-out property <string> info-verse-ref-chirho: "";
+    in-out property <string> info-verse-text-chirho: "";
+    in-out property <bool> info-has-highlight-chirho: false;
+    in-out property <string> info-highlight-color-chirho: "";
+    in-out property <bool> info-has-note-chirho: false;
+    in-out property <string> info-note-preview-chirho: "";
+    in-out property <bool> info-has-bookmark-chirho: false;
+    callback load-verse-info-chirho(string);
+
+    // Statistics Panel
+    in-out property <bool> stats-panel-visible-chirho: false;
+    in-out property <int> stats-total-chapters-chirho: 0;
+    in-out property <int> stats-unique-chapters-chirho: 0;
+    in-out property <string> stats-reading-time-chirho: "0m";
+    in-out property <int> stats-current-streak-chirho: 0;
+    in-out property <int> stats-longest-streak-chirho: 0;
+    in-out property <int> stats-highlight-count-chirho: 0;
+    in-out property <int> stats-note-count-chirho: 0;
+    in-out property <int> stats-bookmark-count-chirho: 0;
+    in-out property <int> stats-books-started-chirho: 0;
+    callback load-statistics-chirho();
+
+    // Journal Panel
+    in-out property <bool> journal-panel-visible-chirho: false;
+    in-out property <[JournalEntryDisplayChirho]> journal-entries-chirho: [];
+    in-out property <bool> journal-editor-visible-chirho: false;
+    in-out property <int> journal-edit-id-chirho: -1;
+    in-out property <string> journal-edit-title-chirho: "";
+    in-out property <string> journal-edit-content-chirho: "";
+    in-out property <string> journal-edit-verse-ref-chirho: "";
+    in-out property <string> journal-edit-tags-chirho: "";
+    callback load-journal-entries-chirho();
+    callback save-journal-entry-chirho(int, string, string, string, string);
+    callback delete-journal-entry-chirho(int);
+
+    // Prayer List Panel
+    in-out property <bool> prayer-panel-visible-chirho: false;
+    in-out property <[PrayerRequestDisplayChirho]> prayer-requests-chirho: [];
+    in-out property <bool> prayer-editor-visible-chirho: false;
+    in-out property <string> prayer-edit-title-chirho: "";
+    in-out property <string> prayer-edit-description-chirho: "";
+    in-out property <string> prayer-edit-verse-ref-chirho: "";
+    in-out property <string> prayer-edit-category-chirho: "";
+    callback load-prayer-requests-chirho();
+    callback save-prayer-request-chirho(string, string, string, string);
+    callback mark-prayer-answered-chirho(int);
+    callback delete-prayer-request-chirho(int);
 }
 
-// Icon button component
+// Icon button component with accessibility support
 component IconButtonChirho inherits Rectangle {
     in property <string> icon-chirho;
     in property <bool> active-chirho: false;
+    in property <string> accessible-label-chirho: "";
+    in property <bool> has-focus-chirho: false;
     callback clicked-chirho();
 
     width: 36px;
@@ -323,8 +496,11 @@ component IconButtonChirho inherits Rectangle {
     background: touch-area-chirho.has-hover ?
         (active-chirho ? ThemeChirho.accent-chirho : ThemeChirho.background-elevated-chirho) :
         (active-chirho ? ThemeChirho.accent-secondary-chirho : transparent);
+    // Focus indicator ring (enabled via external focus management)
+    border-width: has-focus-chirho && ThemeChirho.focus-visible-chirho ? 2px : 0px;
+    border-color: ThemeChirho.focus-ring-chirho;
 
-    animate background { duration: 150ms; easing: ease-out; }
+    animate background { duration: ThemeChirho.animation-fast-chirho; easing: ease-out; }
 
     Text {
         text: icon-chirho;
@@ -340,10 +516,11 @@ component IconButtonChirho inherits Rectangle {
     }
 }
 
-// Nav button
+// Nav button with accessibility support
 component NavButtonChirho inherits Rectangle {
     in property <string> label-chirho;
     in property <bool> disabled-chirho: false;
+    in property <string> accessible-label-chirho: "";
     callback clicked-chirho();
 
     width: 32px;
@@ -354,7 +531,7 @@ component NavButtonChirho inherits Rectangle {
     border-width: 1px;
     border-color: disabled-chirho ? transparent : ThemeChirho.border-subtle-chirho;
 
-    animate background { duration: 150ms; easing: ease-out; }
+    animate background { duration: ThemeChirho.animation-fast-chirho; easing: ease-out; }
 
     Text {
         text: label-chirho;
@@ -498,7 +675,7 @@ component SidebarChirho inherits Rectangle {
                             (book-touch-chirho.has-hover ? ThemeChirho.background-tertiary-chirho : transparent);
                         border-radius: ThemeChirho.radius-md-chirho;
 
-                        animate background { duration: 150ms; easing: ease-out; }
+                        animate background { duration: ThemeChirho.animation-fast-chirho; easing: ease-out; }
 
                         book-touch-chirho := TouchArea {
                             clicked => {
@@ -589,7 +766,7 @@ component ChapterBarChirho inherits Rectangle {
             border-width: 1px;
             border-color: ThemeChirho.border-subtle-chirho;
 
-            animate background { duration: 150ms; }
+            animate background { duration: ThemeChirho.animation-fast-chirho; }
 
             HorizontalBox {
                 padding-left: ThemeChirho.spacing-lg-chirho;
@@ -643,6 +820,171 @@ component ChapterBarChirho inherits Rectangle {
     }
 }
 
+// Context Menu Item component
+component ContextMenuItemChirho inherits Rectangle {
+    in property <string> icon-chirho;
+    in property <string> label-chirho;
+    callback clicked-chirho();
+
+    height: 36px;
+    background: item-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : transparent;
+    border-radius: ThemeChirho.radius-sm-chirho;
+
+    HorizontalLayout {
+        padding-left: ThemeChirho.spacing-md-chirho;
+        padding-right: ThemeChirho.spacing-md-chirho;
+        spacing: ThemeChirho.spacing-sm-chirho;
+
+        Text {
+            text: icon-chirho;
+            font-size: 14px;
+            vertical-alignment: center;
+        }
+        Text {
+            text: label-chirho;
+            font-size: ThemeChirho.font-size-sm-chirho;
+            color: ThemeChirho.text-primary-chirho;
+            vertical-alignment: center;
+            horizontal-stretch: 1;
+        }
+    }
+
+    item-touch-chirho := TouchArea {
+        clicked => {
+            root.clicked-chirho();
+        }
+        mouse-cursor: pointer;
+    }
+}
+
+// Context Menu component (popup on right-click)
+component ContextMenuChirho inherits Rectangle {
+    in-out property <bool> visible-chirho: false;
+    in property <length> menu-x-chirho: 0px;
+    in property <length> menu-y-chirho: 0px;
+    in property <string> verse-ref-chirho;
+    in property <string> verse-text-chirho;
+
+    width: 100%;
+    height: 100%;
+    background: visible-chirho ? transparent : transparent;
+
+    if visible-chirho: Rectangle {
+        // Backdrop to close menu when clicking outside
+        width: 100%;
+        height: 100%;
+
+        TouchArea {
+            clicked => {
+                root.visible-chirho = false;
+            }
+        }
+
+        // Menu popup
+        Rectangle {
+            x: menu-x-chirho;
+            y: menu-y-chirho;
+            width: 200px;
+            height: 292px;
+            background: ThemeChirho.background-secondary-chirho;
+            border-radius: ThemeChirho.radius-md-chirho;
+            border-width: 1px;
+            border-color: ThemeChirho.border-chirho;
+            drop-shadow-blur: 16px;
+            drop-shadow-color: #00000040;
+
+            VerticalLayout {
+                padding: ThemeChirho.spacing-xs-chirho;
+                spacing: 2px;
+
+                // Header with verse reference
+                Rectangle {
+                    height: 28px;
+                    HorizontalLayout {
+                        padding-left: ThemeChirho.spacing-md-chirho;
+                        Text {
+                            text: verse-ref-chirho;
+                            font-size: ThemeChirho.font-size-xs-chirho;
+                            font-weight: 600;
+                            color: ThemeChirho.text-muted-chirho;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+
+                Rectangle {
+                    height: 1px;
+                    background: ThemeChirho.divider-chirho;
+                }
+
+                ContextMenuItemChirho {
+                    icon-chirho: LabelsChirho.copy-icon-chirho;
+                    label-chirho: "Copy Verse";
+                    clicked-chirho => {
+                        AppStateChirho.copy-verse-chirho(verse-ref-chirho, verse-text-chirho);
+                        root.visible-chirho = false;
+                    }
+                }
+
+                ContextMenuItemChirho {
+                    icon-chirho: LabelsChirho.bookmark-icon-chirho;
+                    label-chirho: "Add Bookmark";
+                    clicked-chirho => {
+                        // Extract just the verse number for the toggle
+                        AppStateChirho.toggle-bookmark-chirho(verse-ref-chirho);
+                        root.visible-chirho = false;
+                    }
+                }
+
+                ContextMenuItemChirho {
+                    icon-chirho: "✦";
+                    label-chirho: "Highlight";
+                    clicked-chirho => {
+                        AppStateChirho.toggle-highlight-chirho(verse-ref-chirho);
+                        root.visible-chirho = false;
+                    }
+                }
+
+                ContextMenuItemChirho {
+                    icon-chirho: LabelsChirho.note-indicator-chirho;
+                    label-chirho: "Add Note";
+                    clicked-chirho => {
+                        AppStateChirho.note-verse-ref-chirho = verse-ref-chirho;
+                        AppStateChirho.get-note-chirho(verse-ref-chirho);
+                        AppStateChirho.note-dialog-visible-chirho = true;
+                        root.visible-chirho = false;
+                    }
+                }
+
+                Rectangle {
+                    height: 1px;
+                    background: ThemeChirho.divider-chirho;
+                }
+
+                ContextMenuItemChirho {
+                    icon-chirho: "⇄";
+                    label-chirho: "Compare Translations";
+                    clicked-chirho => {
+                        // Enable parallel view for translation comparison
+                        AppStateChirho.parallel-view-enabled-chirho = true;
+                        root.visible-chirho = false;
+                    }
+                }
+
+                ContextMenuItemChirho {
+                    icon-chirho: LabelsChirho.search-icon-chirho;
+                    label-chirho: "Search Similar";
+                    clicked-chirho => {
+                        // Use first few words as search query
+                        AppStateChirho.search-active-chirho = true;
+                        root.visible-chirho = false;
+                    }
+                }
+            }
+        }
+    }
+}
+
 // Individual verse component
 component VerseViewChirho inherits Rectangle {
     in property <VerseChirho> verse-chirho;
@@ -669,7 +1011,7 @@ component VerseViewChirho inherits Rectangle {
         border-radius: 2px;
     }
 
-    animate background { duration: 150ms; easing: ease-out; }
+    animate background { duration: ThemeChirho.animation-fast-chirho; easing: ease-out; }
 
     HorizontalLayout {
         padding-top: ThemeChirho.spacing-md-chirho;
@@ -803,6 +1145,30 @@ component VerseViewChirho inherits Rectangle {
                     mouse-cursor: pointer;
                 }
             }
+
+            // Info button
+            Rectangle {
+                width: 24px;
+                height: 24px;
+                background: info-touch-chirho.has-hover ? ThemeChirho.accent-chirho : ThemeChirho.background-elevated-chirho;
+                border-radius: 12px;
+
+                Text {
+                    text: "ℹ";
+                    font-size: 12px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+
+                info-touch-chirho := TouchArea {
+                    clicked => {
+                        // Show info panel and load this verse's info
+                        AppStateChirho.info-panel-visible-chirho = true;
+                        AppStateChirho.load-verse-info-chirho(verse-chirho.reference-chirho);
+                    }
+                    mouse-cursor: pointer;
+                }
+            }
         }
 
         if verse-chirho.has-note-chirho: Rectangle {
@@ -824,6 +1190,19 @@ component VerseViewChirho inherits Rectangle {
     verse-touch-chirho := TouchArea {
         clicked => {
             AppStateChirho.toggle-highlight-chirho(verse-chirho.reference-chirho);
+            // Also update info panel with this verse's details
+            AppStateChirho.load-verse-info-chirho(verse-chirho.reference-chirho);
+        }
+        pointer-event(event-chirho) => {
+            // Right-click to show context menu
+            if (event-chirho.button == PointerEventButton.right && event-chirho.kind == PointerEventKind.down) {
+                AppStateChirho.context-menu-visible-chirho = true;
+                // Use absolute position of the verse element plus mouse position within it
+                AppStateChirho.context-menu-x-chirho = self.absolute-position.x + self.mouse-x;
+                AppStateChirho.context-menu-y-chirho = self.absolute-position.y + self.mouse-y;
+                AppStateChirho.context-menu-verse-ref-chirho = AppStateChirho.current-book-chirho + " " + AppStateChirho.current-chapter-chirho + ":" + verse-chirho.reference-chirho;
+                AppStateChirho.context-menu-verse-text-chirho = verse-chirho.text-chirho;
+            }
         }
         mouse-cursor: pointer;
     }
@@ -848,6 +1227,149 @@ component BibleViewChirho inherits Rectangle {
 
                 for verse-chirho in AppStateChirho.verses-chirho: VerseViewChirho {
                     verse-chirho: verse-chirho;
+                }
+
+                Rectangle { height: 48px; }
+            }
+        }
+    }
+}
+
+// Parallel pane for side-by-side translation comparison
+component ParallelPaneChirho inherits Rectangle {
+    in-out property <bool> visible-chirho: false;
+
+    width: visible-chirho ? 400px : 0px;
+    clip: true;
+    background: ThemeChirho.background-secondary-chirho;
+
+    animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
+
+    // Left border separator
+    Rectangle {
+        x: 0px;
+        width: 1px;
+        height: 100%;
+        background: ThemeChirho.border-chirho;
+    }
+
+    VerticalLayout {
+        // Header with module selector
+        Rectangle {
+            height: 52px;
+            background: ThemeChirho.background-tertiary-chirho;
+
+            HorizontalLayout {
+                padding: ThemeChirho.spacing-md-chirho;
+                spacing: ThemeChirho.spacing-sm-chirho;
+
+                Text {
+                    text: "Compare:";
+                    font-size: ThemeChirho.font-size-sm-chirho;
+                    color: ThemeChirho.text-muted-chirho;
+                    vertical-alignment: center;
+                }
+
+                ComboBox {
+                    horizontal-stretch: 1;
+                    height: 32px;
+                    model: AppStateChirho.module-names-chirho;
+                    current-value: AppStateChirho.parallel-module-chirho;
+                    selected(value-chirho) => {
+                        AppStateChirho.load-parallel-module-chirho(value-chirho);
+                    }
+                }
+
+                IconButtonChirho {
+                    icon-chirho: LabelsChirho.close-icon-chirho;
+                    clicked-chirho => {
+                        AppStateChirho.parallel-view-enabled-chirho = false;
+                    }
+                }
+            }
+
+            Rectangle {
+                y: parent.height - 1px;
+                height: 1px;
+                background: ThemeChirho.border-chirho;
+            }
+        }
+
+        // Chapter reference
+        Rectangle {
+            height: 40px;
+            background: ThemeChirho.background-secondary-chirho;
+
+            HorizontalLayout {
+                padding-left: ThemeChirho.spacing-lg-chirho;
+                alignment: start;
+
+                Text {
+                    text: AppStateChirho.parallel-module-chirho + " • " + AppStateChirho.current-book-chirho + " " + AppStateChirho.current-chapter-chirho;
+                    font-size: ThemeChirho.font-size-md-chirho;
+                    font-weight: 500;
+                    color: ThemeChirho.text-secondary-chirho;
+                    vertical-alignment: center;
+                }
+            }
+
+            Rectangle {
+                y: parent.height - 1px;
+                height: 1px;
+                background: ThemeChirho.divider-chirho;
+            }
+        }
+
+        // Verses scroll view
+        ScrollView {
+            vertical-stretch: 1;
+
+            VerticalLayout {
+                padding-top: ThemeChirho.spacing-lg-chirho;
+                padding-bottom: ThemeChirho.spacing-xl-chirho;
+                padding-left: 24px;
+                padding-right: 24px;
+                spacing: 2px;
+
+                // Message if no parallel module selected
+                if AppStateChirho.parallel-module-chirho == "": Rectangle {
+                    height: 100px;
+
+                    Text {
+                        text: "Select a translation to compare";
+                        font-size: ThemeChirho.font-size-md-chirho;
+                        color: ThemeChirho.text-muted-chirho;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+
+                // Parallel verses (simplified display without interactions)
+                for verse-chirho in AppStateChirho.parallel-verses-chirho: Rectangle {
+                    background: transparent;
+
+                    HorizontalLayout {
+                        padding-top: ThemeChirho.spacing-sm-chirho;
+                        padding-bottom: ThemeChirho.spacing-sm-chirho;
+                        spacing: ThemeChirho.spacing-sm-chirho;
+
+                        Text {
+                            text: verse-chirho.reference-chirho;
+                            font-size: 14px * AppStateChirho.font-scale-chirho;
+                            font-weight: 600;
+                            color: ThemeChirho.verse-number-chirho;
+                            vertical-alignment: top;
+                            width: 32px;
+                        }
+
+                        Text {
+                            text: verse-chirho.text-chirho;
+                            font-size: ThemeChirho.font-size-scripture-chirho * AppStateChirho.font-scale-chirho;
+                            color: ThemeChirho.text-primary-chirho;
+                            wrap: word-wrap;
+                            horizontal-stretch: 1;
+                        }
+                    }
                 }
 
                 Rectangle { height: 48px; }
@@ -969,7 +1491,7 @@ component SearchPanelChirho inherits Rectangle {
                         ThemeChirho.background-elevated-chirho : ThemeChirho.background-tertiary-chirho;
                     border-radius: ThemeChirho.radius-md-chirho;
 
-                    animate background { duration: 150ms; easing: ease-out; }
+                    animate background { duration: ThemeChirho.animation-fast-chirho; easing: ease-out; }
 
                     result-touch-chirho := TouchArea {
                         clicked => {
@@ -1110,6 +1632,60 @@ component ToolbarChirho inherits Rectangle {
             }
         }
 
+        // Parallel View button (side-by-side translations)
+        IconButtonChirho {
+            icon-chirho: "⫗";
+            active-chirho: AppStateChirho.parallel-view-enabled-chirho;
+            clicked-chirho => {
+                AppStateChirho.parallel-view-enabled-chirho = !AppStateChirho.parallel-view-enabled-chirho;
+            }
+        }
+
+        // Info Panel button (verse details)
+        IconButtonChirho {
+            icon-chirho: "ℹ";
+            active-chirho: AppStateChirho.info-panel-visible-chirho;
+            clicked-chirho => {
+                AppStateChirho.info-panel-visible-chirho = !AppStateChirho.info-panel-visible-chirho;
+            }
+        }
+
+        // Statistics button
+        IconButtonChirho {
+            icon-chirho: "📊";
+            active-chirho: AppStateChirho.stats-panel-visible-chirho;
+            clicked-chirho => {
+                AppStateChirho.stats-panel-visible-chirho = !AppStateChirho.stats-panel-visible-chirho;
+                if AppStateChirho.stats-panel-visible-chirho {
+                    AppStateChirho.load-statistics-chirho();
+                }
+            }
+        }
+
+        // Journal button
+        IconButtonChirho {
+            icon-chirho: "📔";
+            active-chirho: AppStateChirho.journal-panel-visible-chirho;
+            clicked-chirho => {
+                AppStateChirho.journal-panel-visible-chirho = !AppStateChirho.journal-panel-visible-chirho;
+                if AppStateChirho.journal-panel-visible-chirho {
+                    AppStateChirho.load-journal-entries-chirho();
+                }
+            }
+        }
+
+        // Prayer list button
+        IconButtonChirho {
+            icon-chirho: "🙏";
+            active-chirho: AppStateChirho.prayer-panel-visible-chirho;
+            clicked-chirho => {
+                AppStateChirho.prayer-panel-visible-chirho = !AppStateChirho.prayer-panel-visible-chirho;
+                if AppStateChirho.prayer-panel-visible-chirho {
+                    AppStateChirho.load-prayer-requests-chirho();
+                }
+            }
+        }
+
         // Theme toggle button (cycles: dark → light → sepia → dark)
         IconButtonChirho {
             icon-chirho:
@@ -1118,6 +1694,15 @@ component ToolbarChirho inherits Rectangle {
                 LabelsChirho.theme-dark-icon-chirho;
             clicked-chirho => {
                 ThemeChirho.theme-index-chirho = Math.mod(ThemeChirho.theme-index-chirho + 1, 3);
+            }
+        }
+
+        // Module Manager button
+        IconButtonChirho {
+            icon-chirho: "📦";
+            active-chirho: AppStateChirho.module-manager-visible-chirho;
+            clicked-chirho => {
+                AppStateChirho.module-manager-visible-chirho = !AppStateChirho.module-manager-visible-chirho;
             }
         }
 
@@ -1184,13 +1769,13 @@ component SettingsPanelChirho inherits Rectangle {
     height: 100%;
     background: visible-chirho ? #00000080 : transparent;
 
-    animate background { duration: 200ms; }
+    animate background { duration: ThemeChirho.animation-normal-chirho; }
 
     if visible-chirho: Rectangle {
         x: (parent.width - self.width) / 2;
         y: (parent.height - self.height) / 2;
-        width: 480px;
-        height: 400px;
+        width: 500px;
+        height: 640px;
         background: ThemeChirho.background-secondary-chirho;
         border-radius: ThemeChirho.radius-lg-chirho;
         border-width: 1px;
@@ -1242,17 +1827,21 @@ component SettingsPanelChirho inherits Rectangle {
                             color: ThemeChirho.text-muted-chirho;
                         }
 
-                        // Theme selector (Dark, Light, Sepia)
-                        HorizontalLayout {
-                            spacing: ThemeChirho.spacing-md-chirho;
-                            height: 40px;
+                        // Theme selector (Dark, Light, Sepia, High Contrast)
+                        VerticalLayout {
+                            spacing: ThemeChirho.spacing-xs-chirho;
 
-                            Text {
-                                text: "Theme";
-                                font-size: ThemeChirho.font-size-md-chirho;
-                                color: ThemeChirho.text-primary-chirho;
-                                vertical-alignment: center;
-                                horizontal-stretch: 1;
+                            HorizontalLayout {
+                                spacing: ThemeChirho.spacing-md-chirho;
+                                height: 40px;
+
+                                Text {
+                                    text: "Theme";
+                                    font-size: ThemeChirho.font-size-md-chirho;
+                                    color: ThemeChirho.text-primary-chirho;
+                                    vertical-alignment: center;
+                                    horizontal-stretch: 1;
+                                }
                             }
 
                             HorizontalLayout {
@@ -1261,17 +1850,17 @@ component SettingsPanelChirho inherits Rectangle {
                                 for theme-opt-chirho in [
                                     { idx-chirho: 0, name-chirho: "Dark", icon-chirho: "🌙" },
                                     { idx-chirho: 1, name-chirho: "Light", icon-chirho: "☀" },
-                                    { idx-chirho: 2, name-chirho: "Sepia", icon-chirho: "📜" }
+                                    { idx-chirho: 2, name-chirho: "Sepia", icon-chirho: "📜" },
+                                    { idx-chirho: 3, name-chirho: "Contrast", icon-chirho: "⬤" }
                                 ]: Rectangle {
-                                    width: 65px;
-                                    height: 28px;
+                                    horizontal-stretch: 1;
+                                    height: 32px;
                                     background: theme-opt-chirho.idx-chirho == ThemeChirho.theme-index-chirho ?
                                         ThemeChirho.accent-chirho : ThemeChirho.background-tertiary-chirho;
                                     border-radius: ThemeChirho.radius-sm-chirho;
 
                                     HorizontalLayout {
-                                        padding-left: 6px;
-                                        padding-right: 6px;
+                                        alignment: center;
                                         spacing: 4px;
 
                                         Text {
@@ -1281,7 +1870,7 @@ component SettingsPanelChirho inherits Rectangle {
                                         }
                                         Text {
                                             text: theme-opt-chirho.name-chirho;
-                                            font-size: ThemeChirho.font-size-sm-chirho;
+                                            font-size: 11px;
                                             color: theme-opt-chirho.idx-chirho == ThemeChirho.theme-index-chirho ?
                                                 white : ThemeChirho.text-secondary-chirho;
                                             vertical-alignment: center;
@@ -1423,12 +2012,116 @@ component SettingsPanelChirho inherits Rectangle {
                                     background: white;
                                     border-radius: 11px;
 
-                                    animate x { duration: 200ms; easing: ease-out; }
+                                    animate x { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
                                 }
 
                                 TouchArea {
                                     clicked => {
                                         AppStateChirho.paragraph-mode-chirho = !AppStateChirho.paragraph-mode-chirho;
+                                    }
+                                    mouse-cursor: pointer;
+                                }
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        height: 1px;
+                        background: ThemeChirho.divider-chirho;
+                    }
+
+                    // Copy Format Section
+                    VerticalLayout {
+                        spacing: ThemeChirho.spacing-sm-chirho;
+
+                        Text {
+                            text: "Copy Format";
+                            font-size: ThemeChirho.font-size-sm-chirho;
+                            font-weight: 600;
+                            color: ThemeChirho.text-muted-chirho;
+                        }
+
+                        // Format selector
+                        HorizontalLayout {
+                            spacing: ThemeChirho.spacing-md-chirho;
+                            height: 40px;
+
+                            Text {
+                                text: "Format";
+                                font-size: ThemeChirho.font-size-md-chirho;
+                                color: ThemeChirho.text-primary-chirho;
+                                vertical-alignment: center;
+                                horizontal-stretch: 1;
+                            }
+
+                            HorizontalLayout {
+                                spacing: ThemeChirho.spacing-xs-chirho;
+
+                                for format-opt-chirho in [
+                                    { idx-chirho: 0, name-chirho: "Text - Ref" },
+                                    { idx-chirho: 1, name-chirho: "Ref: Text" },
+                                    { idx-chirho: 2, name-chirho: "Text Only" }
+                                ]: Rectangle {
+                                    width: 75px;
+                                    height: 28px;
+                                    background: format-opt-chirho.idx-chirho == AppStateChirho.copy-format-index-chirho ?
+                                        ThemeChirho.accent-chirho : ThemeChirho.background-tertiary-chirho;
+                                    border-radius: ThemeChirho.radius-sm-chirho;
+
+                                    Text {
+                                        text: format-opt-chirho.name-chirho;
+                                        font-size: ThemeChirho.font-size-xs-chirho;
+                                        color: format-opt-chirho.idx-chirho == AppStateChirho.copy-format-index-chirho ?
+                                            white : ThemeChirho.text-secondary-chirho;
+                                        horizontal-alignment: center;
+                                        vertical-alignment: center;
+                                    }
+
+                                    TouchArea {
+                                        clicked => {
+                                            AppStateChirho.copy-format-index-chirho = format-opt-chirho.idx-chirho;
+                                        }
+                                        mouse-cursor: pointer;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Include verse numbers toggle
+                        HorizontalLayout {
+                            spacing: ThemeChirho.spacing-md-chirho;
+                            height: 40px;
+
+                            Text {
+                                text: "Include Verse Numbers";
+                                font-size: ThemeChirho.font-size-md-chirho;
+                                color: ThemeChirho.text-primary-chirho;
+                                vertical-alignment: center;
+                                horizontal-stretch: 1;
+                            }
+
+                            Rectangle {
+                                width: 50px;
+                                height: 26px;
+                                background: AppStateChirho.copy-include-verse-numbers-chirho ? ThemeChirho.accent-chirho : ThemeChirho.background-tertiary-chirho;
+                                border-radius: 13px;
+                                border-width: 1px;
+                                border-color: ThemeChirho.border-chirho;
+
+                                Rectangle {
+                                    x: AppStateChirho.copy-include-verse-numbers-chirho ? 26px : 2px;
+                                    y: 2px;
+                                    width: 22px;
+                                    height: 22px;
+                                    background: white;
+                                    border-radius: 11px;
+
+                                    animate x { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
+                                }
+
+                                TouchArea {
+                                    clicked => {
+                                        AppStateChirho.copy-include-verse-numbers-chirho = !AppStateChirho.copy-include-verse-numbers-chirho;
                                     }
                                     mouse-cursor: pointer;
                                 }
@@ -1493,6 +2186,21 @@ component SettingsPanelChirho inherits Rectangle {
                             }
                             HorizontalLayout {
                                 height: 28px;
+                                Text { text: "Ctrl+M"; font-size: 13px; color: ThemeChirho.accent-chirho; width: 80px; vertical-alignment: center; }
+                                Text { text: "Module manager"; font-size: 13px; color: ThemeChirho.text-secondary-chirho; vertical-alignment: center; }
+                            }
+                            HorizontalLayout {
+                                height: 28px;
+                                Text { text: "Ctrl+P"; font-size: 13px; color: ThemeChirho.accent-chirho; width: 80px; vertical-alignment: center; }
+                                Text { text: "Parallel view"; font-size: 13px; color: ThemeChirho.text-secondary-chirho; vertical-alignment: center; }
+                            }
+                            HorizontalLayout {
+                                height: 28px;
+                                Text { text: "Ctrl+K"; font-size: 13px; color: ThemeChirho.accent-chirho; width: 80px; vertical-alignment: center; }
+                                Text { text: "Quick navigation"; font-size: 13px; color: ThemeChirho.text-secondary-chirho; vertical-alignment: center; }
+                            }
+                            HorizontalLayout {
+                                height: 28px;
                                 Text { text: "← / →"; font-size: 13px; color: ThemeChirho.accent-chirho; width: 80px; vertical-alignment: center; }
                                 Text { text: "Previous/Next chapter"; font-size: 13px; color: ThemeChirho.text-secondary-chirho; vertical-alignment: center; }
                             }
@@ -1500,6 +2208,321 @@ component SettingsPanelChirho inherits Rectangle {
                                 height: 28px;
                                 Text { text: "Escape"; font-size: 13px; color: ThemeChirho.accent-chirho; width: 80px; vertical-alignment: center; }
                                 Text { text: "Close dialogs"; font-size: 13px; color: ThemeChirho.text-secondary-chirho; vertical-alignment: center; }
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        height: 1px;
+                        background: ThemeChirho.divider-chirho;
+                    }
+
+                    // Data & Backup Section
+                    VerticalLayout {
+                        spacing: ThemeChirho.spacing-sm-chirho;
+
+                        Text {
+                            text: "Data & Backup";
+                            font-size: ThemeChirho.font-size-sm-chirho;
+                            font-weight: 600;
+                            color: ThemeChirho.text-muted-chirho;
+                        }
+
+                        Text {
+                            text: "Export your data for backup or transfer";
+                            font-size: ThemeChirho.font-size-sm-chirho;
+                            color: ThemeChirho.text-secondary-chirho;
+                        }
+
+                        // Export buttons row
+                        HorizontalLayout {
+                            spacing: ThemeChirho.spacing-sm-chirho;
+                            height: 36px;
+
+                            Rectangle {
+                                horizontal-stretch: 1;
+                                height: 32px;
+                                background: export-all-touch-chirho.has-hover ? ThemeChirho.accent-hover-chirho : ThemeChirho.accent-chirho;
+                                border-radius: ThemeChirho.radius-md-chirho;
+
+                                HorizontalLayout {
+                                    alignment: center;
+                                    spacing: 6px;
+                                    Text {
+                                        text: "💾";
+                                        font-size: 14px;
+                                        vertical-alignment: center;
+                                    }
+                                    Text {
+                                        text: "Export All Data";
+                                        font-size: ThemeChirho.font-size-sm-chirho;
+                                        font-weight: 500;
+                                        color: white;
+                                        vertical-alignment: center;
+                                    }
+                                }
+
+                                export-all-touch-chirho := TouchArea {
+                                    clicked => {
+                                        AppStateChirho.export-all-data-chirho();
+                                    }
+                                    mouse-cursor: pointer;
+                                }
+                            }
+                        }
+
+                        // Individual export buttons
+                        HorizontalLayout {
+                            spacing: ThemeChirho.spacing-xs-chirho;
+                            height: 32px;
+
+                            Rectangle {
+                                horizontal-stretch: 1;
+                                height: 28px;
+                                background: export-hl-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : ThemeChirho.background-tertiary-chirho;
+                                border-radius: ThemeChirho.radius-sm-chirho;
+                                border-width: 1px;
+                                border-color: ThemeChirho.border-subtle-chirho;
+
+                                Text {
+                                    text: "✦ Highlights";
+                                    font-size: 11px;
+                                    color: ThemeChirho.text-secondary-chirho;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+
+                                export-hl-touch-chirho := TouchArea {
+                                    clicked => {
+                                        AppStateChirho.export-highlights-chirho();
+                                    }
+                                    mouse-cursor: pointer;
+                                }
+                            }
+
+                            Rectangle {
+                                horizontal-stretch: 1;
+                                height: 28px;
+                                background: export-bm-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : ThemeChirho.background-tertiary-chirho;
+                                border-radius: ThemeChirho.radius-sm-chirho;
+                                border-width: 1px;
+                                border-color: ThemeChirho.border-subtle-chirho;
+
+                                Text {
+                                    text: "🔖 Bookmarks";
+                                    font-size: 11px;
+                                    color: ThemeChirho.text-secondary-chirho;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+
+                                export-bm-touch-chirho := TouchArea {
+                                    clicked => {
+                                        AppStateChirho.export-bookmarks-chirho();
+                                    }
+                                    mouse-cursor: pointer;
+                                }
+                            }
+
+                            Rectangle {
+                                horizontal-stretch: 1;
+                                height: 28px;
+                                background: export-notes-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : ThemeChirho.background-tertiary-chirho;
+                                border-radius: ThemeChirho.radius-sm-chirho;
+                                border-width: 1px;
+                                border-color: ThemeChirho.border-subtle-chirho;
+
+                                Text {
+                                    text: "📝 Notes";
+                                    font-size: 11px;
+                                    color: ThemeChirho.text-secondary-chirho;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+
+                                export-notes-touch-chirho := TouchArea {
+                                    clicked => {
+                                        AppStateChirho.export-notes-chirho();
+                                    }
+                                    mouse-cursor: pointer;
+                                }
+                            }
+                        }
+
+                        // Import button
+                        HorizontalLayout {
+                            spacing: ThemeChirho.spacing-sm-chirho;
+                            height: 36px;
+
+                            Rectangle {
+                                horizontal-stretch: 1;
+                                height: 32px;
+                                background: import-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : ThemeChirho.background-tertiary-chirho;
+                                border-radius: ThemeChirho.radius-md-chirho;
+                                border-width: 1px;
+                                border-color: ThemeChirho.border-chirho;
+
+                                HorizontalLayout {
+                                    alignment: center;
+                                    spacing: 6px;
+                                    Text {
+                                        text: "📥";
+                                        font-size: 14px;
+                                        vertical-alignment: center;
+                                    }
+                                    Text {
+                                        text: "Import from Backup";
+                                        font-size: ThemeChirho.font-size-sm-chirho;
+                                        font-weight: 500;
+                                        color: ThemeChirho.text-primary-chirho;
+                                        vertical-alignment: center;
+                                    }
+                                }
+
+                                import-touch-chirho := TouchArea {
+                                    clicked => {
+                                        AppStateChirho.load-backup-files-chirho();
+                                        AppStateChirho.import-dialog-visible-chirho = true;
+                                    }
+                                    mouse-cursor: pointer;
+                                }
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        height: 1px;
+                        background: ThemeChirho.divider-chirho;
+                    }
+
+                    // Accessibility Section
+                    VerticalLayout {
+                        spacing: ThemeChirho.spacing-sm-chirho;
+
+                        Text {
+                            text: "Accessibility";
+                            font-size: ThemeChirho.font-size-sm-chirho;
+                            font-weight: 600;
+                            color: ThemeChirho.text-muted-chirho;
+                        }
+
+                        // Reduce Motion toggle
+                        HorizontalLayout {
+                            spacing: ThemeChirho.spacing-md-chirho;
+                            height: 40px;
+
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                spacing: 2px;
+                                alignment: center;
+
+                                Text {
+                                    text: "Reduce Motion";
+                                    font-size: ThemeChirho.font-size-md-chirho;
+                                    color: ThemeChirho.text-primary-chirho;
+                                }
+                                Text {
+                                    text: "Minimize animations for motion sensitivity";
+                                    font-size: ThemeChirho.font-size-xs-chirho;
+                                    color: ThemeChirho.text-muted-chirho;
+                                }
+                            }
+
+                            Rectangle {
+                                width: 50px;
+                                height: 26px;
+                                background: ThemeChirho.reduce-motion-chirho ? ThemeChirho.accent-chirho : ThemeChirho.background-tertiary-chirho;
+                                border-radius: 13px;
+                                border-width: 1px;
+                                border-color: ThemeChirho.border-chirho;
+
+                                Rectangle {
+                                    x: ThemeChirho.reduce-motion-chirho ? 26px : 2px;
+                                    y: 2px;
+                                    width: 22px;
+                                    height: 22px;
+                                    background: white;
+                                    border-radius: 11px;
+
+                                    // Note: This animation respects its own setting
+                                    animate x { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
+                                }
+
+                                TouchArea {
+                                    clicked => {
+                                        ThemeChirho.reduce-motion-chirho = !ThemeChirho.reduce-motion-chirho;
+                                    }
+                                    mouse-cursor: pointer;
+                                }
+                            }
+                        }
+
+                        // Focus Indicators toggle
+                        HorizontalLayout {
+                            spacing: ThemeChirho.spacing-md-chirho;
+                            height: 40px;
+
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                spacing: 2px;
+                                alignment: center;
+
+                                Text {
+                                    text: "Focus Indicators";
+                                    font-size: ThemeChirho.font-size-md-chirho;
+                                    color: ThemeChirho.text-primary-chirho;
+                                }
+                                Text {
+                                    text: "Show visible focus ring for keyboard navigation";
+                                    font-size: ThemeChirho.font-size-xs-chirho;
+                                    color: ThemeChirho.text-muted-chirho;
+                                }
+                            }
+
+                            Rectangle {
+                                width: 50px;
+                                height: 26px;
+                                background: ThemeChirho.focus-visible-chirho ? ThemeChirho.accent-chirho : ThemeChirho.background-tertiary-chirho;
+                                border-radius: 13px;
+                                border-width: 1px;
+                                border-color: ThemeChirho.border-chirho;
+
+                                Rectangle {
+                                    x: ThemeChirho.focus-visible-chirho ? 26px : 2px;
+                                    y: 2px;
+                                    width: 22px;
+                                    height: 22px;
+                                    background: white;
+                                    border-radius: 11px;
+
+                                    animate x { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
+                                }
+
+                                TouchArea {
+                                    clicked => {
+                                        ThemeChirho.focus-visible-chirho = !ThemeChirho.focus-visible-chirho;
+                                    }
+                                    mouse-cursor: pointer;
+                                }
+                            }
+                        }
+
+                        // High contrast reminder
+                        HorizontalLayout {
+                            spacing: ThemeChirho.spacing-sm-chirho;
+                            height: 32px;
+
+                            Text {
+                                text: "⬤";
+                                font-size: 12px;
+                                color: ThemeChirho.theme-index-chirho == 3 ? #ffff00 : ThemeChirho.text-muted-chirho;
+                                vertical-alignment: center;
+                            }
+                            Text {
+                                text: ThemeChirho.theme-index-chirho == 3 ? "High Contrast mode is enabled" : "Use Ctrl+T or Theme setting for High Contrast";
+                                font-size: ThemeChirho.font-size-sm-chirho;
+                                color: ThemeChirho.theme-index-chirho == 3 ? ThemeChirho.text-primary-chirho : ThemeChirho.text-muted-chirho;
+                                vertical-alignment: center;
                             }
                         }
                     }
@@ -1521,7 +2544,7 @@ component SettingsPanelChirho inherits Rectangle {
                         }
 
                         Text {
-                            text: "Codex Lux v0.1.4";
+                            text: "Codex Lux Chirho v0.1.4";
                             font-size: ThemeChirho.font-size-md-chirho;
                             color: ThemeChirho.text-primary-chirho;
                         }
@@ -1560,7 +2583,7 @@ component GotoDialogChirho inherits Rectangle {
     height: 100%;
     background: visible-chirho ? #00000080 : transparent;
 
-    animate background { duration: 200ms; }
+    animate background { duration: ThemeChirho.animation-normal-chirho; }
 
     if visible-chirho: Rectangle {
         x: (parent.width - self.width) / 2;
@@ -1652,7 +2675,7 @@ component ChapterSelectorChirho inherits Rectangle {
     height: 100%;
     background: visible-chirho ? #00000080 : transparent;
 
-    animate background { duration: 200ms; }
+    animate background { duration: ThemeChirho.animation-normal-chirho; }
 
     if visible-chirho: Rectangle {
         x: (parent.width - self.width) / 2;
@@ -1761,7 +2784,7 @@ component NoteDialogChirho inherits Rectangle {
     height: 100%;
     background: visible-chirho ? #00000080 : transparent;
 
-    animate background { duration: 200ms; }
+    animate background { duration: ThemeChirho.animation-normal-chirho; }
 
     if visible-chirho: Rectangle {
         x: (parent.width - self.width) / 2;
@@ -1889,6 +2912,151 @@ component NoteDialogChirho inherits Rectangle {
     }
 }
 
+// Import Dialog - select backup to restore
+component ImportDialogChirho inherits Rectangle {
+    in-out property <bool> visible-chirho <=> AppStateChirho.import-dialog-visible-chirho;
+
+    width: 100%;
+    height: 100%;
+    background: visible-chirho ? #00000080 : transparent;
+
+    animate background { duration: ThemeChirho.animation-normal-chirho; }
+
+    if visible-chirho: Rectangle {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        width: 420px;
+        height: min(400px, 100px + AppStateChirho.backup-files-chirho.length * 50px);
+        background: ThemeChirho.background-secondary-chirho;
+        border-radius: ThemeChirho.radius-lg-chirho;
+        border-width: 1px;
+        border-color: ThemeChirho.border-chirho;
+        drop-shadow-blur: 20px;
+        drop-shadow-color: #00000040;
+
+        VerticalLayout {
+            padding: ThemeChirho.spacing-lg-chirho;
+            spacing: ThemeChirho.spacing-md-chirho;
+
+            // Header
+            HorizontalLayout {
+                height: 32px;
+                spacing: ThemeChirho.spacing-sm-chirho;
+
+                Text {
+                    text: "📥 Import from Backup";
+                    font-size: ThemeChirho.font-size-lg-chirho;
+                    font-weight: 700;
+                    color: ThemeChirho.text-primary-chirho;
+                    vertical-alignment: center;
+                }
+
+                Rectangle { horizontal-stretch: 1; }
+
+                IconButtonChirho {
+                    icon-chirho: LabelsChirho.close-icon-chirho;
+                    clicked-chirho => {
+                        AppStateChirho.import-dialog-visible-chirho = false;
+                    }
+                }
+            }
+
+            Rectangle {
+                height: 1px;
+                background: ThemeChirho.divider-chirho;
+            }
+
+            // Backup files list
+            if AppStateChirho.backup-files-chirho.length == 0: VerticalLayout {
+                alignment: center;
+                vertical-stretch: 1;
+                spacing: ThemeChirho.spacing-md-chirho;
+
+                Text {
+                    text: "📂";
+                    font-size: 48px;
+                    horizontal-alignment: center;
+                }
+                Text {
+                    text: "No backup files found";
+                    font-size: ThemeChirho.font-size-md-chirho;
+                    color: ThemeChirho.text-secondary-chirho;
+                    horizontal-alignment: center;
+                }
+                Text {
+                    text: "Export your data first to create a backup";
+                    font-size: ThemeChirho.font-size-sm-chirho;
+                    color: ThemeChirho.text-muted-chirho;
+                    horizontal-alignment: center;
+                }
+            }
+
+            if AppStateChirho.backup-files-chirho.length > 0: ScrollView {
+                vertical-stretch: 1;
+
+                VerticalLayout {
+                    spacing: ThemeChirho.spacing-xs-chirho;
+
+                    for backup-file-chirho in AppStateChirho.backup-files-chirho: Rectangle {
+                        height: 44px;
+                        background: backup-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : ThemeChirho.background-tertiary-chirho;
+                        border-radius: ThemeChirho.radius-md-chirho;
+
+                        animate background { duration: ThemeChirho.animation-fast-chirho; }
+
+                        HorizontalLayout {
+                            padding: ThemeChirho.spacing-md-chirho;
+                            spacing: ThemeChirho.spacing-sm-chirho;
+
+                            Text {
+                                text: "📄";
+                                font-size: 16px;
+                                vertical-alignment: center;
+                            }
+
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                alignment: center;
+                                spacing: 2px;
+
+                                Text {
+                                    text: backup-file-chirho;
+                                    font-size: ThemeChirho.font-size-sm-chirho;
+                                    color: ThemeChirho.text-primary-chirho;
+                                    overflow: elide;
+                                }
+                            }
+
+                            Text {
+                                text: "→";
+                                font-size: 16px;
+                                color: ThemeChirho.text-muted-chirho;
+                                vertical-alignment: center;
+                            }
+                        }
+
+                        backup-touch-chirho := TouchArea {
+                            clicked => {
+                                AppStateChirho.import-data-chirho(backup-file-chirho);
+                                AppStateChirho.import-dialog-visible-chirho = false;
+                            }
+                            mouse-cursor: pointer;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Close when clicking outside
+    TouchArea {
+        enabled: visible-chirho;
+        clicked => {
+            AppStateChirho.import-dialog-visible-chirho = false;
+        }
+    }
+}
+
 // Bookmarks panel component
 // History panel component
 component HistoryPanelChirho inherits Rectangle {
@@ -1898,7 +3066,7 @@ component HistoryPanelChirho inherits Rectangle {
     height: 100%;
     background: visible-chirho ? #00000080 : transparent;
 
-    animate background { duration: 200ms; }
+    animate background { duration: ThemeChirho.animation-normal-chirho; }
 
     if visible-chirho: Rectangle {
         x: (parent.width - self.width) / 2;
@@ -1961,7 +3129,7 @@ component HistoryPanelChirho inherits Rectangle {
                         background: hist-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : ThemeChirho.background-tertiary-chirho;
                         border-radius: ThemeChirho.radius-md-chirho;
 
-                        animate background { duration: 150ms; }
+                        animate background { duration: ThemeChirho.animation-fast-chirho; }
 
                         hist-touch-chirho := TouchArea {
                             clicked => {
@@ -2018,7 +3186,7 @@ component BookmarksPanelChirho inherits Rectangle {
     background: ThemeChirho.background-secondary-chirho;
     clip: true;
 
-    animate width { duration: 200ms; easing: ease-out; }
+    animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
 
     Rectangle {
         width: 1px;
@@ -2083,7 +3251,7 @@ component BookmarksPanelChirho inherits Rectangle {
                     background: bm-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : ThemeChirho.background-tertiary-chirho;
                     border-radius: ThemeChirho.radius-md-chirho;
 
-                    animate background { duration: 150ms; easing: ease-out; }
+                    animate background { duration: ThemeChirho.animation-fast-chirho; easing: ease-out; }
 
                     bm-touch-chirho := TouchArea {
                         clicked => {
@@ -2137,7 +3305,7 @@ component HighlightsPanelChirho inherits Rectangle {
     background: ThemeChirho.background-secondary-chirho;
     clip: true;
 
-    animate width { duration: 200ms; easing: ease-out; }
+    animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
 
     Rectangle {
         width: 1px;
@@ -2209,7 +3377,7 @@ component HighlightsPanelChirho inherits Rectangle {
                     background: hl-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : ThemeChirho.background-tertiary-chirho;
                     border-radius: ThemeChirho.radius-md-chirho;
 
-                    animate background { duration: 150ms; easing: ease-out; }
+                    animate background { duration: ThemeChirho.animation-fast-chirho; easing: ease-out; }
 
                     // Left color indicator bar
                     Rectangle {
@@ -2266,7 +3434,7 @@ component NotesPanelChirho inherits Rectangle {
     background: ThemeChirho.background-secondary-chirho;
     clip: true;
 
-    animate width { duration: 200ms; easing: ease-out; }
+    animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
 
     Rectangle {
         width: 1px;
@@ -2331,7 +3499,7 @@ component NotesPanelChirho inherits Rectangle {
                     background: note-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : ThemeChirho.background-tertiary-chirho;
                     border-radius: ThemeChirho.radius-md-chirho;
 
-                    animate background { duration: 150ms; easing: ease-out; }
+                    animate background { duration: ThemeChirho.animation-fast-chirho; easing: ease-out; }
 
                     note-touch-chirho := TouchArea {
                         clicked => {
@@ -2382,9 +3550,2286 @@ component NotesPanelChirho inherits Rectangle {
     }
 }
 
+// Info Panel - contextual verse details sidebar
+component InfoPanelChirho inherits Rectangle {
+    in-out property <bool> visible-chirho: false;
+
+    width: visible-chirho ? 320px : 0px;
+    background: ThemeChirho.background-secondary-chirho;
+    clip: true;
+
+    animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
+
+    Rectangle {
+        width: 1px;
+        height: 100%;
+        background: ThemeChirho.border-chirho;
+    }
+
+    VerticalLayout {
+        padding: ThemeChirho.spacing-lg-chirho;
+        spacing: ThemeChirho.spacing-md-chirho;
+
+        // Header
+        HorizontalLayout {
+            Text {
+                text: "Verse Info";
+                font-size: ThemeChirho.font-size-lg-chirho;
+                font-weight: 700;
+                color: ThemeChirho.text-primary-chirho;
+                vertical-alignment: center;
+            }
+            Rectangle { horizontal-stretch: 1; }
+            IconButtonChirho {
+                icon-chirho: LabelsChirho.close-icon-chirho;
+                clicked-chirho => {
+                    AppStateChirho.info-panel-visible-chirho = false;
+                }
+            }
+        }
+
+        Rectangle {
+            height: 1px;
+            background: ThemeChirho.divider-chirho;
+        }
+
+        // Content when no verse selected
+        if AppStateChirho.info-verse-ref-chirho == "": VerticalLayout {
+            vertical-stretch: 1;
+            alignment: center;
+            spacing: ThemeChirho.spacing-sm-chirho;
+
+            Text {
+                text: "ℹ️";
+                font-size: 32px;
+                horizontal-alignment: center;
+            }
+            Text {
+                text: "Click a verse to see details";
+                font-size: ThemeChirho.font-size-md-chirho;
+                color: ThemeChirho.text-muted-chirho;
+                horizontal-alignment: center;
+            }
+        }
+
+        // Verse details when selected
+        if AppStateChirho.info-verse-ref-chirho != "": ScrollView {
+            vertical-stretch: 1;
+
+            VerticalLayout {
+                spacing: ThemeChirho.spacing-lg-chirho;
+
+                // Reference section
+                VerticalLayout {
+                    spacing: ThemeChirho.spacing-xs-chirho;
+
+                    Text {
+                        text: "REFERENCE";
+                        font-size: ThemeChirho.font-size-xs-chirho;
+                        font-weight: 600;
+                        color: ThemeChirho.text-muted-chirho;
+                    }
+                    Text {
+                        text: AppStateChirho.info-verse-ref-chirho;
+                        font-size: ThemeChirho.font-size-lg-chirho;
+                        font-weight: 600;
+                        color: ThemeChirho.accent-chirho;
+                    }
+                }
+
+                // Verse text section
+                VerticalLayout {
+                    spacing: ThemeChirho.spacing-xs-chirho;
+
+                    Text {
+                        text: "TEXT";
+                        font-size: ThemeChirho.font-size-xs-chirho;
+                        font-weight: 600;
+                        color: ThemeChirho.text-muted-chirho;
+                    }
+                    Text {
+                        text: AppStateChirho.info-verse-text-chirho;
+                        font-size: ThemeChirho.font-size-md-chirho;
+                        color: ThemeChirho.text-primary-chirho;
+                        wrap: word-wrap;
+                    }
+                }
+
+                Rectangle {
+                    height: 1px;
+                    background: ThemeChirho.divider-chirho;
+                }
+
+                // Status indicators section
+                VerticalLayout {
+                    spacing: ThemeChirho.spacing-xs-chirho;
+
+                    Text {
+                        text: "STATUS";
+                        font-size: ThemeChirho.font-size-xs-chirho;
+                        font-weight: 600;
+                        color: ThemeChirho.text-muted-chirho;
+                    }
+
+                    // Highlight status
+                    HorizontalLayout {
+                        spacing: ThemeChirho.spacing-sm-chirho;
+                        height: 28px;
+
+                        Text {
+                            text: AppStateChirho.info-has-highlight-chirho ? "✦" : "○";
+                            font-size: 16px;
+                            color: AppStateChirho.info-has-highlight-chirho ?
+                                (AppStateChirho.info-highlight-color-chirho == "yellow" ? #fbbf24 :
+                                 AppStateChirho.info-highlight-color-chirho == "green" ? #34d399 :
+                                 AppStateChirho.info-highlight-color-chirho == "blue" ? #60a5fa :
+                                 AppStateChirho.info-highlight-color-chirho == "pink" ? #f472b6 :
+                                 AppStateChirho.info-highlight-color-chirho == "orange" ? #fb923c :
+                                 ThemeChirho.accent-chirho) :
+                                ThemeChirho.text-muted-chirho;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: AppStateChirho.info-has-highlight-chirho ?
+                                "Highlighted (" + AppStateChirho.info-highlight-color-chirho + ")" :
+                                "Not highlighted";
+                            font-size: ThemeChirho.font-size-sm-chirho;
+                            color: ThemeChirho.text-secondary-chirho;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    // Bookmark status
+                    HorizontalLayout {
+                        spacing: ThemeChirho.spacing-sm-chirho;
+                        height: 28px;
+
+                        Text {
+                            text: AppStateChirho.info-has-bookmark-chirho ? "🔖" : "○";
+                            font-size: 16px;
+                            color: AppStateChirho.info-has-bookmark-chirho ?
+                                ThemeChirho.accent-chirho : ThemeChirho.text-muted-chirho;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: AppStateChirho.info-has-bookmark-chirho ? "Bookmarked" : "Not bookmarked";
+                            font-size: ThemeChirho.font-size-sm-chirho;
+                            color: ThemeChirho.text-secondary-chirho;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    // Note status
+                    HorizontalLayout {
+                        spacing: ThemeChirho.spacing-sm-chirho;
+                        height: 28px;
+
+                        Text {
+                            text: AppStateChirho.info-has-note-chirho ? "📝" : "○";
+                            font-size: 16px;
+                            color: AppStateChirho.info-has-note-chirho ?
+                                ThemeChirho.accent-chirho : ThemeChirho.text-muted-chirho;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: AppStateChirho.info-has-note-chirho ? "Has note" : "No note";
+                            font-size: ThemeChirho.font-size-sm-chirho;
+                            color: ThemeChirho.text-secondary-chirho;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+
+                // Note preview if exists
+                if AppStateChirho.info-has-note-chirho: VerticalLayout {
+                    spacing: ThemeChirho.spacing-xs-chirho;
+
+                    Rectangle {
+                        height: 1px;
+                        background: ThemeChirho.divider-chirho;
+                    }
+
+                    Text {
+                        text: "NOTE";
+                        font-size: ThemeChirho.font-size-xs-chirho;
+                        font-weight: 600;
+                        color: ThemeChirho.text-muted-chirho;
+                    }
+
+                    Rectangle {
+                        background: ThemeChirho.background-tertiary-chirho;
+                        border-radius: ThemeChirho.radius-md-chirho;
+
+                        VerticalLayout {
+                            padding: ThemeChirho.spacing-md-chirho;
+
+                            Text {
+                                text: AppStateChirho.info-note-preview-chirho;
+                                font-size: ThemeChirho.font-size-sm-chirho;
+                                color: ThemeChirho.text-secondary-chirho;
+                                wrap: word-wrap;
+                            }
+                        }
+                    }
+                }
+
+                Rectangle { height: 48px; }
+            }
+        }
+    }
+}
+
+// Statistics Panel - reading progress and study stats
+component StatisticsPanelChirho inherits Rectangle {
+    in-out property <bool> visible-chirho: false;
+
+    width: visible-chirho ? 360px : 0px;
+    background: ThemeChirho.background-secondary-chirho;
+    clip: true;
+
+    animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
+
+    Rectangle {
+        width: 1px;
+        height: 100%;
+        background: ThemeChirho.border-chirho;
+    }
+
+    VerticalLayout {
+        padding: ThemeChirho.spacing-lg-chirho;
+        spacing: ThemeChirho.spacing-md-chirho;
+
+        // Header
+        HorizontalLayout {
+            height: 32px;
+            spacing: ThemeChirho.spacing-sm-chirho;
+            alignment: space-between;
+
+            HorizontalLayout {
+                spacing: ThemeChirho.spacing-sm-chirho;
+
+                Text {
+                    text: "📊";
+                    font-size: 18px;
+                    vertical-alignment: center;
+                }
+                Text {
+                    text: "Statistics";
+                    font-size: ThemeChirho.font-size-lg-chirho;
+                    font-weight: 700;
+                    color: ThemeChirho.text-primary-chirho;
+                    vertical-alignment: center;
+                }
+            }
+
+            // Close button
+            Rectangle {
+                width: 28px;
+                height: 28px;
+                background: close-touch-chirho.has-hover ? ThemeChirho.background-tertiary-chirho : transparent;
+                border-radius: ThemeChirho.radius-sm-chirho;
+
+                Text {
+                    text: "✕";
+                    font-size: 14px;
+                    color: ThemeChirho.text-secondary-chirho;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+
+                close-touch-chirho := TouchArea {
+                    clicked => { AppStateChirho.stats-panel-visible-chirho = false; }
+                    mouse-cursor: pointer;
+                }
+            }
+        }
+
+        Rectangle {
+            height: 1px;
+            background: ThemeChirho.divider-chirho;
+        }
+
+        // Stats content
+        ScrollView {
+            vertical-stretch: 1;
+
+            VerticalLayout {
+                spacing: ThemeChirho.spacing-lg-chirho;
+
+                // Reading progress section
+                VerticalLayout {
+                    spacing: ThemeChirho.spacing-sm-chirho;
+
+                    Text {
+                        text: "READING PROGRESS";
+                        font-size: ThemeChirho.font-size-xs-chirho;
+                        font-weight: 600;
+                        color: ThemeChirho.text-muted-chirho;
+                    }
+
+                    // Stats cards grid
+                    GridLayout {
+                        spacing: ThemeChirho.spacing-sm-chirho;
+
+                        // Chapters read
+                        Rectangle {
+                            row: 0;
+                            col: 0;
+                            background: ThemeChirho.background-tertiary-chirho;
+                            border-radius: ThemeChirho.radius-md-chirho;
+                            height: 80px;
+
+                            VerticalLayout {
+                                padding: ThemeChirho.spacing-md-chirho;
+                                alignment: center;
+
+                                Text {
+                                    text: AppStateChirho.stats-total-chapters-chirho;
+                                    font-size: 28px;
+                                    font-weight: 700;
+                                    color: ThemeChirho.accent-chirho;
+                                    horizontal-alignment: center;
+                                }
+                                Text {
+                                    text: "Chapters Read";
+                                    font-size: ThemeChirho.font-size-xs-chirho;
+                                    color: ThemeChirho.text-secondary-chirho;
+                                    horizontal-alignment: center;
+                                }
+                            }
+                        }
+
+                        // Unique chapters
+                        Rectangle {
+                            row: 0;
+                            col: 1;
+                            background: ThemeChirho.background-tertiary-chirho;
+                            border-radius: ThemeChirho.radius-md-chirho;
+                            height: 80px;
+
+                            VerticalLayout {
+                                padding: ThemeChirho.spacing-md-chirho;
+                                alignment: center;
+
+                                Text {
+                                    text: AppStateChirho.stats-unique-chapters-chirho;
+                                    font-size: 28px;
+                                    font-weight: 700;
+                                    color: #34d399;
+                                    horizontal-alignment: center;
+                                }
+                                Text {
+                                    text: "Unique Chapters";
+                                    font-size: ThemeChirho.font-size-xs-chirho;
+                                    color: ThemeChirho.text-secondary-chirho;
+                                    horizontal-alignment: center;
+                                }
+                            }
+                        }
+
+                        // Reading time
+                        Rectangle {
+                            row: 1;
+                            col: 0;
+                            background: ThemeChirho.background-tertiary-chirho;
+                            border-radius: ThemeChirho.radius-md-chirho;
+                            height: 80px;
+
+                            VerticalLayout {
+                                padding: ThemeChirho.spacing-md-chirho;
+                                alignment: center;
+
+                                Text {
+                                    text: AppStateChirho.stats-reading-time-chirho;
+                                    font-size: 28px;
+                                    font-weight: 700;
+                                    color: #60a5fa;
+                                    horizontal-alignment: center;
+                                }
+                                Text {
+                                    text: "Reading Time";
+                                    font-size: ThemeChirho.font-size-xs-chirho;
+                                    color: ThemeChirho.text-secondary-chirho;
+                                    horizontal-alignment: center;
+                                }
+                            }
+                        }
+
+                        // Books started
+                        Rectangle {
+                            row: 1;
+                            col: 1;
+                            background: ThemeChirho.background-tertiary-chirho;
+                            border-radius: ThemeChirho.radius-md-chirho;
+                            height: 80px;
+
+                            VerticalLayout {
+                                padding: ThemeChirho.spacing-md-chirho;
+                                alignment: center;
+
+                                Text {
+                                    text: AppStateChirho.stats-books-started-chirho;
+                                    font-size: 28px;
+                                    font-weight: 700;
+                                    color: #f472b6;
+                                    horizontal-alignment: center;
+                                }
+                                Text {
+                                    text: "Books Started";
+                                    font-size: ThemeChirho.font-size-xs-chirho;
+                                    color: ThemeChirho.text-secondary-chirho;
+                                    horizontal-alignment: center;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    height: 1px;
+                    background: ThemeChirho.divider-chirho;
+                }
+
+                // Reading streaks section
+                VerticalLayout {
+                    spacing: ThemeChirho.spacing-sm-chirho;
+
+                    Text {
+                        text: "READING STREAKS";
+                        font-size: ThemeChirho.font-size-xs-chirho;
+                        font-weight: 600;
+                        color: ThemeChirho.text-muted-chirho;
+                    }
+
+                    HorizontalLayout {
+                        spacing: ThemeChirho.spacing-md-chirho;
+
+                        // Current streak
+                        Rectangle {
+                            horizontal-stretch: 1;
+                            background: ThemeChirho.background-tertiary-chirho;
+                            border-radius: ThemeChirho.radius-md-chirho;
+                            height: 90px;
+
+                            VerticalLayout {
+                                padding: ThemeChirho.spacing-md-chirho;
+                                alignment: center;
+
+                                Text {
+                                    text: "🔥";
+                                    font-size: 24px;
+                                    horizontal-alignment: center;
+                                }
+                                Text {
+                                    text: AppStateChirho.stats-current-streak-chirho;
+                                    font-size: 32px;
+                                    font-weight: 700;
+                                    color: #fb923c;
+                                    horizontal-alignment: center;
+                                }
+                                Text {
+                                    text: "Current Streak";
+                                    font-size: ThemeChirho.font-size-xs-chirho;
+                                    color: ThemeChirho.text-secondary-chirho;
+                                    horizontal-alignment: center;
+                                }
+                            }
+                        }
+
+                        // Longest streak
+                        Rectangle {
+                            horizontal-stretch: 1;
+                            background: ThemeChirho.background-tertiary-chirho;
+                            border-radius: ThemeChirho.radius-md-chirho;
+                            height: 90px;
+
+                            VerticalLayout {
+                                padding: ThemeChirho.spacing-md-chirho;
+                                alignment: center;
+
+                                Text {
+                                    text: "🏆";
+                                    font-size: 24px;
+                                    horizontal-alignment: center;
+                                }
+                                Text {
+                                    text: AppStateChirho.stats-longest-streak-chirho;
+                                    font-size: 32px;
+                                    font-weight: 700;
+                                    color: #fbbf24;
+                                    horizontal-alignment: center;
+                                }
+                                Text {
+                                    text: "Longest Streak";
+                                    font-size: ThemeChirho.font-size-xs-chirho;
+                                    color: ThemeChirho.text-secondary-chirho;
+                                    horizontal-alignment: center;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    height: 1px;
+                    background: ThemeChirho.divider-chirho;
+                }
+
+                // Study activity section
+                VerticalLayout {
+                    spacing: ThemeChirho.spacing-sm-chirho;
+
+                    Text {
+                        text: "STUDY ACTIVITY";
+                        font-size: ThemeChirho.font-size-xs-chirho;
+                        font-weight: 600;
+                        color: ThemeChirho.text-muted-chirho;
+                    }
+
+                    // Highlights count
+                    HorizontalLayout {
+                        spacing: ThemeChirho.spacing-sm-chirho;
+                        height: 32px;
+
+                        Text {
+                            text: "✦";
+                            font-size: 16px;
+                            color: #fbbf24;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: "Highlights";
+                            font-size: ThemeChirho.font-size-md-chirho;
+                            color: ThemeChirho.text-secondary-chirho;
+                            vertical-alignment: center;
+                            horizontal-stretch: 1;
+                        }
+                        Text {
+                            text: AppStateChirho.stats-highlight-count-chirho;
+                            font-size: ThemeChirho.font-size-md-chirho;
+                            font-weight: 600;
+                            color: ThemeChirho.text-primary-chirho;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    // Bookmarks count
+                    HorizontalLayout {
+                        spacing: ThemeChirho.spacing-sm-chirho;
+                        height: 32px;
+
+                        Text {
+                            text: "🔖";
+                            font-size: 16px;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: "Bookmarks";
+                            font-size: ThemeChirho.font-size-md-chirho;
+                            color: ThemeChirho.text-secondary-chirho;
+                            vertical-alignment: center;
+                            horizontal-stretch: 1;
+                        }
+                        Text {
+                            text: AppStateChirho.stats-bookmark-count-chirho;
+                            font-size: ThemeChirho.font-size-md-chirho;
+                            font-weight: 600;
+                            color: ThemeChirho.text-primary-chirho;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    // Notes count
+                    HorizontalLayout {
+                        spacing: ThemeChirho.spacing-sm-chirho;
+                        height: 32px;
+
+                        Text {
+                            text: "📝";
+                            font-size: 16px;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: "Notes";
+                            font-size: ThemeChirho.font-size-md-chirho;
+                            color: ThemeChirho.text-secondary-chirho;
+                            vertical-alignment: center;
+                            horizontal-stretch: 1;
+                        }
+                        Text {
+                            text: AppStateChirho.stats-note-count-chirho;
+                            font-size: ThemeChirho.font-size-md-chirho;
+                            font-weight: 600;
+                            color: ThemeChirho.text-primary-chirho;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+
+                Rectangle { height: 48px; }
+            }
+        }
+    }
+}
+
+// Journal Panel - personal Bible study journal
+component JournalPanelChirho inherits Rectangle {
+    in-out property <bool> visible-chirho: false;
+
+    width: visible-chirho ? 400px : 0px;
+    background: ThemeChirho.background-secondary-chirho;
+    clip: true;
+
+    animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
+
+    Rectangle {
+        width: 1px;
+        height: 100%;
+        background: ThemeChirho.border-chirho;
+    }
+
+    VerticalLayout {
+        padding: ThemeChirho.spacing-lg-chirho;
+        spacing: ThemeChirho.spacing-md-chirho;
+
+        // Header
+        HorizontalLayout {
+            height: 32px;
+            spacing: ThemeChirho.spacing-sm-chirho;
+            alignment: space-between;
+
+            HorizontalLayout {
+                spacing: ThemeChirho.spacing-sm-chirho;
+
+                Text {
+                    text: "📔";
+                    font-size: 18px;
+                    vertical-alignment: center;
+                }
+                Text {
+                    text: "Study Journal";
+                    font-size: ThemeChirho.font-size-lg-chirho;
+                    font-weight: 700;
+                    color: ThemeChirho.text-primary-chirho;
+                    vertical-alignment: center;
+                }
+            }
+
+            HorizontalLayout {
+                spacing: ThemeChirho.spacing-sm-chirho;
+
+                // New entry button
+                Rectangle {
+                    width: 28px;
+                    height: 28px;
+                    background: new-touch-chirho.has-hover ? ThemeChirho.accent-chirho : ThemeChirho.background-tertiary-chirho;
+                    border-radius: ThemeChirho.radius-sm-chirho;
+
+                    Text {
+                        text: "+";
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: ThemeChirho.text-primary-chirho;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+
+                    new-touch-chirho := TouchArea {
+                        clicked => {
+                            AppStateChirho.journal-edit-id-chirho = -1;
+                            AppStateChirho.journal-edit-title-chirho = "";
+                            AppStateChirho.journal-edit-content-chirho = "";
+                            AppStateChirho.journal-edit-verse-ref-chirho = AppStateChirho.current-book-chirho + " " + AppStateChirho.current-chapter-chirho;
+                            AppStateChirho.journal-edit-tags-chirho = "";
+                            AppStateChirho.journal-editor-visible-chirho = true;
+                        }
+                        mouse-cursor: pointer;
+                    }
+                }
+
+                // Close button
+                Rectangle {
+                    width: 28px;
+                    height: 28px;
+                    background: close-touch-chirho.has-hover ? ThemeChirho.background-tertiary-chirho : transparent;
+                    border-radius: ThemeChirho.radius-sm-chirho;
+
+                    Text {
+                        text: "✕";
+                        font-size: 14px;
+                        color: ThemeChirho.text-secondary-chirho;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+
+                    close-touch-chirho := TouchArea {
+                        clicked => { AppStateChirho.journal-panel-visible-chirho = false; }
+                        mouse-cursor: pointer;
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            height: 1px;
+            background: ThemeChirho.divider-chirho;
+        }
+
+        // Journal entries list
+        if !AppStateChirho.journal-editor-visible-chirho: ScrollView {
+            vertical-stretch: 1;
+
+            VerticalLayout {
+                spacing: ThemeChirho.spacing-sm-chirho;
+
+                if AppStateChirho.journal-entries-chirho.length == 0: VerticalLayout {
+                    alignment: center;
+                    spacing: ThemeChirho.spacing-md-chirho;
+                    padding-top: 40px;
+
+                    Text {
+                        text: "📔";
+                        font-size: 48px;
+                        horizontal-alignment: center;
+                    }
+                    Text {
+                        text: "No journal entries yet";
+                        font-size: ThemeChirho.font-size-md-chirho;
+                        color: ThemeChirho.text-secondary-chirho;
+                        horizontal-alignment: center;
+                    }
+                    Text {
+                        text: "Click + to create your first entry";
+                        font-size: ThemeChirho.font-size-sm-chirho;
+                        color: ThemeChirho.text-muted-chirho;
+                        horizontal-alignment: center;
+                    }
+                }
+
+                for entry-chirho in AppStateChirho.journal-entries-chirho: Rectangle {
+                    background: entry-touch-chirho.has-hover ? ThemeChirho.background-tertiary-chirho : ThemeChirho.background-elevated-chirho;
+                    border-radius: ThemeChirho.radius-md-chirho;
+
+                    animate background { duration: ThemeChirho.animation-fast-chirho; }
+
+                    VerticalLayout {
+                        padding: ThemeChirho.spacing-md-chirho;
+                        spacing: ThemeChirho.spacing-xs-chirho;
+
+                        // Title row
+                        HorizontalLayout {
+                            alignment: space-between;
+
+                            Text {
+                                text: entry-chirho.title-chirho;
+                                font-size: ThemeChirho.font-size-md-chirho;
+                                font-weight: 600;
+                                color: ThemeChirho.text-primary-chirho;
+                                overflow: elide;
+                                horizontal-stretch: 1;
+                            }
+
+                            // Delete button
+                            Rectangle {
+                                width: 20px;
+                                height: 20px;
+                                background: del-touch-chirho.has-hover ? #ef4444 : transparent;
+                                border-radius: 10px;
+
+                                Text {
+                                    text: "✕";
+                                    font-size: 10px;
+                                    color: del-touch-chirho.has-hover ? white : ThemeChirho.text-muted-chirho;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+
+                                del-touch-chirho := TouchArea {
+                                    clicked => { AppStateChirho.delete-journal-entry-chirho(entry-chirho.id-chirho); }
+                                    mouse-cursor: pointer;
+                                }
+                            }
+                        }
+
+                        // Preview
+                        Text {
+                            text: entry-chirho.preview-chirho;
+                            font-size: ThemeChirho.font-size-sm-chirho;
+                            color: ThemeChirho.text-secondary-chirho;
+                            overflow: elide;
+                        }
+
+                        // Metadata row
+                        HorizontalLayout {
+                            spacing: ThemeChirho.spacing-sm-chirho;
+
+                            if entry-chirho.verse-ref-chirho != "": Text {
+                                text: "📖 " + entry-chirho.verse-ref-chirho;
+                                font-size: ThemeChirho.font-size-xs-chirho;
+                                color: ThemeChirho.accent-chirho;
+                            }
+
+                            Text {
+                                text: entry-chirho.date-chirho;
+                                font-size: ThemeChirho.font-size-xs-chirho;
+                                color: ThemeChirho.text-muted-chirho;
+                                horizontal-stretch: 1;
+                                horizontal-alignment: right;
+                            }
+                        }
+
+                        if entry-chirho.tags-chirho != "": HorizontalLayout {
+                            spacing: 4px;
+
+                            Text {
+                                text: "🏷 " + entry-chirho.tags-chirho;
+                                font-size: ThemeChirho.font-size-xs-chirho;
+                                color: ThemeChirho.text-muted-chirho;
+                            }
+                        }
+                    }
+
+                    entry-touch-chirho := TouchArea {
+                        clicked => {
+                            // Edit entry - load it into the editor
+                            AppStateChirho.journal-edit-id-chirho = entry-chirho.id-chirho;
+                            AppStateChirho.journal-edit-title-chirho = entry-chirho.title-chirho;
+                            AppStateChirho.journal-edit-content-chirho = entry-chirho.preview-chirho; // Note: this is preview only
+                            AppStateChirho.journal-edit-verse-ref-chirho = entry-chirho.verse-ref-chirho;
+                            AppStateChirho.journal-edit-tags-chirho = entry-chirho.tags-chirho;
+                            AppStateChirho.journal-editor-visible-chirho = true;
+                        }
+                        mouse-cursor: pointer;
+                    }
+                }
+
+                Rectangle { height: 48px; }
+            }
+        }
+
+        // Journal editor
+        if AppStateChirho.journal-editor-visible-chirho: VerticalLayout {
+            vertical-stretch: 1;
+            spacing: ThemeChirho.spacing-md-chirho;
+
+            // Editor header
+            HorizontalLayout {
+                height: 28px;
+                alignment: space-between;
+
+                Text {
+                    text: AppStateChirho.journal-edit-id-chirho < 0 ? "New Entry" : "Edit Entry";
+                    font-size: ThemeChirho.font-size-md-chirho;
+                    font-weight: 600;
+                    color: ThemeChirho.text-primary-chirho;
+                    vertical-alignment: center;
+                }
+
+                Rectangle {
+                    width: 60px;
+                    height: 24px;
+                    background: back-touch-chirho.has-hover ? ThemeChirho.background-tertiary-chirho : transparent;
+                    border-radius: ThemeChirho.radius-sm-chirho;
+
+                    Text {
+                        text: "← Back";
+                        font-size: ThemeChirho.font-size-xs-chirho;
+                        color: ThemeChirho.text-secondary-chirho;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+
+                    back-touch-chirho := TouchArea {
+                        clicked => { AppStateChirho.journal-editor-visible-chirho = false; }
+                        mouse-cursor: pointer;
+                    }
+                }
+            }
+
+            // Title input
+            Rectangle {
+                height: 40px;
+                background: ThemeChirho.background-tertiary-chirho;
+                border-radius: ThemeChirho.radius-md-chirho;
+
+                HorizontalLayout {
+                    padding-left: ThemeChirho.spacing-md-chirho;
+                    padding-right: ThemeChirho.spacing-md-chirho;
+
+                    title-input-chirho := TextInput {
+                        text <=> AppStateChirho.journal-edit-title-chirho;
+                        font-size: ThemeChirho.font-size-md-chirho;
+                        color: ThemeChirho.text-primary-chirho;
+                        horizontal-alignment: left;
+                        vertical-alignment: center;
+
+                        // Placeholder text via overwrite
+                    }
+                }
+            }
+
+            // Verse reference input
+            Rectangle {
+                height: 36px;
+                background: ThemeChirho.background-tertiary-chirho;
+                border-radius: ThemeChirho.radius-md-chirho;
+
+                HorizontalLayout {
+                    padding-left: ThemeChirho.spacing-md-chirho;
+                    padding-right: ThemeChirho.spacing-md-chirho;
+                    spacing: ThemeChirho.spacing-sm-chirho;
+
+                    Text {
+                        text: "📖";
+                        font-size: 14px;
+                        vertical-alignment: center;
+                    }
+
+                    ref-input-chirho := TextInput {
+                        text <=> AppStateChirho.journal-edit-verse-ref-chirho;
+                        font-size: ThemeChirho.font-size-sm-chirho;
+                        color: ThemeChirho.text-primary-chirho;
+                        horizontal-stretch: 1;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+
+            // Content input (multiline textarea simulation)
+            Rectangle {
+                vertical-stretch: 1;
+                background: ThemeChirho.background-tertiary-chirho;
+                border-radius: ThemeChirho.radius-md-chirho;
+
+                VerticalLayout {
+                    padding: ThemeChirho.spacing-md-chirho;
+
+                    content-input-chirho := TextInput {
+                        text <=> AppStateChirho.journal-edit-content-chirho;
+                        font-size: ThemeChirho.font-size-sm-chirho;
+                        color: ThemeChirho.text-primary-chirho;
+                        wrap: word-wrap;
+                        vertical-stretch: 1;
+                    }
+                }
+            }
+
+            // Tags input
+            Rectangle {
+                height: 36px;
+                background: ThemeChirho.background-tertiary-chirho;
+                border-radius: ThemeChirho.radius-md-chirho;
+
+                HorizontalLayout {
+                    padding-left: ThemeChirho.spacing-md-chirho;
+                    padding-right: ThemeChirho.spacing-md-chirho;
+                    spacing: ThemeChirho.spacing-sm-chirho;
+
+                    Text {
+                        text: "🏷";
+                        font-size: 14px;
+                        vertical-alignment: center;
+                    }
+
+                    tags-input-chirho := TextInput {
+                        text <=> AppStateChirho.journal-edit-tags-chirho;
+                        font-size: ThemeChirho.font-size-sm-chirho;
+                        color: ThemeChirho.text-primary-chirho;
+                        horizontal-stretch: 1;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+
+            // Save button
+            Rectangle {
+                height: 44px;
+                background: save-touch-chirho.has-hover ? ThemeChirho.accent-chirho.brighter(20%) : ThemeChirho.accent-chirho;
+                border-radius: ThemeChirho.radius-md-chirho;
+
+                animate background { duration: ThemeChirho.animation-fast-chirho; }
+
+                Text {
+                    text: "💾 Save Entry";
+                    font-size: ThemeChirho.font-size-md-chirho;
+                    font-weight: 600;
+                    color: white;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+
+                save-touch-chirho := TouchArea {
+                    clicked => {
+                        AppStateChirho.save-journal-entry-chirho(
+                            AppStateChirho.journal-edit-id-chirho,
+                            AppStateChirho.journal-edit-title-chirho,
+                            AppStateChirho.journal-edit-content-chirho,
+                            AppStateChirho.journal-edit-verse-ref-chirho,
+                            AppStateChirho.journal-edit-tags-chirho
+                        );
+                        AppStateChirho.journal-editor-visible-chirho = false;
+                    }
+                    mouse-cursor: pointer;
+                }
+            }
+        }
+    }
+}
+
+// Prayer List Panel - prayer request tracking
+component PrayerPanelChirho inherits Rectangle {
+    in-out property <bool> visible-chirho: false;
+
+    width: visible-chirho ? 380px : 0px;
+    background: ThemeChirho.background-secondary-chirho;
+    clip: true;
+
+    animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
+
+    Rectangle {
+        width: 1px;
+        height: 100%;
+        background: ThemeChirho.border-chirho;
+    }
+
+    VerticalLayout {
+        padding: ThemeChirho.spacing-lg-chirho;
+        spacing: ThemeChirho.spacing-md-chirho;
+
+        // Header
+        HorizontalLayout {
+            height: 32px;
+            spacing: ThemeChirho.spacing-sm-chirho;
+            alignment: space-between;
+
+            HorizontalLayout {
+                spacing: ThemeChirho.spacing-sm-chirho;
+
+                Text {
+                    text: "🙏";
+                    font-size: 18px;
+                    vertical-alignment: center;
+                }
+                Text {
+                    text: "Prayer List";
+                    font-size: ThemeChirho.font-size-lg-chirho;
+                    font-weight: 700;
+                    color: ThemeChirho.text-primary-chirho;
+                    vertical-alignment: center;
+                }
+            }
+
+            HorizontalLayout {
+                spacing: ThemeChirho.spacing-sm-chirho;
+
+                // New request button
+                Rectangle {
+                    width: 28px;
+                    height: 28px;
+                    background: new-touch-chirho.has-hover ? ThemeChirho.accent-chirho : ThemeChirho.background-tertiary-chirho;
+                    border-radius: ThemeChirho.radius-sm-chirho;
+
+                    Text {
+                        text: "+";
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: ThemeChirho.text-primary-chirho;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+
+                    new-touch-chirho := TouchArea {
+                        clicked => {
+                            AppStateChirho.prayer-edit-title-chirho = "";
+                            AppStateChirho.prayer-edit-description-chirho = "";
+                            AppStateChirho.prayer-edit-verse-ref-chirho = AppStateChirho.current-book-chirho + " " + AppStateChirho.current-chapter-chirho;
+                            AppStateChirho.prayer-edit-category-chirho = "";
+                            AppStateChirho.prayer-editor-visible-chirho = true;
+                        }
+                        mouse-cursor: pointer;
+                    }
+                }
+
+                // Close button
+                Rectangle {
+                    width: 28px;
+                    height: 28px;
+                    background: close-touch-chirho.has-hover ? ThemeChirho.background-tertiary-chirho : transparent;
+                    border-radius: ThemeChirho.radius-sm-chirho;
+
+                    Text {
+                        text: "✕";
+                        font-size: 14px;
+                        color: ThemeChirho.text-secondary-chirho;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+
+                    close-touch-chirho := TouchArea {
+                        clicked => { AppStateChirho.prayer-panel-visible-chirho = false; }
+                        mouse-cursor: pointer;
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            height: 1px;
+            background: ThemeChirho.divider-chirho;
+        }
+
+        // Prayer requests list
+        if !AppStateChirho.prayer-editor-visible-chirho: ScrollView {
+            vertical-stretch: 1;
+
+            VerticalLayout {
+                spacing: ThemeChirho.spacing-sm-chirho;
+
+                if AppStateChirho.prayer-requests-chirho.length == 0: VerticalLayout {
+                    alignment: center;
+                    spacing: ThemeChirho.spacing-md-chirho;
+                    padding-top: 40px;
+
+                    Text {
+                        text: "🙏";
+                        font-size: 48px;
+                        horizontal-alignment: center;
+                    }
+                    Text {
+                        text: "No prayer requests yet";
+                        font-size: ThemeChirho.font-size-md-chirho;
+                        color: ThemeChirho.text-secondary-chirho;
+                        horizontal-alignment: center;
+                    }
+                    Text {
+                        text: "Click + to add a prayer request";
+                        font-size: ThemeChirho.font-size-sm-chirho;
+                        color: ThemeChirho.text-muted-chirho;
+                        horizontal-alignment: center;
+                    }
+                }
+
+                for prayer-chirho in AppStateChirho.prayer-requests-chirho: Rectangle {
+                    background: prayer-chirho.is-answered-chirho ?
+                        #34d399.with-alpha(0.1) :
+                        (prayer-touch-chirho.has-hover ? ThemeChirho.background-tertiary-chirho : ThemeChirho.background-elevated-chirho);
+                    border-radius: ThemeChirho.radius-md-chirho;
+                    border-width: prayer-chirho.is-answered-chirho ? 1px : 0px;
+                    border-color: #34d399.with-alpha(0.3);
+
+                    animate background { duration: ThemeChirho.animation-fast-chirho; }
+
+                    VerticalLayout {
+                        padding: ThemeChirho.spacing-md-chirho;
+                        spacing: ThemeChirho.spacing-xs-chirho;
+
+                        // Title row with actions
+                        HorizontalLayout {
+                            alignment: space-between;
+
+                            HorizontalLayout {
+                                spacing: ThemeChirho.spacing-xs-chirho;
+
+                                if prayer-chirho.is-answered-chirho: Text {
+                                    text: "✓";
+                                    font-size: 14px;
+                                    color: #34d399;
+                                    vertical-alignment: center;
+                                }
+
+                                Text {
+                                    text: prayer-chirho.title-chirho;
+                                    font-size: ThemeChirho.font-size-md-chirho;
+                                    font-weight: 600;
+                                    color: prayer-chirho.is-answered-chirho ? #34d399 : ThemeChirho.text-primary-chirho;
+                                    overflow: elide;
+                                }
+                            }
+
+                            HorizontalLayout {
+                                spacing: 4px;
+
+                                // Mark as answered button (if not answered)
+                                if !prayer-chirho.is-answered-chirho: Rectangle {
+                                    width: 20px;
+                                    height: 20px;
+                                    background: answer-touch-chirho.has-hover ? #34d399 : transparent;
+                                    border-radius: 10px;
+
+                                    Text {
+                                        text: "✓";
+                                        font-size: 12px;
+                                        color: answer-touch-chirho.has-hover ? white : ThemeChirho.text-muted-chirho;
+                                        horizontal-alignment: center;
+                                        vertical-alignment: center;
+                                    }
+
+                                    answer-touch-chirho := TouchArea {
+                                        clicked => { AppStateChirho.mark-prayer-answered-chirho(prayer-chirho.id-chirho); }
+                                        mouse-cursor: pointer;
+                                    }
+                                }
+
+                                // Delete button
+                                Rectangle {
+                                    width: 20px;
+                                    height: 20px;
+                                    background: del-touch-chirho.has-hover ? #ef4444 : transparent;
+                                    border-radius: 10px;
+
+                                    Text {
+                                        text: "✕";
+                                        font-size: 10px;
+                                        color: del-touch-chirho.has-hover ? white : ThemeChirho.text-muted-chirho;
+                                        horizontal-alignment: center;
+                                        vertical-alignment: center;
+                                    }
+
+                                    del-touch-chirho := TouchArea {
+                                        clicked => { AppStateChirho.delete-prayer-request-chirho(prayer-chirho.id-chirho); }
+                                        mouse-cursor: pointer;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Description
+                        if prayer-chirho.description-chirho != "": Text {
+                            text: prayer-chirho.description-chirho;
+                            font-size: ThemeChirho.font-size-sm-chirho;
+                            color: ThemeChirho.text-secondary-chirho;
+                            overflow: elide;
+                        }
+
+                        // Metadata row
+                        HorizontalLayout {
+                            spacing: ThemeChirho.spacing-sm-chirho;
+
+                            if prayer-chirho.verse-ref-chirho != "": Text {
+                                text: "📖 " + prayer-chirho.verse-ref-chirho;
+                                font-size: ThemeChirho.font-size-xs-chirho;
+                                color: ThemeChirho.accent-chirho;
+                            }
+
+                            if prayer-chirho.category-chirho != "": Text {
+                                text: "📁 " + prayer-chirho.category-chirho;
+                                font-size: ThemeChirho.font-size-xs-chirho;
+                                color: ThemeChirho.text-muted-chirho;
+                            }
+
+                            Text {
+                                text: prayer-chirho.date-chirho;
+                                font-size: ThemeChirho.font-size-xs-chirho;
+                                color: ThemeChirho.text-muted-chirho;
+                                horizontal-stretch: 1;
+                                horizontal-alignment: right;
+                            }
+                        }
+                    }
+
+                    prayer-touch-chirho := TouchArea {
+                        mouse-cursor: pointer;
+                    }
+                }
+
+                Rectangle { height: 48px; }
+            }
+        }
+
+        // Prayer editor
+        if AppStateChirho.prayer-editor-visible-chirho: VerticalLayout {
+            vertical-stretch: 1;
+            spacing: ThemeChirho.spacing-md-chirho;
+
+            // Editor header
+            HorizontalLayout {
+                height: 28px;
+                alignment: space-between;
+
+                Text {
+                    text: "New Prayer Request";
+                    font-size: ThemeChirho.font-size-md-chirho;
+                    font-weight: 600;
+                    color: ThemeChirho.text-primary-chirho;
+                    vertical-alignment: center;
+                }
+
+                Rectangle {
+                    width: 60px;
+                    height: 24px;
+                    background: back-touch-chirho.has-hover ? ThemeChirho.background-tertiary-chirho : transparent;
+                    border-radius: ThemeChirho.radius-sm-chirho;
+
+                    Text {
+                        text: "← Back";
+                        font-size: ThemeChirho.font-size-xs-chirho;
+                        color: ThemeChirho.text-secondary-chirho;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+
+                    back-touch-chirho := TouchArea {
+                        clicked => { AppStateChirho.prayer-editor-visible-chirho = false; }
+                        mouse-cursor: pointer;
+                    }
+                }
+            }
+
+            // Title input
+            Rectangle {
+                height: 40px;
+                background: ThemeChirho.background-tertiary-chirho;
+                border-radius: ThemeChirho.radius-md-chirho;
+
+                HorizontalLayout {
+                    padding-left: ThemeChirho.spacing-md-chirho;
+                    padding-right: ThemeChirho.spacing-md-chirho;
+
+                    title-input-chirho := TextInput {
+                        text <=> AppStateChirho.prayer-edit-title-chirho;
+                        font-size: ThemeChirho.font-size-md-chirho;
+                        color: ThemeChirho.text-primary-chirho;
+                        horizontal-alignment: left;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+
+            // Description input
+            Rectangle {
+                height: 80px;
+                background: ThemeChirho.background-tertiary-chirho;
+                border-radius: ThemeChirho.radius-md-chirho;
+
+                VerticalLayout {
+                    padding: ThemeChirho.spacing-md-chirho;
+
+                    desc-input-chirho := TextInput {
+                        text <=> AppStateChirho.prayer-edit-description-chirho;
+                        font-size: ThemeChirho.font-size-sm-chirho;
+                        color: ThemeChirho.text-primary-chirho;
+                        wrap: word-wrap;
+                        vertical-stretch: 1;
+                    }
+                }
+            }
+
+            // Verse reference input
+            Rectangle {
+                height: 36px;
+                background: ThemeChirho.background-tertiary-chirho;
+                border-radius: ThemeChirho.radius-md-chirho;
+
+                HorizontalLayout {
+                    padding-left: ThemeChirho.spacing-md-chirho;
+                    padding-right: ThemeChirho.spacing-md-chirho;
+                    spacing: ThemeChirho.spacing-sm-chirho;
+
+                    Text {
+                        text: "📖";
+                        font-size: 14px;
+                        vertical-alignment: center;
+                    }
+
+                    ref-input-chirho := TextInput {
+                        text <=> AppStateChirho.prayer-edit-verse-ref-chirho;
+                        font-size: ThemeChirho.font-size-sm-chirho;
+                        color: ThemeChirho.text-primary-chirho;
+                        horizontal-stretch: 1;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+
+            // Category input
+            Rectangle {
+                height: 36px;
+                background: ThemeChirho.background-tertiary-chirho;
+                border-radius: ThemeChirho.radius-md-chirho;
+
+                HorizontalLayout {
+                    padding-left: ThemeChirho.spacing-md-chirho;
+                    padding-right: ThemeChirho.spacing-md-chirho;
+                    spacing: ThemeChirho.spacing-sm-chirho;
+
+                    Text {
+                        text: "📁";
+                        font-size: 14px;
+                        vertical-alignment: center;
+                    }
+
+                    cat-input-chirho := TextInput {
+                        text <=> AppStateChirho.prayer-edit-category-chirho;
+                        font-size: ThemeChirho.font-size-sm-chirho;
+                        color: ThemeChirho.text-primary-chirho;
+                        horizontal-stretch: 1;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+
+            Rectangle { vertical-stretch: 1; }
+
+            // Save button
+            Rectangle {
+                height: 44px;
+                background: save-touch-chirho.has-hover ? ThemeChirho.accent-chirho.brighter(20%) : ThemeChirho.accent-chirho;
+                border-radius: ThemeChirho.radius-md-chirho;
+
+                animate background { duration: ThemeChirho.animation-fast-chirho; }
+
+                Text {
+                    text: "🙏 Add Prayer";
+                    font-size: ThemeChirho.font-size-md-chirho;
+                    font-weight: 600;
+                    color: white;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+
+                save-touch-chirho := TouchArea {
+                    clicked => {
+                        AppStateChirho.save-prayer-request-chirho(
+                            AppStateChirho.prayer-edit-title-chirho,
+                            AppStateChirho.prayer-edit-description-chirho,
+                            AppStateChirho.prayer-edit-verse-ref-chirho,
+                            AppStateChirho.prayer-edit-category-chirho
+                        );
+                        AppStateChirho.prayer-editor-visible-chirho = false;
+                    }
+                    mouse-cursor: pointer;
+                }
+            }
+        }
+    }
+}
+
+// Module Manager panel
+component ModuleManagerPanelChirho inherits Rectangle {
+    in-out property <bool> visible-chirho: false;
+
+    width: visible-chirho ? 400px : 0px;
+    background: ThemeChirho.background-secondary-chirho;
+    clip: true;
+
+    animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
+
+    Rectangle {
+        width: 1px;
+        height: 100%;
+        background: ThemeChirho.border-chirho;
+    }
+
+    VerticalLayout {
+        padding: ThemeChirho.spacing-lg-chirho;
+        spacing: ThemeChirho.spacing-md-chirho;
+
+        HorizontalLayout {
+            Text {
+                text: "📦 Module Manager";
+                font-size: ThemeChirho.font-size-lg-chirho;
+                font-weight: 600;
+                color: ThemeChirho.text-primary-chirho;
+                vertical-alignment: center;
+            }
+            Rectangle { horizontal-stretch: 1; }
+            IconButtonChirho {
+                icon-chirho: LabelsChirho.close-icon-chirho;
+                clicked-chirho => {
+                    AppStateChirho.module-manager-visible-chirho = false;
+                }
+            }
+        }
+
+        Rectangle {
+            height: 1px;
+            background: ThemeChirho.divider-chirho;
+        }
+
+        // Refresh button and status
+        HorizontalLayout {
+            spacing: ThemeChirho.spacing-sm-chirho;
+
+            Rectangle {
+                background: refresh-touch-chirho.has-hover ? ThemeChirho.accent-hover-chirho : ThemeChirho.accent-chirho;
+                border-radius: ThemeChirho.radius-sm-chirho;
+                height: 32px;
+                width: 140px;
+
+                animate background { duration: ThemeChirho.animation-fast-chirho; easing: ease-out; }
+
+                refresh-touch-chirho := TouchArea {
+                    clicked => {
+                        if (!AppStateChirho.module-manager-loading-chirho) {
+                            AppStateChirho.refresh-remote-modules-chirho();
+                        }
+                    }
+                    mouse-cursor: pointer;
+                }
+
+                Text {
+                    text: AppStateChirho.module-manager-loading-chirho ? "Loading..." : "🔄 Refresh List";
+                    font-size: ThemeChirho.font-size-sm-chirho;
+                    font-weight: 500;
+                    color: white;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            Rectangle { horizontal-stretch: 1; }
+
+            Text {
+                text: AppStateChirho.module-manager-status-chirho;
+                font-size: ThemeChirho.font-size-xs-chirho;
+                color: ThemeChirho.text-muted-chirho;
+                vertical-alignment: center;
+            }
+        }
+
+        Rectangle {
+            height: 1px;
+            background: ThemeChirho.divider-chirho;
+        }
+
+        // Module count
+        Text {
+            text: AppStateChirho.remote-modules-chirho.length > 0 ?
+                "Available: " + AppStateChirho.remote-modules-chirho.length + " modules" :
+                "Click Refresh to load available modules";
+            font-size: ThemeChirho.font-size-sm-chirho;
+            color: ThemeChirho.text-secondary-chirho;
+        }
+
+        // Module list
+        ScrollView {
+            vertical-stretch: 1;
+
+            VerticalLayout {
+                spacing: ThemeChirho.spacing-sm-chirho;
+
+                for mod-chirho in AppStateChirho.remote-modules-chirho: Rectangle {
+                    height: 70px;
+                    background: mod-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : ThemeChirho.background-tertiary-chirho;
+                    border-radius: ThemeChirho.radius-md-chirho;
+                    border-width: mod-chirho.is-installed-chirho ? 1px : 0px;
+                    border-color: ThemeChirho.success-chirho;
+
+                    animate background { duration: ThemeChirho.animation-fast-chirho; easing: ease-out; }
+
+                    mod-touch-chirho := TouchArea {
+                        mouse-cursor: pointer;
+                    }
+
+                    HorizontalLayout {
+                        padding: ThemeChirho.spacing-md-chirho;
+                        spacing: ThemeChirho.spacing-md-chirho;
+
+                        VerticalLayout {
+                            horizontal-stretch: 1;
+                            spacing: ThemeChirho.spacing-xs-chirho;
+
+                            HorizontalLayout {
+                                spacing: ThemeChirho.spacing-sm-chirho;
+
+                                Text {
+                                    text: mod-chirho.name-chirho;
+                                    font-size: ThemeChirho.font-size-md-chirho;
+                                    font-weight: 600;
+                                    color: ThemeChirho.text-primary-chirho;
+                                    vertical-alignment: center;
+                                }
+
+                                if mod-chirho.is-installed-chirho: Rectangle {
+                                    width: 60px;
+                                    height: 18px;
+                                    background: ThemeChirho.success-chirho;
+                                    border-radius: 9px;
+
+                                    Text {
+                                        text: "Installed";
+                                        font-size: ThemeChirho.font-size-xs-chirho;
+                                        color: white;
+                                        horizontal-alignment: center;
+                                        vertical-alignment: center;
+                                    }
+                                }
+                            }
+
+                            Text {
+                                text: mod-chirho.description-chirho;
+                                font-size: ThemeChirho.font-size-sm-chirho;
+                                color: ThemeChirho.text-secondary-chirho;
+                                overflow: elide;
+                            }
+
+                            HorizontalLayout {
+                                spacing: ThemeChirho.spacing-md-chirho;
+
+                                Text {
+                                    text: mod-chirho.language-chirho;
+                                    font-size: ThemeChirho.font-size-xs-chirho;
+                                    color: ThemeChirho.text-muted-chirho;
+                                }
+                                Text {
+                                    text: mod-chirho.type-chirho;
+                                    font-size: ThemeChirho.font-size-xs-chirho;
+                                    color: ThemeChirho.text-muted-chirho;
+                                }
+                            }
+                        }
+
+                        // Install/Uninstall button
+                        Rectangle {
+                            width: 80px;
+                            height: 28px;
+                            background: mod-chirho.is-installed-chirho ?
+                                (install-btn-touch-chirho.has-hover ? ThemeChirho.error-chirho : ThemeChirho.background-elevated-chirho) :
+                                (install-btn-touch-chirho.has-hover ? ThemeChirho.accent-hover-chirho : ThemeChirho.accent-chirho);
+                            border-radius: ThemeChirho.radius-sm-chirho;
+
+                            animate background { duration: ThemeChirho.animation-fast-chirho; easing: ease-out; }
+
+                            install-btn-touch-chirho := TouchArea {
+                                clicked => {
+                                    if (mod-chirho.is-installed-chirho) {
+                                        AppStateChirho.uninstall-module-chirho(mod-chirho.name-chirho);
+                                    } else {
+                                        AppStateChirho.install-module-chirho(mod-chirho.name-chirho);
+                                    }
+                                }
+                                mouse-cursor: pointer;
+                            }
+
+                            Text {
+                                text: mod-chirho.is-installed-chirho ? "Remove" : "Install";
+                                font-size: ThemeChirho.font-size-sm-chirho;
+                                font-weight: 500;
+                                color: mod-chirho.is-installed-chirho ? ThemeChirho.text-primary-chirho : white;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Quick Navigation dialog (Ctrl+K command palette)
+component QuickNavDialogChirho inherits Rectangle {
+    in-out property <bool> visible-chirho: false;
+
+    width: 100%;
+    height: 100%;
+    background: visible-chirho ? #00000080 : transparent;
+
+    animate background { duration: ThemeChirho.animation-normal-chirho; }
+
+    if visible-chirho: Rectangle {
+        x: (parent.width - self.width) / 2;
+        y: 80px;
+        width: 500px;
+        height: 400px;
+        background: ThemeChirho.background-secondary-chirho;
+        border-radius: ThemeChirho.radius-lg-chirho;
+        border-width: 1px;
+        border-color: ThemeChirho.border-chirho;
+        drop-shadow-blur: 30px;
+        drop-shadow-color: #00000060;
+
+        VerticalLayout {
+            padding: ThemeChirho.spacing-md-chirho;
+            spacing: ThemeChirho.spacing-sm-chirho;
+
+            // Search input with icon
+            HorizontalLayout {
+                spacing: ThemeChirho.spacing-sm-chirho;
+                height: 44px;
+
+                Rectangle {
+                    width: 36px;
+                    height: 36px;
+
+                    Text {
+                        text: LabelsChirho.goto-icon-chirho;
+                        font-size: 18px;
+                        color: ThemeChirho.accent-chirho;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+
+                LineEdit {
+                    horizontal-stretch: 1;
+                    placeholder-text: "Type verse reference (John 3:16) or book name...";
+                    text <=> AppStateChirho.quick-nav-query-chirho;
+                    accepted => {
+                        // Navigate to first result or try direct reference
+                        if (AppStateChirho.quick-nav-results-chirho.length > 0) {
+                            AppStateChirho.navigate-to-chirho(
+                                AppStateChirho.quick-nav-results-chirho[0].book-chirho,
+                                AppStateChirho.quick-nav-results-chirho[0].chapter-chirho,
+                                1
+                            );
+                        } else {
+                            AppStateChirho.goto-verse-chirho(AppStateChirho.quick-nav-query-chirho);
+                        }
+                        AppStateChirho.quick-nav-visible-chirho = false;
+                        AppStateChirho.quick-nav-query-chirho = "";
+                    }
+                    edited => {
+                        AppStateChirho.quick-nav-search-chirho(AppStateChirho.quick-nav-query-chirho);
+                    }
+                }
+
+                IconButtonChirho {
+                    icon-chirho: LabelsChirho.close-icon-chirho;
+                    clicked-chirho => {
+                        AppStateChirho.quick-nav-visible-chirho = false;
+                        AppStateChirho.quick-nav-query-chirho = "";
+                    }
+                }
+            }
+
+            Rectangle {
+                height: 1px;
+                background: ThemeChirho.divider-chirho;
+            }
+
+            // Hint text
+            Text {
+                text: "Quick navigation: Enter a verse reference or book name";
+                font-size: ThemeChirho.font-size-xs-chirho;
+                color: ThemeChirho.text-muted-chirho;
+            }
+
+            // Results list
+            ScrollView {
+                vertical-stretch: 1;
+
+                VerticalLayout {
+                    spacing: 4px;
+
+                    // Show matching books/recent locations
+                    for result-chirho in AppStateChirho.quick-nav-results-chirho: Rectangle {
+                        height: 48px;
+                        background: qn-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : ThemeChirho.background-tertiary-chirho;
+                        border-radius: ThemeChirho.radius-md-chirho;
+
+                        animate background { duration: ThemeChirho.animation-fast-chirho; easing: ease-out; }
+
+                        qn-touch-chirho := TouchArea {
+                            clicked => {
+                                AppStateChirho.navigate-to-chirho(
+                                    result-chirho.book-chirho,
+                                    result-chirho.chapter-chirho,
+                                    1
+                                );
+                                AppStateChirho.quick-nav-visible-chirho = false;
+                                AppStateChirho.quick-nav-query-chirho = "";
+                            }
+                            mouse-cursor: pointer;
+                        }
+
+                        HorizontalLayout {
+                            padding: ThemeChirho.spacing-md-chirho;
+                            spacing: ThemeChirho.spacing-md-chirho;
+
+                            Text {
+                                text: "📖";
+                                font-size: 16px;
+                                vertical-alignment: center;
+                            }
+
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                spacing: 2px;
+
+                                Text {
+                                    text: result-chirho.book-chirho + " " + result-chirho.chapter-chirho;
+                                    font-size: ThemeChirho.font-size-md-chirho;
+                                    font-weight: 500;
+                                    color: ThemeChirho.text-primary-chirho;
+                                    vertical-alignment: center;
+                                }
+
+                                if result-chirho.timestamp-chirho != "": Text {
+                                    text: "Recent: " + result-chirho.timestamp-chirho;
+                                    font-size: ThemeChirho.font-size-xs-chirho;
+                                    color: ThemeChirho.text-muted-chirho;
+                                }
+                            }
+
+                            Text {
+                                text: "↵";
+                                font-size: 14px;
+                                color: ThemeChirho.text-disabled-chirho;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+
+                    // Empty state
+                    if AppStateChirho.quick-nav-results-chirho.length == 0: VerticalLayout {
+                        padding-top: ThemeChirho.spacing-xl-chirho;
+                        spacing: ThemeChirho.spacing-sm-chirho;
+
+                        Text {
+                            text: AppStateChirho.quick-nav-query-chirho == "" ? "Start typing to search..." : "No matches found";
+                            font-size: ThemeChirho.font-size-md-chirho;
+                            color: ThemeChirho.text-muted-chirho;
+                            horizontal-alignment: center;
+                        }
+
+                        Text {
+                            text: "Examples: John 3:16, Gen 1, Psalm 23";
+                            font-size: ThemeChirho.font-size-sm-chirho;
+                            color: ThemeChirho.text-disabled-chirho;
+                            horizontal-alignment: center;
+                        }
+                    }
+                }
+            }
+
+            // Keyboard hint
+            HorizontalLayout {
+                spacing: ThemeChirho.spacing-lg-chirho;
+                alignment: center;
+
+                HorizontalLayout {
+                    spacing: 4px;
+                    Rectangle {
+                        width: 24px;
+                        height: 20px;
+                        background: ThemeChirho.background-tertiary-chirho;
+                        border-radius: 4px;
+                        border-width: 1px;
+                        border-color: ThemeChirho.border-subtle-chirho;
+
+                        Text {
+                            text: "↵";
+                            font-size: 11px;
+                            color: ThemeChirho.text-muted-chirho;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                    Text {
+                        text: "Go";
+                        font-size: ThemeChirho.font-size-xs-chirho;
+                        color: ThemeChirho.text-muted-chirho;
+                        vertical-alignment: center;
+                    }
+                }
+
+                HorizontalLayout {
+                    spacing: 4px;
+                    Rectangle {
+                        width: 32px;
+                        height: 20px;
+                        background: ThemeChirho.background-tertiary-chirho;
+                        border-radius: 4px;
+                        border-width: 1px;
+                        border-color: ThemeChirho.border-subtle-chirho;
+
+                        Text {
+                            text: "Esc";
+                            font-size: 10px;
+                            color: ThemeChirho.text-muted-chirho;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                    Text {
+                        text: "Close";
+                        font-size: ThemeChirho.font-size-xs-chirho;
+                        color: ThemeChirho.text-muted-chirho;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+    }
+
+    // Close when clicking outside
+    TouchArea {
+        enabled: visible-chirho;
+        clicked => {
+            root.visible-chirho = false;
+            AppStateChirho.quick-nav-query-chirho = "";
+        }
+    }
+}
+
+// Onboarding Wizard component (first-run experience)
+component OnboardingWizardChirho inherits Rectangle {
+    in-out property <bool> visible-chirho: false;
+
+    width: 100%;
+    height: 100%;
+    background: visible-chirho ? #000000cc : transparent;
+
+    if visible-chirho: Rectangle {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        width: 600px;
+        height: 500px;
+        background: ThemeChirho.background-secondary-chirho;
+        border-radius: ThemeChirho.radius-lg-chirho;
+        border-width: 1px;
+        border-color: ThemeChirho.border-chirho;
+        drop-shadow-blur: 32px;
+        drop-shadow-color: #00000040;
+        clip: true;
+
+        VerticalLayout {
+            padding: ThemeChirho.spacing-xl-chirho;
+            spacing: ThemeChirho.spacing-lg-chirho;
+
+            // Header with app branding
+            HorizontalLayout {
+                alignment: center;
+                spacing: ThemeChirho.spacing-md-chirho;
+
+                Text {
+                    text: "✦";
+                    font-size: 48px;
+                    color: ThemeChirho.accent-chirho;
+                }
+            }
+
+            // Step content area
+            Rectangle {
+                vertical-stretch: 1;
+                background: transparent;
+
+                // Welcome Step (step 0)
+                if AppStateChirho.onboarding-step-chirho == 0: VerticalLayout {
+                    alignment: center;
+                    spacing: ThemeChirho.spacing-lg-chirho;
+                    padding: ThemeChirho.spacing-xl-chirho;
+
+                    Text {
+                        text: "Welcome to Codex Lux";
+                        font-size: ThemeChirho.font-size-xl-chirho;
+                        font-weight: 700;
+                        color: ThemeChirho.text-primary-chirho;
+                        horizontal-alignment: center;
+                    }
+
+                    Text {
+                        text: "\"For God so loved the world that he gave his only begotten Son,\nthat whoever believes in him should not perish but have eternal life.\"";
+                        font-size: ThemeChirho.font-size-md-chirho;
+                        color: ThemeChirho.text-secondary-chirho;
+                        horizontal-alignment: center;
+                        wrap: word-wrap;
+                    }
+
+                    Text {
+                        text: "— John 3:16";
+                        font-size: ThemeChirho.font-size-sm-chirho;
+                        color: ThemeChirho.accent-chirho;
+                        horizontal-alignment: center;
+                    }
+
+                    Rectangle { height: ThemeChirho.spacing-lg-chirho; }
+
+                    Text {
+                        text: "A beautiful, cross-platform Bible study application\nbuilt with love to help you explore Scripture.";
+                        font-size: ThemeChirho.font-size-md-chirho;
+                        color: ThemeChirho.text-muted-chirho;
+                        horizontal-alignment: center;
+                        wrap: word-wrap;
+                    }
+                }
+
+                // Features Tour Step (step 1)
+                if AppStateChirho.onboarding-step-chirho == 1: VerticalLayout {
+                    alignment: start;
+                    spacing: ThemeChirho.spacing-md-chirho;
+                    padding: ThemeChirho.spacing-md-chirho;
+
+                    Text {
+                        text: "Key Features";
+                        font-size: ThemeChirho.font-size-lg-chirho;
+                        font-weight: 600;
+                        color: ThemeChirho.text-primary-chirho;
+                        horizontal-alignment: center;
+                    }
+
+                    Rectangle { height: ThemeChirho.spacing-sm-chirho; }
+
+                    // Feature list grid
+                    GridLayout {
+                        spacing: ThemeChirho.spacing-md-chirho;
+
+                        Row {
+                            HorizontalLayout {
+                                spacing: ThemeChirho.spacing-sm-chirho;
+                                Text { text: "📖"; font-size: 20px; }
+                                VerticalLayout {
+                                    Text { text: "Multiple Translations"; font-size: 13px; font-weight: 600; color: ThemeChirho.text-primary-chirho; }
+                                    Text { text: "Load SWORD Bible modules"; font-size: 11px; color: ThemeChirho.text-muted-chirho; }
+                                }
+                            }
+                            HorizontalLayout {
+                                spacing: ThemeChirho.spacing-sm-chirho;
+                                Text { text: "🔍"; font-size: 20px; }
+                                VerticalLayout {
+                                    Text { text: "Full-Text Search"; font-size: 13px; font-weight: 600; color: ThemeChirho.text-primary-chirho; }
+                                    Text { text: "Search across all text"; font-size: 11px; color: ThemeChirho.text-muted-chirho; }
+                                }
+                            }
+                        }
+
+                        Row {
+                            HorizontalLayout {
+                                spacing: ThemeChirho.spacing-sm-chirho;
+                                Text { text: "✦"; font-size: 20px; color: #fbbf24; }
+                                VerticalLayout {
+                                    Text { text: "Highlights"; font-size: 13px; font-weight: 600; color: ThemeChirho.text-primary-chirho; }
+                                    Text { text: "Mark verses with colors"; font-size: 11px; color: ThemeChirho.text-muted-chirho; }
+                                }
+                            }
+                            HorizontalLayout {
+                                spacing: ThemeChirho.spacing-sm-chirho;
+                                Text { text: "🔖"; font-size: 20px; }
+                                VerticalLayout {
+                                    Text { text: "Bookmarks"; font-size: 13px; font-weight: 600; color: ThemeChirho.text-primary-chirho; }
+                                    Text { text: "Save favorite verses"; font-size: 11px; color: ThemeChirho.text-muted-chirho; }
+                                }
+                            }
+                        }
+
+                        Row {
+                            HorizontalLayout {
+                                spacing: ThemeChirho.spacing-sm-chirho;
+                                Text { text: "📝"; font-size: 20px; }
+                                VerticalLayout {
+                                    Text { text: "Personal Notes"; font-size: 13px; font-weight: 600; color: ThemeChirho.text-primary-chirho; }
+                                    Text { text: "Add notes to any verse"; font-size: 11px; color: ThemeChirho.text-muted-chirho; }
+                                }
+                            }
+                            HorizontalLayout {
+                                spacing: ThemeChirho.spacing-sm-chirho;
+                                Text { text: "🌙"; font-size: 20px; }
+                                VerticalLayout {
+                                    Text { text: "Themes"; font-size: 13px; font-weight: 600; color: ThemeChirho.text-primary-chirho; }
+                                    Text { text: "Dark, Light, and Sepia"; font-size: 11px; color: ThemeChirho.text-muted-chirho; }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Keyboard Shortcuts Step (step 2)
+                if AppStateChirho.onboarding-step-chirho == 2: VerticalLayout {
+                    alignment: start;
+                    spacing: ThemeChirho.spacing-sm-chirho;
+                    padding: ThemeChirho.spacing-md-chirho;
+
+                    Text {
+                        text: "Keyboard Shortcuts";
+                        font-size: ThemeChirho.font-size-lg-chirho;
+                        font-weight: 600;
+                        color: ThemeChirho.text-primary-chirho;
+                        horizontal-alignment: center;
+                    }
+
+                    Text {
+                        text: "Navigate quickly with these shortcuts";
+                        font-size: ThemeChirho.font-size-sm-chirho;
+                        color: ThemeChirho.text-muted-chirho;
+                        horizontal-alignment: center;
+                    }
+
+                    Rectangle { height: ThemeChirho.spacing-sm-chirho; }
+
+                    // Shortcuts list
+                    GridLayout {
+                        spacing: ThemeChirho.spacing-sm-chirho;
+
+                        Row {
+                            Rectangle {
+                                width: 80px;
+                                height: 28px;
+                                background: ThemeChirho.background-tertiary-chirho;
+                                border-radius: 4px;
+                                Text { text: "Ctrl+K"; font-size: 12px; color: ThemeChirho.text-primary-chirho; horizontal-alignment: center; vertical-alignment: center; }
+                            }
+                            Text { text: "Quick navigation (command palette)"; font-size: 13px; color: ThemeChirho.text-secondary-chirho; vertical-alignment: center; }
+                        }
+                        Row {
+                            Rectangle {
+                                width: 80px;
+                                height: 28px;
+                                background: ThemeChirho.background-tertiary-chirho;
+                                border-radius: 4px;
+                                Text { text: "Ctrl+G"; font-size: 12px; color: ThemeChirho.text-primary-chirho; horizontal-alignment: center; vertical-alignment: center; }
+                            }
+                            Text { text: "Go to verse dialog"; font-size: 13px; color: ThemeChirho.text-secondary-chirho; vertical-alignment: center; }
+                        }
+                        Row {
+                            Rectangle {
+                                width: 80px;
+                                height: 28px;
+                                background: ThemeChirho.background-tertiary-chirho;
+                                border-radius: 4px;
+                                Text { text: "← / →"; font-size: 12px; color: ThemeChirho.text-primary-chirho; horizontal-alignment: center; vertical-alignment: center; }
+                            }
+                            Text { text: "Previous / Next chapter"; font-size: 13px; color: ThemeChirho.text-secondary-chirho; vertical-alignment: center; }
+                        }
+                        Row {
+                            Rectangle {
+                                width: 80px;
+                                height: 28px;
+                                background: ThemeChirho.background-tertiary-chirho;
+                                border-radius: 4px;
+                                Text { text: "Ctrl+F"; font-size: 12px; color: ThemeChirho.text-primary-chirho; horizontal-alignment: center; vertical-alignment: center; }
+                            }
+                            Text { text: "Toggle search panel"; font-size: 13px; color: ThemeChirho.text-secondary-chirho; vertical-alignment: center; }
+                        }
+                        Row {
+                            Rectangle {
+                                width: 80px;
+                                height: 28px;
+                                background: ThemeChirho.background-tertiary-chirho;
+                                border-radius: 4px;
+                                Text { text: "Ctrl+T"; font-size: 12px; color: ThemeChirho.text-primary-chirho; horizontal-alignment: center; vertical-alignment: center; }
+                            }
+                            Text { text: "Cycle themes (Dark → Light → Sepia)"; font-size: 13px; color: ThemeChirho.text-secondary-chirho; vertical-alignment: center; }
+                        }
+                        Row {
+                            Rectangle {
+                                width: 80px;
+                                height: 28px;
+                                background: ThemeChirho.background-tertiary-chirho;
+                                border-radius: 4px;
+                                Text { text: "Escape"; font-size: 12px; color: ThemeChirho.text-primary-chirho; horizontal-alignment: center; vertical-alignment: center; }
+                            }
+                            Text { text: "Close dialogs and panels"; font-size: 13px; color: ThemeChirho.text-secondary-chirho; vertical-alignment: center; }
+                        }
+                    }
+                }
+
+                // Get Started Step (step 3)
+                if AppStateChirho.onboarding-step-chirho == 3: VerticalLayout {
+                    alignment: center;
+                    spacing: ThemeChirho.spacing-lg-chirho;
+                    padding: ThemeChirho.spacing-xl-chirho;
+
+                    Text {
+                        text: "You're All Set!";
+                        font-size: ThemeChirho.font-size-xl-chirho;
+                        font-weight: 700;
+                        color: ThemeChirho.text-primary-chirho;
+                        horizontal-alignment: center;
+                    }
+
+                    Text {
+                        text: "✦";
+                        font-size: 48px;
+                        color: ThemeChirho.accent-chirho;
+                        horizontal-alignment: center;
+                    }
+
+                    Text {
+                        text: "Start exploring Scripture with Codex Lux.\nUse the sidebar to browse books, or press Ctrl+K\nto quickly navigate to any passage.";
+                        font-size: ThemeChirho.font-size-md-chirho;
+                        color: ThemeChirho.text-secondary-chirho;
+                        horizontal-alignment: center;
+                        wrap: word-wrap;
+                    }
+
+                    Text {
+                        text: "Tip: Right-click any verse for quick actions!";
+                        font-size: ThemeChirho.font-size-sm-chirho;
+                        color: ThemeChirho.accent-chirho;
+                        horizontal-alignment: center;
+                    }
+                }
+            }
+
+            // Step indicators
+            HorizontalLayout {
+                alignment: center;
+                spacing: ThemeChirho.spacing-sm-chirho;
+
+                for step-idx-chirho in 4: Rectangle {
+                    width: step-idx-chirho == AppStateChirho.onboarding-step-chirho ? 24px : 8px;
+                    height: 8px;
+                    border-radius: 4px;
+                    background: step-idx-chirho == AppStateChirho.onboarding-step-chirho ? ThemeChirho.accent-chirho : ThemeChirho.background-elevated-chirho;
+
+                    animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
+                    animate background { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
+                }
+            }
+
+            // Navigation buttons
+            HorizontalLayout {
+                alignment: space-between;
+
+                // Skip button
+                Rectangle {
+                    width: 80px;
+                    height: 36px;
+                    border-radius: ThemeChirho.radius-md-chirho;
+                    background: skip-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : transparent;
+
+                    Text {
+                        text: "Skip";
+                        font-size: ThemeChirho.font-size-md-chirho;
+                        color: ThemeChirho.text-muted-chirho;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+
+                    skip-touch-chirho := TouchArea {
+                        clicked => {
+                            AppStateChirho.onboarding-skip-chirho();
+                        }
+                        mouse-cursor: pointer;
+                    }
+                }
+
+                // Next/Finish button
+                Rectangle {
+                    width: 120px;
+                    height: 36px;
+                    border-radius: ThemeChirho.radius-md-chirho;
+                    background: next-touch-chirho.has-hover ? ThemeChirho.accent-hover-chirho : ThemeChirho.accent-chirho;
+
+                    Text {
+                        text: AppStateChirho.onboarding-step-chirho == 3 ? "Get Started" : "Next";
+                        font-size: ThemeChirho.font-size-md-chirho;
+                        font-weight: 500;
+                        color: white;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+
+                    next-touch-chirho := TouchArea {
+                        clicked => {
+                            if (AppStateChirho.onboarding-step-chirho < 3) {
+                                AppStateChirho.onboarding-step-chirho += 1;
+                            } else {
+                                AppStateChirho.onboarding-complete-chirho();
+                            }
+                        }
+                        mouse-cursor: pointer;
+                    }
+                }
+            }
+        }
+    }
+}
+
 // Main application window
 export component MainWindowChirho inherits Window {
-    title: "Codex Lux";
+    title: "Codex Lux Chirho";
     preferred-width: 1280px;
     preferred-height: 820px;
     background: ThemeChirho.background-primary-chirho;
@@ -2422,13 +5867,30 @@ export component MainWindowChirho inherits Window {
                 AppStateChirho.goto-dialog-visible-chirho = !AppStateChirho.goto-dialog-visible-chirho;
                 return accept;
             }
-            // Ctrl+T: Toggle theme
+            // Ctrl+T: Toggle theme (cycles: Dark → Light → Sepia → High Contrast → Dark)
             if (event-chirho.text == "t" && event-chirho.modifiers.control) {
-                ThemeChirho.theme-index-chirho = Math.mod(ThemeChirho.theme-index-chirho + 1, 3);
+                ThemeChirho.theme-index-chirho = Math.mod(ThemeChirho.theme-index-chirho + 1, 4);
+                return accept;
+            }
+            // Ctrl+K: Quick navigation
+            if (event-chirho.text == "k" && event-chirho.modifiers.control) {
+                AppStateChirho.quick-nav-visible-chirho = !AppStateChirho.quick-nav-visible-chirho;
+                if (!AppStateChirho.quick-nav-visible-chirho) {
+                    AppStateChirho.quick-nav-query-chirho = "";
+                }
                 return accept;
             }
             // Escape: Close dialogs
             if (event-chirho.text == Key.Escape) {
+                if (AppStateChirho.context-menu-visible-chirho) {
+                    AppStateChirho.context-menu-visible-chirho = false;
+                    return accept;
+                }
+                if (AppStateChirho.quick-nav-visible-chirho) {
+                    AppStateChirho.quick-nav-visible-chirho = false;
+                    AppStateChirho.quick-nav-query-chirho = "";
+                    return accept;
+                }
                 if (AppStateChirho.goto-dialog-visible-chirho) {
                     AppStateChirho.goto-dialog-visible-chirho = false;
                     return accept;
@@ -2464,6 +5926,45 @@ export component MainWindowChirho inherits Window {
                 }
                 return accept;
             }
+            // Ctrl+M: Toggle module manager panel
+            if (event-chirho.text == "m" && event-chirho.modifiers.control) {
+                AppStateChirho.module-manager-visible-chirho = !AppStateChirho.module-manager-visible-chirho;
+                return accept;
+            }
+            // Ctrl+P: Toggle parallel view (side-by-side translation)
+            if (event-chirho.text == "p" && event-chirho.modifiers.control) {
+                AppStateChirho.parallel-view-enabled-chirho = !AppStateChirho.parallel-view-enabled-chirho;
+                return accept;
+            }
+            // Ctrl+I: Toggle info panel (verse details)
+            if (event-chirho.text == "i" && event-chirho.modifiers.control) {
+                AppStateChirho.info-panel-visible-chirho = !AppStateChirho.info-panel-visible-chirho;
+                return accept;
+            }
+            // Ctrl+Y: Toggle statistics panel (analYtics)
+            if (event-chirho.text == "y" && event-chirho.modifiers.control) {
+                AppStateChirho.stats-panel-visible-chirho = !AppStateChirho.stats-panel-visible-chirho;
+                if AppStateChirho.stats-panel-visible-chirho {
+                    AppStateChirho.load-statistics-chirho();
+                }
+                return accept;
+            }
+            // Ctrl+J: Toggle journal panel
+            if (event-chirho.text == "j" && event-chirho.modifiers.control) {
+                AppStateChirho.journal-panel-visible-chirho = !AppStateChirho.journal-panel-visible-chirho;
+                if AppStateChirho.journal-panel-visible-chirho {
+                    AppStateChirho.load-journal-entries-chirho();
+                }
+                return accept;
+            }
+            // Ctrl+R: Toggle prayer list panel (pRayer)
+            if (event-chirho.text == "r" && event-chirho.modifiers.control) {
+                AppStateChirho.prayer-panel-visible-chirho = !AppStateChirho.prayer-panel-visible-chirho;
+                if AppStateChirho.prayer-panel-visible-chirho {
+                    AppStateChirho.load-prayer-requests-chirho();
+                }
+                return accept;
+            }
             return reject;
         }
 
@@ -2478,11 +5979,15 @@ export component MainWindowChirho inherits Window {
                 vertical-stretch: 1;
 
                 if AppStateChirho.sidebar-visible-chirho: SidebarChirho {
-                    animate width { duration: 200ms; easing: ease-out; }
+                    animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
                 }
 
                 BibleViewChirho {
                     horizontal-stretch: 1;
+                }
+
+                ParallelPaneChirho {
+                    visible-chirho: AppStateChirho.parallel-view-enabled-chirho;
                 }
 
                 BookmarksPanelChirho {
@@ -2495,6 +6000,26 @@ export component MainWindowChirho inherits Window {
 
                 NotesPanelChirho {
                     visible-chirho: AppStateChirho.notes-visible-chirho;
+                }
+
+                InfoPanelChirho {
+                    visible-chirho: AppStateChirho.info-panel-visible-chirho;
+                }
+
+                StatisticsPanelChirho {
+                    visible-chirho: AppStateChirho.stats-panel-visible-chirho;
+                }
+
+                JournalPanelChirho {
+                    visible-chirho: AppStateChirho.journal-panel-visible-chirho;
+                }
+
+                PrayerPanelChirho {
+                    visible-chirho: AppStateChirho.prayer-panel-visible-chirho;
+                }
+
+                ModuleManagerPanelChirho {
+                    visible-chirho: AppStateChirho.module-manager-visible-chirho;
                 }
             }
 
@@ -2510,9 +6035,23 @@ export component MainWindowChirho inherits Window {
             visible-chirho: AppStateChirho.goto-dialog-visible-chirho;
         }
 
+        QuickNavDialogChirho {
+            visible-chirho: AppStateChirho.quick-nav-visible-chirho;
+        }
+
+        ContextMenuChirho {
+            visible-chirho: AppStateChirho.context-menu-visible-chirho;
+            menu-x-chirho: AppStateChirho.context-menu-x-chirho;
+            menu-y-chirho: AppStateChirho.context-menu-y-chirho;
+            verse-ref-chirho: AppStateChirho.context-menu-verse-ref-chirho;
+            verse-text-chirho: AppStateChirho.context-menu-verse-text-chirho;
+        }
+
         NoteDialogChirho {
             visible-chirho: AppStateChirho.note-dialog-visible-chirho;
         }
+
+        ImportDialogChirho {}
 
         HistoryPanelChirho {
             visible-chirho: AppStateChirho.history-visible-chirho;
@@ -2520,6 +6059,10 @@ export component MainWindowChirho inherits Window {
 
         SettingsPanelChirho {
             visible-chirho: AppStateChirho.settings-visible-chirho;
+        }
+
+        OnboardingWizardChirho {
+            visible-chirho: AppStateChirho.onboarding-visible-chirho;
         }
     }
 }

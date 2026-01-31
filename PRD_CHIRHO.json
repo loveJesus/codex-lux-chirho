@@ -1,22 +1,39 @@
 {
   "_comment_chirho": "For God so loved the world that he gave his only begotten Son, that whoever believes in him should not perish but have eternal life. John 3:16",
-  "product_name_chirho": "Codex Lux",
+  "product_name_chirho": "Codex Lux Chirho",
   "version_chirho": "0.1.4",
   "current_milestone_chirho": "M1_partial",
   "implementation_status_chirho": {
     "completed_chirho": 1,
-    "partial_chirho": 11,
-    "not_started_chirho": 43,
+    "partial_chirho": 22,
+    "not_started_chirho": 32,
     "total_chirho": 55
   },
   "description_chirho": "Cross-platform Bible study application - Codex of Light",
   "tech_stack_chirho": {
     "language_chirho": "Rust",
     "ui_framework_chirho": "Slint",
-    "bible_engine_chirho": "rsword_chirho",
+    "bible_engine_chirho": "rsword_chirho (Pure Rust SWORD library)",
     "database_chirho": "SQLite (rusqlite)",
-    "search_engine_chirho": "Tantivy",
+    "search_engine_chirho": "Tantivy (via rsword_chirho)",
     "platforms_chirho": ["macOS", "Windows", "Linux", "iOS", "Android"]
+  },
+  "rsword_chirho_capabilities": {
+    "description_chirho": "Full Pure Rust port of SWORD Bible software library with binary format compatibility",
+    "module_types_chirho": {
+      "biblical_texts_chirho": ["RawText", "RawText4", "zText", "zText4"],
+      "commentaries_chirho": ["RawCom", "RawCom4", "zCom", "zCom4", "HrefCom"],
+      "lexicons_chirho": ["RawLD", "RawLD4", "zLD", "zLD4"],
+      "general_books_chirho": ["RawGenBook", "zGenBook"],
+      "daily_devotional_chirho": ["date-keyed RawCom"],
+      "images_chirho": ["Image modules"],
+      "glossary_chirho": ["Glossary modules"]
+    },
+    "versification_systems_chirho": ["KJV", "Catholic", "LXX", "Vulgate", "Luther", "NRSV", "Synodal", "Leningrad", "Ethiopian"],
+    "markup_filters_chirho": ["OSIS", "ThML", "GBF", "TEI", "Strong's", "Footnotes", "Red Letter", "Cipher"],
+    "search_engines_chirho": ["Tantivy (full-text indexed)", "Regex (pattern-based)", "Query parser (boolean)", "Highlighter"],
+    "compression_chirho": ["zlib/ZIP", "bzip2", "XZ/LZMA", "LZSS (legacy)"],
+    "cli_tools_chirho": ["diatheke_chirho", "installmgr_chirho", "osis2mod_chirho", "tei2mod_chirho", "imp2vs_chirho", "imp2ld_chirho", "imp2gbs_chirho", "mod2imp_chirho", "mod2osis_chirho", "mod2zmod_chirho", "mkfastmod_chirho", "vpl2mod_chirho", "modinfo_chirho", "modvalidate_chirho", "modwizard_chirho"]
   },
 
   "features_chirho": {
@@ -60,7 +77,8 @@
         "Support for numbered books (1 Samuel, 2 Kings, 1 Corinthians, etc.)",
         "Chapter grid selector dialog (click chapter display to open)",
         "Visual highlight for current chapter in grid selector",
-        "Previous/Next book navigation buttons (‹‹ ››) with wrap-around"
+        "Previous/Next book navigation buttons (‹‹ ››) with wrap-around",
+        "Support for verse ranges (Gen 1:1-10) - navigates to start verse"
       ],
       "description_chirho": "Bible navigation with book/chapter/verse selection",
       "requirements_chirho": [
@@ -207,8 +225,16 @@
       "name_chirho": "Parallel View",
       "category_chirho": "Display",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
       "description_chirho": "Side-by-side module comparison",
+      "completed_items_chirho": [
+        "Two-column parallel view panel (ParallelPaneChirho)",
+        "Module selector for parallel pane",
+        "Toggle button in toolbar (⫗ icon)",
+        "Ctrl+P keyboard shortcut to toggle parallel view",
+        "Parallel verses update when navigating chapters",
+        "Close button to hide parallel pane"
+      ],
       "requirements_chirho": [
         "Two-column parallel view",
         "Three or more column view",
@@ -217,7 +243,8 @@
         "Mix Bible and commentary in parallel",
         "Interlinear view (original + translation)",
         "Verse alignment across translations"
-      ]
+      ],
+      "implementation_notes_chirho": "Basic two-column parallel view implemented with module selector. Uses sample verses for demo. Pending: synchronized scrolling, interlinear view, multiple columns."
     },
 
     "CLX-010": {
@@ -234,7 +261,9 @@
         "Unit tests for bookmark operations",
         "Bookmark list sidebar panel (Ctrl+D toggle)",
         "Click bookmark to navigate to verse",
-        "Toggle bookmark from verse actions"
+        "Toggle bookmark from verse actions",
+        "Export bookmarks to JSON file",
+        "Export callback infrastructure in AppStateChirho"
       ],
       "description_chirho": "Save and organize favorite verses",
       "requirements_chirho": [
@@ -268,7 +297,9 @@
         "Border indicator for current highlight color",
         "View all highlights list panel (Ctrl+H toggle or toolbar button)",
         "Highlights panel shows reference, color bar, and verse preview",
-        "Click highlight to navigate to verse"
+        "Click highlight to navigate to verse",
+        "Export highlights to JSON file with timestamps",
+        "Export callback infrastructure in AppStateChirho"
       ],
       "description_chirho": "Highlight verses with colors",
       "requirements_chirho": [
@@ -302,7 +333,9 @@
         "Open existing note when clicking note button",
         "View all notes list panel (Ctrl+N toggle or toolbar button)",
         "Notes panel shows reference, preview, and update time",
-        "Click note to open in edit dialog"
+        "Click note to open in edit dialog",
+        "Export notes to JSON file with timestamps",
+        "Export callback infrastructure in AppStateChirho"
       ],
       "description_chirho": "Add personal notes to verses",
       "requirements_chirho": [
@@ -354,7 +387,17 @@
       "name_chirho": "Module Manager",
       "category_chirho": "Module Management",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
+      "completed_items_chirho": [
+        "Module manager panel UI (Ctrl+M or toolbar button)",
+        "Module manager panel with list view",
+        "Module info display (name, description, language, type)",
+        "Installed status indicator on modules",
+        "Install/Remove button per module",
+        "Refresh button to load module list",
+        "Loading state and status messages",
+        "Sample module list (KJV, ESV, SBLGNT, WLC, Strong's, MHCC)"
+      ],
       "description_chirho": "Install and manage SWORD modules",
       "requirements_chirho": [
         "List installed modules",
@@ -413,7 +456,10 @@
         "Copy verse to clipboard (cross-platform: macOS, Linux, Windows)",
         "Copy verse with reference (format: 'text - Book Chapter:Verse')",
         "Copy button visible on verse hover",
-        "Status message feedback on copy"
+        "Status message feedback on copy",
+        "Copy format settings (Text-Ref, Ref:Text, Text Only)",
+        "Include/exclude verse numbers toggle",
+        "Multi-verse copy callback infrastructure"
       ],
       "description_chirho": "Copy and share scripture text",
       "requirements_chirho": [
@@ -453,10 +499,11 @@
         "Dark theme (default) - fully implemented",
         "Light theme - fully implemented",
         "Sepia/paper theme - fully implemented",
-        "Theme toggle button in toolbar (cycles through 3 themes)",
-        "Ctrl+T keyboard shortcut to cycle themes",
-        "Theme selector in settings (Dark, Light, Sepia buttons)",
-        "Accent color (purple) with consistent styling",
+        "High contrast theme - fully implemented with WCAG 2.1 contrast ratios",
+        "Theme toggle button in toolbar (cycles through 4 themes)",
+        "Ctrl+T keyboard shortcut to cycle themes (Dark → Light → Sepia → High Contrast)",
+        "Theme selector in settings (Dark, Light, Sepia, Contrast buttons)",
+        "Accent color (purple) with consistent styling (yellow in high contrast)",
         "Professional color scheme via ThemeChirho global"
       ],
       "description_chirho": "Visual themes and customization",
@@ -468,7 +515,8 @@
         "Custom theme creation",
         "Auto dark mode based on system",
         "Accent color customization"
-      ]
+      ],
+      "implementation_notes_chirho": "4 themes fully implemented. Pending: custom theme creation, auto dark mode based on system, accent color customization."
     },
 
     "CLX-021": {
@@ -499,10 +547,17 @@
         "Ctrl+F for search toggle",
         "Ctrl+G for goto verse dialog",
         "Ctrl+B for sidebar/books panel toggle",
-        "Ctrl+T for theme toggle",
+        "Ctrl+T for theme toggle (cycles Dark → Light → Sepia → High Contrast)",
         "Ctrl+D for bookmarks panel toggle",
         "Ctrl+H for highlights panel toggle",
         "Ctrl+N for notes panel toggle",
+        "Ctrl+M for module manager panel toggle",
+        "Ctrl+K for quick navigation (command palette)",
+        "Ctrl+I for info panel toggle",
+        "Ctrl+P for parallel view toggle",
+        "Ctrl+Y for statistics panel toggle",
+        "Ctrl+J for study journal toggle",
+        "Ctrl+R for prayer list toggle",
         "Escape to close dialogs",
         "Goto verse dialog with reference parsing",
         "Support for abbreviated book names (Gen, Jn, Rev, etc.)",
@@ -604,7 +659,7 @@
       "name_chirho": "Study Journal",
       "category_chirho": "User Data",
       "priority_chirho": "P2",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
       "description_chirho": "Personal Bible study journal",
       "requirements_chirho": [
         "Create journal entries",
@@ -614,14 +669,26 @@
         "Tags and categories",
         "Search journal",
         "Export journal"
-      ]
+      ],
+      "implementation_notes_chirho": "Implemented: Journal panel UI (📔 button, Ctrl+J), create/edit/delete entries, link to verses, tags support, date-based list view. Pending: rich text editor, journal search, export."
     },
 
     "CLX-029": {
       "name_chirho": "Prayer List",
       "category_chirho": "Devotional",
       "priority_chirho": "P2",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
+      "completed_items_chirho": [
+        "Add prayer requests with title, description, verse reference, category",
+        "Link prayers to verses",
+        "Mark prayers as answered with visual indicator",
+        "Prayer categories",
+        "Prayer panel with Ctrl+R shortcut",
+        "Toolbar button for Prayer List (🙏)",
+        "SQLite persistence of prayer requests",
+        "Delete prayer requests",
+        "Prayer history (answered prayers preserved)"
+      ],
       "description_chirho": "Prayer request tracking",
       "requirements_chirho": [
         "Add prayer requests",
@@ -653,7 +720,17 @@
       "name_chirho": "Import/Export",
       "category_chirho": "Data",
       "priority_chirho": "P2",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
+      "completed_items_chirho": [
+        "Export all user data as JSON (codex_lux_backup_YYYYMMDD_HHMMSS.json)",
+        "Export highlights to JSON",
+        "Export bookmarks to JSON",
+        "Export notes to JSON",
+        "Export directory management (~/Library/Application Support/com.rsword.codex-lux/exports/)",
+        "Import from backup - dialog lists available backups",
+        "Import restores highlights, bookmarks, and notes",
+        "Import button in Settings Data & Backup section"
+      ],
       "description_chirho": "Import and export user data",
       "requirements_chirho": [
         "Export all user data as JSON",
@@ -661,7 +738,8 @@
         "Export to other Bible app formats",
         "Import from other Bible apps",
         "Export highlights as document"
-      ]
+      ],
+      "implementation_notes_chirho": "Export and import functionality implemented. Pending: Export to other formats, import from other Bible apps."
     },
 
     "CLX-032": {
@@ -701,7 +779,7 @@
       "name_chirho": "Quick Navigation Bar",
       "category_chirho": "Navigation",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
       "description_chirho": "Command palette style quick navigation",
       "requirements_chirho": [
         "Ctrl+K or Cmd+K to open",
@@ -709,14 +787,15 @@
         "Fuzzy search book names",
         "Recent locations",
         "Search commands"
-      ]
+      ],
+      "implementation_notes_chirho": "Implemented: Ctrl+K opens quick nav dialog, fuzzy book name search, recent history, verse reference parsing. Pending: search commands integration."
     },
 
     "CLX-035": {
       "name_chirho": "Context Menu",
       "category_chirho": "UI",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
       "description_chirho": "Right-click context menu for verses",
       "requirements_chirho": [
         "Copy verse",
@@ -726,14 +805,15 @@
         "Compare translations",
         "Word study",
         "Share verse"
-      ]
+      ],
+      "implementation_notes_chirho": "Implemented: Right-click context menu with Copy, Bookmark, Highlight, Note, Compare Translations (opens parallel view), Search Similar. Pending: Word study, Share verse."
     },
 
     "CLX-036": {
       "name_chirho": "Info Panel",
       "category_chirho": "UI",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
       "description_chirho": "Contextual information sidebar",
       "requirements_chirho": [
         "Show verse details on selection",
@@ -742,14 +822,15 @@
         "Footnotes",
         "Commentary excerpts",
         "Collapsible sections"
-      ]
+      ],
+      "implementation_notes_chirho": "Implemented: Info panel sidebar (Ctrl+I), verse reference display, verse text display, highlight/bookmark/note status indicators, info button on verse hover. Pending: Strong's numbers, cross-references, footnotes, commentary excerpts, collapsible sections."
     },
 
     "CLX-037": {
       "name_chirho": "Statistics",
       "category_chirho": "Tracking",
       "priority_chirho": "P3",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
       "description_chirho": "Reading and study statistics",
       "requirements_chirho": [
         "Chapters read count",
@@ -759,22 +840,33 @@
         "Highlight statistics",
         "Note count",
         "Visual progress charts"
-      ]
+      ],
+      "implementation_notes_chirho": "Implemented: Statistics panel UI (📊 button, Ctrl+Y), chapters read, unique chapters, reading time, current/longest streak, highlight/note/bookmark counts, books started. Pending: books completed tracking, visual progress charts."
     },
 
     "CLX-038": {
       "name_chirho": "Onboarding",
       "category_chirho": "UX",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
       "description_chirho": "First-run setup and tutorial",
+      "completed_items_chirho": [
+        "Welcome screen with app branding and John 3:16",
+        "Feature tour showing key capabilities",
+        "Keyboard shortcuts guide step",
+        "Step-by-step wizard with progress indicators",
+        "Skip and Next/Finish navigation buttons",
+        "First-run detection with database setting",
+        "Onboarding state persistence"
+      ],
       "requirements_chirho": [
         "Welcome screen",
         "Module installation wizard",
         "Feature tour",
         "Keyboard shortcuts guide",
         "Sample data option"
-      ]
+      ],
+      "implementation_notes_chirho": "Implemented: 4-step onboarding wizard (Welcome, Features, Shortcuts, Get Started). Pending: module installation wizard step, sample data option."
     },
 
     "CLX-039": {
@@ -788,10 +880,14 @@
         "Font settings section (font size slider)",
         "Line height setting with slider",
         "Paragraph mode toggle switch",
-        "Theme settings (dark mode toggle with visual switch)",
+        "Theme settings (Dark, Light, Sepia, High Contrast buttons)",
         "Keyboard shortcuts reference list with all shortcuts",
         "About section with version info",
-        "Settings button in toolbar"
+        "Settings button in toolbar",
+        "Data & Backup section with export buttons",
+        "Export All Data button (comprehensive JSON backup)",
+        "Individual export buttons (Highlights, Bookmarks, Notes)",
+        "Copy format settings (Text-Ref, Ref:Text, Text Only)"
       ],
       "description_chirho": "Application settings panel",
       "requirements_chirho": [
@@ -904,8 +1000,16 @@
       "name_chirho": "Accessibility",
       "category_chirho": "Accessibility",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
       "description_chirho": "Full accessibility support",
+      "completed_items_chirho": [
+        "High contrast theme (available via Ctrl+T or Settings)",
+        "Reduced motion option with Settings toggle",
+        "Focus indicators setting with Settings toggle",
+        "All animations respect reduce-motion preference",
+        "Focus ring color changes for high contrast mode",
+        "Accessibility section in Settings panel"
+      ],
       "requirements_chirho": [
         "Screen reader support",
         "VoiceOver (macOS/iOS)",
@@ -914,7 +1018,8 @@
         "Reduced motion option",
         "Focus indicators",
         "ARIA labels where applicable"
-      ]
+      ],
+      "implementation_notes_chirho": "Reduce motion and focus indicators implemented via ThemeChirho global. High contrast mode uses theme index 3. Pending: screen reader support, VoiceOver/TalkBack integration."
     },
 
     "CLX-047": {
