@@ -32,7 +32,7 @@ export global LabelsChirho {
     out property <string> new-testament-label-chirho: "NEW TESTAMENT";
     out property <string> ot-book-count-chirho: "39";
     out property <string> nt-book-count-chirho: "27";
-    out property <string> history-icon-chirho: "📖";
+    out property <string> history-icon-chirho: "Hs";
 }
 
 // Professional color theme - supports dark, light, sepia, and high contrast modes
@@ -2486,7 +2486,7 @@ component ToolbarChirho inherits Rectangle {
 
         // Statistics button
         IconButtonChirho {
-            icon-chirho: "📊";
+            icon-chirho: "St";  // Statistics
             active-chirho: AppStateChirho.stats-panel-visible-chirho;
             clicked-chirho => {
                 AppStateChirho.stats-panel-visible-chirho = !AppStateChirho.stats-panel-visible-chirho;
@@ -2498,7 +2498,7 @@ component ToolbarChirho inherits Rectangle {
 
         // Journal button
         IconButtonChirho {
-            icon-chirho: "📔";
+            icon-chirho: "Jn";  // Journal
             active-chirho: AppStateChirho.journal-panel-visible-chirho;
             clicked-chirho => {
                 AppStateChirho.journal-panel-visible-chirho = !AppStateChirho.journal-panel-visible-chirho;
@@ -2510,7 +2510,7 @@ component ToolbarChirho inherits Rectangle {
 
         // Prayer list button
         IconButtonChirho {
-            icon-chirho: "🙏";
+            icon-chirho: "Pr";  // Prayer
             active-chirho: AppStateChirho.prayer-panel-visible-chirho;
             clicked-chirho => {
                 AppStateChirho.prayer-panel-visible-chirho = !AppStateChirho.prayer-panel-visible-chirho;
@@ -2522,7 +2522,7 @@ component ToolbarChirho inherits Rectangle {
 
         // Reading Plans button
         IconButtonChirho {
-            icon-chirho: "📅";
+            icon-chirho: "Pl";  // Plans
             active-chirho: AppStateChirho.reading-plan-panel-visible-chirho;
             clicked-chirho => {
                 AppStateChirho.reading-plan-panel-visible-chirho = !AppStateChirho.reading-plan-panel-visible-chirho;
@@ -2534,7 +2534,7 @@ component ToolbarChirho inherits Rectangle {
 
         // Commentary button
         IconButtonChirho {
-            icon-chirho: "📖";
+            icon-chirho: "Cm";  // Commentary
             active-chirho: AppStateChirho.commentary-panel-visible-chirho;
             clicked-chirho => {
                 AppStateChirho.commentary-panel-visible-chirho = !AppStateChirho.commentary-panel-visible-chirho;
@@ -2549,7 +2549,7 @@ component ToolbarChirho inherits Rectangle {
 
         // Lexicon button
         IconButtonChirho {
-            icon-chirho: "📚";
+            icon-chirho: "Lx";  // Lexicon
             active-chirho: AppStateChirho.lexicon-panel-visible-chirho;
             clicked-chirho => {
                 AppStateChirho.lexicon-panel-visible-chirho = !AppStateChirho.lexicon-panel-visible-chirho;
@@ -2558,7 +2558,7 @@ component ToolbarChirho inherits Rectangle {
 
         // Verse of the Day button
         IconButtonChirho {
-            icon-chirho: "🌅";
+            icon-chirho: "Vd";  // Verse of Day
             active-chirho: AppStateChirho.votd-dialog-visible-chirho;
             clicked-chirho => {
                 AppStateChirho.load-verse-of-the-day-chirho();
@@ -2579,7 +2579,7 @@ component ToolbarChirho inherits Rectangle {
 
         // Module Manager button
         IconButtonChirho {
-            icon-chirho: "📦";
+            icon-chirho: "Md";  // Modules
             active-chirho: AppStateChirho.module-manager-visible-chirho;
             clicked-chirho => {
                 AppStateChirho.module-manager-visible-chirho = !AppStateChirho.module-manager-visible-chirho;
@@ -4014,7 +4014,7 @@ component VotdDialogChirho inherits Rectangle {
                 alignment: center;
 
                 Text {
-                    text: "🌅";
+                    text: "Vd";
                     font-size: 32px;
                     vertical-alignment: center;
                 }
@@ -4122,7 +4122,7 @@ component VotdDialogChirho inherits Rectangle {
                     border-radius: ThemeChirho.radius-md-chirho;
 
                     Text {
-                        text: "📖 Read in Context";
+                        text: "Read in Context";
                         font-size: ThemeChirho.font-size-sm-chirho;
                         color: white;
                         horizontal-alignment: center;
@@ -4179,7 +4179,7 @@ component HistoryPanelChirho inherits Rectangle {
 
             HorizontalLayout {
                 Text {
-                    text: "📖 Recent Reading";
+                    text: "Recent Reading";
                     font-size: ThemeChirho.font-size-lg-chirho;
                     font-weight: 600;
                     color: ThemeChirho.text-primary-chirho;
@@ -4951,7 +4951,7 @@ component StatisticsPanelChirho inherits Rectangle {
                 spacing: ThemeChirho.spacing-sm-chirho;
 
                 Text {
-                    text: "📊";
+                    text: "St";
                     font-size: 18px;
                     vertical-alignment: center;
                 }
@@ -5338,7 +5338,7 @@ component ReadingPlanPanelChirho inherits Rectangle {
             spacing: ThemeChirho.spacing-sm-chirho;
 
             Text {
-                text: "📅 Reading Plans";
+                text: "Reading Plans";
                 font-size: ThemeChirho.font-size-lg-chirho;
                 font-weight: 700;
                 color: ThemeChirho.text-primary-chirho;
@@ -5604,7 +5604,7 @@ component ReadingPlanPanelChirho inherits Rectangle {
                         alignment: center;
 
                         Text {
-                            text: "📚";
+                            text: "Lx";
                             font-size: 32px;
                             horizontal-alignment: center;
                         }
@@ -5652,7 +5652,7 @@ component JournalPanelChirho inherits Rectangle {
                 spacing: ThemeChirho.spacing-sm-chirho;
 
                 Text {
-                    text: "📔";
+                    text: "Jn";
                     font-size: 18px;
                     vertical-alignment: center;
                 }
@@ -5738,7 +5738,7 @@ component JournalPanelChirho inherits Rectangle {
                     padding-top: 40px;
 
                     Text {
-                        text: "📔";
+                        text: "Jn";
                         font-size: 48px;
                         horizontal-alignment: center;
                     }
@@ -5814,7 +5814,7 @@ component JournalPanelChirho inherits Rectangle {
                             spacing: ThemeChirho.spacing-sm-chirho;
 
                             if entry-chirho.verse-ref-chirho != "": Text {
-                                text: "📖 " + entry-chirho.verse-ref-chirho;
+                                text: "" + entry-chirho.verse-ref-chirho;
                                 font-size: ThemeChirho.font-size-xs-chirho;
                                 color: ThemeChirho.accent-chirho;
                             }
@@ -5930,7 +5930,7 @@ component JournalPanelChirho inherits Rectangle {
                     spacing: ThemeChirho.spacing-sm-chirho;
 
                     Text {
-                        text: "📖";
+                        text: "Go";
                         font-size: 14px;
                         vertical-alignment: center;
                     }
@@ -6056,7 +6056,7 @@ component PrayerPanelChirho inherits Rectangle {
                 spacing: ThemeChirho.spacing-sm-chirho;
 
                 Text {
-                    text: "🙏";
+                    text: "Pr";
                     font-size: 18px;
                     vertical-alignment: center;
                 }
@@ -6141,7 +6141,7 @@ component PrayerPanelChirho inherits Rectangle {
                     padding-top: 40px;
 
                     Text {
-                        text: "🙏";
+                        text: "Pr";
                         font-size: 48px;
                         horizontal-alignment: center;
                     }
@@ -6256,7 +6256,7 @@ component PrayerPanelChirho inherits Rectangle {
                             spacing: ThemeChirho.spacing-sm-chirho;
 
                             if prayer-chirho.verse-ref-chirho != "": Text {
-                                text: "📖 " + prayer-chirho.verse-ref-chirho;
+                                text: "" + prayer-chirho.verse-ref-chirho;
                                 font-size: ThemeChirho.font-size-xs-chirho;
                                 color: ThemeChirho.accent-chirho;
                             }
@@ -6376,7 +6376,7 @@ component PrayerPanelChirho inherits Rectangle {
                     spacing: ThemeChirho.spacing-sm-chirho;
 
                     Text {
-                        text: "📖";
+                        text: "Go";
                         font-size: 14px;
                         vertical-alignment: center;
                     }
@@ -6429,7 +6429,7 @@ component PrayerPanelChirho inherits Rectangle {
                 animate background { duration: ThemeChirho.animation-fast-chirho; }
 
                 Text {
-                    text: "🙏 Add Prayer";
+                    text: "Add Prayer";
                     font-size: ThemeChirho.font-size-md-chirho;
                     font-weight: 600;
                     color: white;
@@ -6479,7 +6479,7 @@ component CommentaryPanelChirho inherits Rectangle {
             spacing: ThemeChirho.spacing-sm-chirho;
 
             Text {
-                text: "📖 Commentary";
+                text: "Commentary";
                 font-size: ThemeChirho.font-size-lg-chirho;
                 font-weight: 700;
                 color: ThemeChirho.text-primary-chirho;
@@ -6606,7 +6606,7 @@ component LexiconPanelChirho inherits Rectangle {
             spacing: ThemeChirho.spacing-sm-chirho;
 
             Text {
-                text: "📚 Lexicon";
+                text: "Lexicon";
                 font-size: ThemeChirho.font-size-lg-chirho;
                 font-weight: 700;
                 color: ThemeChirho.text-primary-chirho;
@@ -7102,7 +7102,7 @@ component ModuleManagerPanelChirho inherits Rectangle {
 
         HorizontalLayout {
             Text {
-                text: "📦 Module Manager";
+                text: "Module Manager";
                 font-size: ThemeChirho.font-size-lg-chirho;
                 font-weight: 600;
                 color: ThemeChirho.text-primary-chirho;
@@ -7414,7 +7414,7 @@ component QuickNavDialogChirho inherits Rectangle {
                             spacing: ThemeChirho.spacing-md-chirho;
 
                             Text {
-                                text: "📖";
+                                text: "Go";
                                 font-size: 16px;
                                 vertical-alignment: center;
                             }
@@ -7644,7 +7644,7 @@ component OnboardingWizardChirho inherits Rectangle {
                         Row {
                             HorizontalLayout {
                                 spacing: ThemeChirho.spacing-sm-chirho;
-                                Text { text: "📖"; font-size: 20px; }
+                                Text { text: "Go"; font-size: 20px; }
                                 VerticalLayout {
                                     Text { text: "Multiple Translations"; font-size: 13px; font-weight: 600; color: ThemeChirho.text-primary-chirho; }
                                     Text { text: "Load SWORD Bible modules"; font-size: 11px; color: ThemeChirho.text-muted-chirho; }

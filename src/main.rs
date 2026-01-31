@@ -1142,12 +1142,13 @@ mod database_chirho {
 
 mod bible_engine_chirho {
     use super::*;
-    use rsword_chirho::SwMgrChirho;
+    use rsword_chirho::{SwMgrChirho, FilterChirho, OsisToPlainFilterChirho};
 
     /// Bible engine wrapping rsword_chirho
     pub struct BibleEngineChirho {
         manager_chirho: Option<SwMgrChirho>,
         current_module_chirho: String,
+        osis_filter_chirho: OsisToPlainFilterChirho,
     }
 
     impl BibleEngineChirho {
@@ -1169,6 +1170,7 @@ mod bible_engine_chirho {
             Self {
                 manager_chirho,
                 current_module_chirho: DEFAULT_MODULE_CHIRHO.to_string(),
+                osis_filter_chirho: OsisToPlainFilterChirho::new_chirho(),
             }
         }
 
@@ -1206,9 +1208,13 @@ mod bible_engine_chirho {
 
                         match loaded_module_chirho.read_entry_chirho(&ref_str_chirho) {
                             Ok(text_chirho) if !text_chirho.trim().is_empty() => {
+                                // Apply OSIS filter to strip markup
+                                let filtered_text_chirho = self.osis_filter_chirho
+                                    .process_chirho(&text_chirho)
+                                    .unwrap_or_else(|_| text_chirho.clone());
                                 verses_chirho.push((
                                     verse_num_chirho.to_string(),
-                                    text_chirho,
+                                    filtered_text_chirho,
                                 ));
                             }
                             _ => {
