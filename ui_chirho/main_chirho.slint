@@ -258,6 +258,22 @@ export struct FootnoteChirho {
     footnote-type-chirho: string,  // "translator", "textual", "alternative", "explanation"
 }
 
+// Commentary entry for display
+export struct CommentaryEntryChirho {
+    verse-ref-chirho: string,      // Verse reference
+    content-chirho: string,        // Commentary text
+    module-name-chirho: string,    // Commentary module name
+    author-chirho: string,         // Commentary author (if known)
+}
+
+// Lexicon/Dictionary entry
+export struct LexiconEntryChirho {
+    key-chirho: string,            // Entry key/word
+    content-chirho: string,        // Entry definition
+    module-name-chirho: string,    // Lexicon module name
+    related-chirho: [string],      // Related entries
+}
+
 // Verse data structure
 export struct VerseChirho {
     reference-chirho: string,
@@ -649,6 +665,27 @@ export global AppStateChirho {
     in-out property <length> footnote-popup-y-chirho: 0px;
     callback lookup-footnote-chirho(string, string); // Look up footnote (verse_ref, marker)
     callback toggle-footnotes-display-chirho();
+
+    // Commentary Panel (Study Tools)
+    in-out property <bool> commentary-panel-visible-chirho: false;
+    in-out property <string> commentary-verse-ref-chirho: ""; // Current verse for commentary
+    in-out property <string> commentary-content-chirho: ""; // Commentary text
+    in-out property <string> commentary-module-chirho: ""; // Selected commentary module
+    in-out property <[string]> commentary-modules-chirho: []; // Available commentary modules
+    callback load-commentary-chirho(string); // Load commentary for verse
+    callback select-commentary-module-chirho(string);
+
+    // Lexicon/Dictionary Panel (Study Tools)
+    in-out property <bool> lexicon-panel-visible-chirho: false;
+    in-out property <string> lexicon-search-query-chirho: "";
+    in-out property <string> lexicon-current-entry-chirho: "";
+    in-out property <string> lexicon-entry-content-chirho: "";
+    in-out property <[string]> lexicon-modules-chirho: []; // Available lexicon modules
+    in-out property <string> lexicon-module-chirho: ""; // Selected lexicon module
+    in-out property <[string]> lexicon-history-chirho: []; // Recently viewed entries
+    callback search-lexicon-chirho(string);
+    callback browse-lexicon-chirho(string); // Browse by letter
+    callback select-lexicon-module-chirho(string);
 }
 
 // Icon button component with accessibility support
@@ -2455,6 +2492,30 @@ component ToolbarChirho inherits Rectangle {
                 if AppStateChirho.reading-plan-panel-visible-chirho {
                     AppStateChirho.load-reading-plans-chirho();
                 }
+            }
+        }
+
+        // Commentary button
+        IconButtonChirho {
+            icon-chirho: "📖";
+            active-chirho: AppStateChirho.commentary-panel-visible-chirho;
+            clicked-chirho => {
+                AppStateChirho.commentary-panel-visible-chirho = !AppStateChirho.commentary-panel-visible-chirho;
+                if AppStateChirho.commentary-panel-visible-chirho {
+                    // Load commentary for current verse
+                    AppStateChirho.load-commentary-chirho(
+                        AppStateChirho.current-book-chirho + " " + AppStateChirho.current-chapter-chirho + ":1"
+                    );
+                }
+            }
+        }
+
+        // Lexicon button
+        IconButtonChirho {
+            icon-chirho: "📚";
+            active-chirho: AppStateChirho.lexicon-panel-visible-chirho;
+            clicked-chirho => {
+                AppStateChirho.lexicon-panel-visible-chirho = !AppStateChirho.lexicon-panel-visible-chirho;
             }
         }
 
@@ -6313,6 +6374,362 @@ component PrayerPanelChirho inherits Rectangle {
     }
 }
 
+// Commentary Panel - display commentary content for current verse
+component CommentaryPanelChirho inherits Rectangle {
+    in-out property <bool> visible-chirho: false;
+
+    width: visible-chirho ? 380px : 0px;
+    background: ThemeChirho.background-secondary-chirho;
+    clip: true;
+
+    // Left border
+    Rectangle {
+        width: 1px;
+        background: ThemeChirho.border-chirho;
+    }
+
+    animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
+
+    VerticalLayout {
+        padding: ThemeChirho.spacing-lg-chirho;
+        spacing: ThemeChirho.spacing-md-chirho;
+
+        // Header
+        HorizontalLayout {
+            spacing: ThemeChirho.spacing-sm-chirho;
+
+            Text {
+                text: "📖 Commentary";
+                font-size: ThemeChirho.font-size-lg-chirho;
+                font-weight: 700;
+                color: ThemeChirho.text-primary-chirho;
+                horizontal-stretch: 1;
+            }
+
+            IconButtonChirho {
+                icon-chirho: LabelsChirho.close-icon-chirho;
+                clicked-chirho => {
+                    AppStateChirho.commentary-panel-visible-chirho = false;
+                }
+            }
+        }
+
+        // Current verse reference
+        Text {
+            text: AppStateChirho.commentary-verse-ref-chirho;
+            font-size: ThemeChirho.font-size-md-chirho;
+            font-weight: 600;
+            color: ThemeChirho.accent-chirho;
+        }
+
+        // Commentary module selector (if multiple available)
+        if AppStateChirho.commentary-modules-chirho.length > 1: HorizontalLayout {
+            spacing: ThemeChirho.spacing-sm-chirho;
+
+            Text {
+                text: "Source:";
+                font-size: ThemeChirho.font-size-sm-chirho;
+                color: ThemeChirho.text-secondary-chirho;
+                vertical-alignment: center;
+            }
+
+            for module-chirho in AppStateChirho.commentary-modules-chirho: Rectangle {
+                width: 80px;
+                height: 28px;
+                background: AppStateChirho.commentary-module-chirho == module-chirho ?
+                    ThemeChirho.accent-chirho : ThemeChirho.background-tertiary-chirho;
+                border-radius: ThemeChirho.radius-sm-chirho;
+
+                Text {
+                    text: module-chirho;
+                    font-size: ThemeChirho.font-size-xs-chirho;
+                    color: AppStateChirho.commentary-module-chirho == module-chirho ?
+                        white : ThemeChirho.text-secondary-chirho;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+
+                TouchArea {
+                    clicked => {
+                        AppStateChirho.select-commentary-module-chirho(module-chirho);
+                    }
+                    mouse-cursor: pointer;
+                }
+            }
+        }
+
+        Rectangle {
+            height: 1px;
+            background: ThemeChirho.divider-chirho;
+        }
+
+        // Commentary content
+        if AppStateChirho.commentary-content-chirho == "": VerticalLayout {
+            vertical-stretch: 1;
+            alignment: center;
+
+            Text {
+                text: "No commentary available";
+                font-size: ThemeChirho.font-size-md-chirho;
+                color: ThemeChirho.text-muted-chirho;
+                horizontal-alignment: center;
+            }
+
+            Text {
+                text: "Install commentary modules to see verse explanations";
+                font-size: ThemeChirho.font-size-sm-chirho;
+                color: ThemeChirho.text-disabled-chirho;
+                horizontal-alignment: center;
+                wrap: word-wrap;
+            }
+        }
+
+        ScrollView {
+            vertical-stretch: 1;
+
+            VerticalLayout {
+                spacing: ThemeChirho.spacing-md-chirho;
+
+                Text {
+                    text: AppStateChirho.commentary-content-chirho;
+                    font-size: ThemeChirho.font-size-md-chirho;
+                    color: ThemeChirho.text-primary-chirho;
+                    wrap: word-wrap;
+                }
+            }
+        }
+    }
+}
+
+// Lexicon/Dictionary Panel - word lookup and definitions
+component LexiconPanelChirho inherits Rectangle {
+    in-out property <bool> visible-chirho: false;
+
+    width: visible-chirho ? 380px : 0px;
+    background: ThemeChirho.background-secondary-chirho;
+    clip: true;
+
+    // Left border
+    Rectangle {
+        width: 1px;
+        background: ThemeChirho.border-chirho;
+    }
+
+    animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
+
+    VerticalLayout {
+        padding: ThemeChirho.spacing-lg-chirho;
+        spacing: ThemeChirho.spacing-md-chirho;
+
+        // Header
+        HorizontalLayout {
+            spacing: ThemeChirho.spacing-sm-chirho;
+
+            Text {
+                text: "📚 Lexicon";
+                font-size: ThemeChirho.font-size-lg-chirho;
+                font-weight: 700;
+                color: ThemeChirho.text-primary-chirho;
+                horizontal-stretch: 1;
+            }
+
+            IconButtonChirho {
+                icon-chirho: LabelsChirho.close-icon-chirho;
+                clicked-chirho => {
+                    AppStateChirho.lexicon-panel-visible-chirho = false;
+                }
+            }
+        }
+
+        // Search input
+        Rectangle {
+            height: 36px;
+            background: ThemeChirho.background-tertiary-chirho;
+            border-radius: ThemeChirho.radius-md-chirho;
+
+            HorizontalLayout {
+                padding-left: ThemeChirho.spacing-md-chirho;
+                padding-right: ThemeChirho.spacing-md-chirho;
+                spacing: ThemeChirho.spacing-sm-chirho;
+
+                Text {
+                    text: LabelsChirho.search-icon-chirho;
+                    font-size: ThemeChirho.font-size-md-chirho;
+                    color: ThemeChirho.text-muted-chirho;
+                    vertical-alignment: center;
+                }
+
+                lexicon-search-input-chirho := LineEdit {
+                    horizontal-stretch: 1;
+                    placeholder-text: "Search lexicon...";
+                    text <=> AppStateChirho.lexicon-search-query-chirho;
+                    accepted => {
+                        AppStateChirho.search-lexicon-chirho(AppStateChirho.lexicon-search-query-chirho);
+                    }
+                }
+            }
+        }
+
+        // Alphabet browse bar
+        HorizontalLayout {
+            spacing: 2px;
+            alignment: center;
+
+            for letter-chirho in ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"]: Rectangle {
+                width: 22px;
+                height: 24px;
+                background: letter-touch-chirho.has-hover ? ThemeChirho.accent-chirho : transparent;
+                border-radius: ThemeChirho.radius-sm-chirho;
+
+                Text {
+                    text: letter-chirho;
+                    font-size: ThemeChirho.font-size-xs-chirho;
+                    color: letter-touch-chirho.has-hover ? white : ThemeChirho.text-secondary-chirho;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+
+                letter-touch-chirho := TouchArea {
+                    clicked => {
+                        AppStateChirho.browse-lexicon-chirho(letter-chirho);
+                    }
+                    mouse-cursor: pointer;
+                }
+            }
+        }
+
+        HorizontalLayout {
+            spacing: 2px;
+            alignment: center;
+
+            for letter-chirho in ["N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]: Rectangle {
+                width: 22px;
+                height: 24px;
+                background: letter-touch2-chirho.has-hover ? ThemeChirho.accent-chirho : transparent;
+                border-radius: ThemeChirho.radius-sm-chirho;
+
+                Text {
+                    text: letter-chirho;
+                    font-size: ThemeChirho.font-size-xs-chirho;
+                    color: letter-touch2-chirho.has-hover ? white : ThemeChirho.text-secondary-chirho;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+
+                letter-touch2-chirho := TouchArea {
+                    clicked => {
+                        AppStateChirho.browse-lexicon-chirho(letter-chirho);
+                    }
+                    mouse-cursor: pointer;
+                }
+            }
+        }
+
+        Rectangle {
+            height: 1px;
+            background: ThemeChirho.divider-chirho;
+        }
+
+        // Current entry display
+        if AppStateChirho.lexicon-current-entry-chirho != "": Rectangle {
+            background: ThemeChirho.accent-chirho.with-alpha(0.1);
+            border-radius: ThemeChirho.radius-md-chirho;
+
+            VerticalLayout {
+                padding: ThemeChirho.spacing-md-chirho;
+                spacing: ThemeChirho.spacing-sm-chirho;
+
+                Text {
+                    text: AppStateChirho.lexicon-current-entry-chirho;
+                    font-size: ThemeChirho.font-size-lg-chirho;
+                    font-weight: 700;
+                    color: ThemeChirho.accent-chirho;
+                }
+            }
+        }
+
+        // Entry content
+        if AppStateChirho.lexicon-entry-content-chirho == "": VerticalLayout {
+            vertical-stretch: 1;
+            alignment: center;
+
+            Text {
+                text: "Search for a word";
+                font-size: ThemeChirho.font-size-md-chirho;
+                color: ThemeChirho.text-muted-chirho;
+                horizontal-alignment: center;
+            }
+
+            Text {
+                text: "Enter a word above or browse by letter";
+                font-size: ThemeChirho.font-size-sm-chirho;
+                color: ThemeChirho.text-disabled-chirho;
+                horizontal-alignment: center;
+                wrap: word-wrap;
+            }
+        }
+
+        ScrollView {
+            vertical-stretch: 1;
+
+            VerticalLayout {
+                spacing: ThemeChirho.spacing-md-chirho;
+
+                Text {
+                    text: AppStateChirho.lexicon-entry-content-chirho;
+                    font-size: ThemeChirho.font-size-md-chirho;
+                    color: ThemeChirho.text-primary-chirho;
+                    wrap: word-wrap;
+                }
+            }
+        }
+
+        // History section
+        if AppStateChirho.lexicon-history-chirho.length > 0: Rectangle {
+            background: ThemeChirho.background-tertiary-chirho;
+            border-radius: ThemeChirho.radius-md-chirho;
+
+            VerticalLayout {
+                padding: ThemeChirho.spacing-sm-chirho;
+                spacing: ThemeChirho.spacing-xs-chirho;
+
+                Text {
+                    text: "Recent:";
+                    font-size: ThemeChirho.font-size-xs-chirho;
+                    color: ThemeChirho.text-muted-chirho;
+                }
+
+                HorizontalLayout {
+                    spacing: ThemeChirho.spacing-xs-chirho;
+
+                    for entry-chirho in AppStateChirho.lexicon-history-chirho: Rectangle {
+                        height: 24px;
+                        width: 60px;
+                        background: hist-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : transparent;
+                        border-radius: ThemeChirho.radius-sm-chirho;
+
+                        Text {
+                            text: entry-chirho;
+                            font-size: ThemeChirho.font-size-xs-chirho;
+                            color: ThemeChirho.accent-chirho;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                            overflow: elide;
+                        }
+
+                        hist-touch-chirho := TouchArea {
+                            clicked => {
+                                AppStateChirho.search-lexicon-chirho(entry-chirho);
+                            }
+                            mouse-cursor: pointer;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 // Module Manager panel
 component ModuleManagerPanelChirho inherits Rectangle {
     in-out property <bool> visible-chirho: false;
@@ -7313,6 +7730,21 @@ export component MainWindowChirho inherits Window {
                 AppStateChirho.toggle-footnotes-display-chirho();
                 return accept;
             }
+            // Ctrl+Shift+C: Toggle Commentary panel
+            if (event-chirho.text == "C" && event-chirho.modifiers.control && event-chirho.modifiers.shift) {
+                AppStateChirho.commentary-panel-visible-chirho = !AppStateChirho.commentary-panel-visible-chirho;
+                if AppStateChirho.commentary-panel-visible-chirho {
+                    AppStateChirho.load-commentary-chirho(
+                        AppStateChirho.current-book-chirho + " " + AppStateChirho.current-chapter-chirho + ":1"
+                    );
+                }
+                return accept;
+            }
+            // Ctrl+Shift+L: Toggle Lexicon panel
+            if (event-chirho.text == "L" && event-chirho.modifiers.control && event-chirho.modifiers.shift) {
+                AppStateChirho.lexicon-panel-visible-chirho = !AppStateChirho.lexicon-panel-visible-chirho;
+                return accept;
+            }
             return reject;
         }
 
@@ -7368,6 +7800,14 @@ export component MainWindowChirho inherits Window {
 
                 ReadingPlanPanelChirho {
                     visible-chirho: AppStateChirho.reading-plan-panel-visible-chirho;
+                }
+
+                CommentaryPanelChirho {
+                    visible-chirho: AppStateChirho.commentary-panel-visible-chirho;
+                }
+
+                LexiconPanelChirho {
+                    visible-chirho: AppStateChirho.lexicon-panel-visible-chirho;
                 }
 
                 ModuleManagerPanelChirho {

@@ -3359,6 +3359,120 @@ fn main() -> Result<(), slint::PlatformError> {
         });
     }
 
+    // Commentary callbacks
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        // Load commentary for a verse
+        app_state_chirho.on_load_commentary_chirho(move |verse_ref_chirho| {
+            info!("Loading commentary for: {}", verse_ref_chirho);
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+
+                // Get sample commentary content
+                let (content_chirho, module_chirho) = get_sample_commentary_chirho(&verse_ref_chirho);
+
+                state_chirho.set_commentary_verse_ref_chirho(verse_ref_chirho.clone());
+                state_chirho.set_commentary_content_chirho(content_chirho.into());
+                state_chirho.set_commentary_module_chirho(module_chirho.into());
+
+                // Set available commentary modules (sample list)
+                let modules_chirho: Vec<slint::SharedString> = vec![
+                    "MHCC".into(), "Gill".into(), "Barnes".into(), "Clarke".into()
+                ];
+                state_chirho.set_commentary_modules_chirho(Rc::new(slint::VecModel::from(modules_chirho)).into());
+            }
+        });
+    }
+
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        // Select commentary module
+        app_state_chirho.on_select_commentary_module_chirho(move |module_chirho| {
+            info!("Selected commentary module: {}", module_chirho);
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                state_chirho.set_commentary_module_chirho(module_chirho.clone());
+
+                // Reload commentary for current verse with new module
+                let verse_ref_chirho = state_chirho.get_commentary_verse_ref_chirho();
+                let (content_chirho, _) = get_sample_commentary_chirho(&verse_ref_chirho);
+                state_chirho.set_commentary_content_chirho(content_chirho.into());
+            }
+        });
+    }
+
+    // Lexicon callbacks
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        // Search lexicon
+        app_state_chirho.on_search_lexicon_chirho(move |query_chirho| {
+            info!("Searching lexicon for: {}", query_chirho);
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+
+                // Get sample lexicon entry
+                let (key_chirho, content_chirho) = get_sample_lexicon_entry_chirho(&query_chirho);
+
+                state_chirho.set_lexicon_current_entry_chirho(key_chirho.into());
+                state_chirho.set_lexicon_entry_content_chirho(content_chirho.into());
+
+                // Add to history (max 5 entries)
+                let mut history_chirho: Vec<slint::SharedString> = state_chirho.get_lexicon_history_chirho()
+                    .iter()
+                    .collect();
+                if !history_chirho.iter().any(|h_chirho| h_chirho.as_str() == query_chirho.as_str()) {
+                    history_chirho.insert(0, query_chirho.clone());
+                    if history_chirho.len() > 5 {
+                        history_chirho.truncate(5);
+                    }
+                    state_chirho.set_lexicon_history_chirho(Rc::new(slint::VecModel::from(history_chirho)).into());
+                }
+            }
+        });
+    }
+
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        // Browse lexicon by letter
+        app_state_chirho.on_browse_lexicon_chirho(move |letter_chirho| {
+            info!("Browsing lexicon for letter: {}", letter_chirho);
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+
+                // Get sample entries starting with letter
+                let content_chirho = format!(
+                    "Entries starting with '{}'\n\nInstall a lexicon module (like Strong's Dictionary) to browse entries alphabetically.",
+                    letter_chirho
+                );
+
+                state_chirho.set_lexicon_current_entry_chirho(format!("{}...", letter_chirho).into());
+                state_chirho.set_lexicon_entry_content_chirho(content_chirho.into());
+            }
+        });
+    }
+
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        // Select lexicon module
+        app_state_chirho.on_select_lexicon_module_chirho(move |module_chirho| {
+            info!("Selected lexicon module: {}", module_chirho);
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                state_chirho.set_lexicon_module_chirho(module_chirho);
+            }
+        });
+    }
+
     // Check if first run and show onboarding
     {
         let backend_ref_chirho = backend_chirho.borrow();
@@ -3378,6 +3492,136 @@ fn main() -> Result<(), slint::PlatformError> {
 
     // Run the application
     main_window_chirho.run()
+}
+
+/// Get sample commentary content for a verse
+/// In production, this would query a commentary module via rsword_chirho
+fn get_sample_commentary_chirho(verse_ref_chirho: &str) -> (String, String) {
+    // Sample commentary entries for demonstration
+    match verse_ref_chirho {
+        "Genesis 1:1" | "Genesis 1" => (
+            "\"In the beginning\" - This phrase marks the absolute beginning of all created existence. \
+            The Hebrew word 'reshiyth' (רֵאשִׁית) indicates the starting point of time itself.\n\n\
+            \"God created\" - The Hebrew 'bara' (בָּרָא) is used exclusively of divine activity, \
+            implying creation from nothing (ex nihilo). This verb never has a material object.\n\n\
+            \"the heaven and the earth\" - A merism (figure of speech using extremes to indicate totality) \
+            meaning 'everything' - the entire cosmos and all that is in it.".to_string(),
+            "MHCC".to_string()
+        ),
+        "John 3:16" | "John 3" => (
+            "This verse is often called 'the gospel in miniature' as it summarizes the entire message \
+            of salvation.\n\n\
+            \"For God so loved\" - The Greek 'agape' (ἀγάπη) refers to unconditional, sacrificial love. \
+            The word 'so' (Greek: houto) emphasizes the manner and intensity of God's love.\n\n\
+            \"the world\" - Greek 'kosmos' (κόσμος) - not just the Jews, but all of humanity, \
+            showing the universal scope of God's redemptive plan.\n\n\
+            \"only begotten Son\" - Greek 'monogenes' (μονογενής) - meaning unique, one of a kind. \
+            It emphasizes Jesus' unique relationship with the Father.".to_string(),
+            "MHCC".to_string()
+        ),
+        "Psalm 23:1" | "Psalm 23" | "Psalms 23:1" | "Psalms 23" => (
+            "\"The LORD is my shepherd\" - David, himself a shepherd, uses this intimate metaphor \
+            to describe his relationship with God.\n\n\
+            The divine name YHWH (יְהוָה) emphasizes the covenant relationship. As shepherd, \
+            God provides guidance, protection, and provision.\n\n\
+            \"I shall not want\" - Complete trust that all needs will be met. Not a promise of \
+            luxury, but of sufficiency in God's care.".to_string(),
+            "MHCC".to_string()
+        ),
+        "Romans 8:28" | "Romans 8" => (
+            "\"All things work together for good\" - Not that all things ARE good, but that God \
+            orchestrates them for His purposes.\n\n\
+            \"to them that love God\" - The promise is conditional on relationship. Those who love \
+            God experience His providential care.\n\n\
+            \"called according to his purpose\" - Refers to God's sovereign election and \
+            the unfolding of His redemptive plan for His people.".to_string(),
+            "MHCC".to_string()
+        ),
+        _ => (
+            format!(
+                "Commentary for {} not found in sample data.\n\n\
+                Install commentary modules (like Matthew Henry's Commentary, Gill's Exposition, \
+                Barnes' Notes) to access verse-by-verse explanations.",
+                verse_ref_chirho
+            ),
+            "".to_string()
+        ),
+    }
+}
+
+/// Get sample lexicon entry
+/// In production, this would query a lexicon module via rsword_chirho
+fn get_sample_lexicon_entry_chirho(query_chirho: &str) -> (String, String) {
+    let query_lower_chirho = query_chirho.to_lowercase();
+
+    match query_lower_chirho.as_str() {
+        "love" | "agape" | "ἀγάπη" => (
+            "ἀγάπη (agape)".to_string(),
+            "Greek: ἀγάπη (agape) [ag-ah'-pay]\n\
+            Strong's: G26\n\n\
+            Definition: Love, benevolence, good will, affection.\n\n\
+            Usage in NT: Used 116 times\n\n\
+            Meaning:\n\
+            1. Brotherly love, affection, good will\n\
+            2. Love feasts (meals held by early Christians)\n\
+            3. The love of God or Christ for humanity\n\
+            4. The love of Christians for God and fellow believers\n\n\
+            Unlike 'philos' (friendship love) or 'eros' (romantic love), agape refers to \
+            unconditional, sacrificial love that seeks the highest good of the beloved.".to_string()
+        ),
+        "god" | "theos" | "θεός" => (
+            "θεός (theos)".to_string(),
+            "Greek: θεός (theos) [theh'-os]\n\
+            Strong's: G2316\n\n\
+            Definition: A god, deity; the supreme Divinity; God.\n\n\
+            Usage in NT: Used 1343 times\n\n\
+            Meaning:\n\
+            1. God, the Creator and supreme ruler of the universe\n\
+            2. Any deity or god (in polytheistic context)\n\
+            3. One who possesses divine nature\n\n\
+            In the New Testament, theos is used predominantly for the God of Israel, \
+            the Father of Jesus Christ.".to_string()
+        ),
+        "word" | "logos" | "λόγος" => (
+            "λόγος (logos)".to_string(),
+            "Greek: λόγος (logos) [log'-os]\n\
+            Strong's: G3056\n\n\
+            Definition: Word, reason, account, discourse.\n\n\
+            Usage in NT: Used 330 times\n\n\
+            Meaning:\n\
+            1. A word (as embodying an idea)\n\
+            2. A saying, statement, declaration\n\
+            3. Discourse, speech, teaching\n\
+            4. Reason, the mental faculty of reasoning\n\
+            5. The Word (Christ as the living expression of God)\n\n\
+            In John 1:1, logos is used theologically to identify Christ as the \
+            pre-existent Word of God, through whom all things were created.".to_string()
+        ),
+        "faith" | "pistis" | "πίστις" => (
+            "πίστις (pistis)".to_string(),
+            "Greek: πίστις (pistis) [pis'-tis]\n\
+            Strong's: G4102\n\n\
+            Definition: Faith, belief, trust, confidence.\n\n\
+            Usage in NT: Used 244 times\n\n\
+            Meaning:\n\
+            1. Conviction of the truth, belief\n\
+            2. Trust, confidence, reliance\n\
+            3. The content of faith (what is believed)\n\
+            4. Faithfulness, reliability, trustworthiness\n\n\
+            In Paul's writings, pistis is central to salvation - it is the means by which \
+            humans receive God's grace (Ephesians 2:8-9).".to_string()
+        ),
+        _ => (
+            query_chirho.to_string(),
+            format!(
+                "Entry '{}' not found in sample lexicon data.\n\n\
+                Install lexicon modules (like Strong's Dictionary, Thayer's Greek Lexicon, \
+                BDB Hebrew Lexicon) to look up word definitions.\n\n\
+                You can also search by Strong's number (e.g., 'G26' or 'H430').",
+                query_chirho
+            )
+        ),
+    }
 }
 
 /// Parse a morphology code and return human-readable explanation
@@ -5351,5 +5595,57 @@ mod tests_chirho {
         let (active_chirho, total_chirho) = database_chirho::get_prayer_counts_chirho(&conn_chirho);
         assert_eq!(active_chirho, 0);  // The remaining one is answered
         assert_eq!(total_chirho, 1);
+    }
+
+    #[test]
+    fn test_commentary_chirho() {
+        // Test known commentary entries
+        let (content_chirho, module_chirho) = get_sample_commentary_chirho("Genesis 1:1");
+        assert!(content_chirho.contains("In the beginning"));
+        assert!(content_chirho.contains("Hebrew"));
+        assert_eq!(module_chirho, "MHCC");
+
+        let (content_chirho, module_chirho) = get_sample_commentary_chirho("John 3:16");
+        assert!(content_chirho.contains("agape"));
+        assert!(content_chirho.contains("gospel in miniature"));
+        assert_eq!(module_chirho, "MHCC");
+
+        let (content_chirho, module_chirho) = get_sample_commentary_chirho("Psalm 23:1");
+        assert!(content_chirho.contains("shepherd"));
+        assert_eq!(module_chirho, "MHCC");
+
+        // Test unknown verse
+        let (content_chirho, module_chirho) = get_sample_commentary_chirho("Unknown 99:99");
+        assert!(content_chirho.contains("not found"));
+        assert!(module_chirho.is_empty());
+    }
+
+    #[test]
+    fn test_lexicon_chirho() {
+        // Test known lexicon entries
+        let (title_chirho, content_chirho) = get_sample_lexicon_entry_chirho("love");
+        assert!(title_chirho.contains("agape"));
+        assert!(content_chirho.contains("G26"));
+        assert!(content_chirho.contains("unconditional"));
+
+        let (title_chirho, content_chirho) = get_sample_lexicon_entry_chirho("logos");
+        assert!(title_chirho.contains("logos"));
+        assert!(content_chirho.contains("G3056"));
+        assert!(content_chirho.contains("Word"));
+
+        // Test case insensitivity
+        let (title_chirho, content_chirho) = get_sample_lexicon_entry_chirho("FAITH");
+        assert!(title_chirho.contains("pistis"));
+        assert!(content_chirho.contains("G4102"));
+
+        // Test Greek input
+        let (title_chirho, content_chirho) = get_sample_lexicon_entry_chirho("θεός");
+        assert!(title_chirho.contains("theos"));
+        assert!(content_chirho.contains("G2316"));
+
+        // Test unknown word
+        let (title_chirho, content_chirho) = get_sample_lexicon_entry_chirho("unknownword");
+        assert_eq!(title_chirho, "unknownword");
+        assert!(content_chirho.contains("not found"));
     }
 }

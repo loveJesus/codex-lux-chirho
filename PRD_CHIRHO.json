@@ -5,8 +5,8 @@
   "current_milestone_chirho": "M1_partial",
   "implementation_status_chirho": {
     "completed_chirho": 1,
-    "partial_chirho": 29,
-    "not_started_chirho": 25,
+    "partial_chirho": 31,
+    "not_started_chirho": 23,
     "total_chirho": 55
   },
   "description_chirho": "Cross-platform Bible study application - Codex of Light",
@@ -412,7 +412,14 @@
       "name_chirho": "Commentary Integration",
       "category_chirho": "Study Tools",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
+      "completed_items_chirho": [
+        "Commentary panel (Ctrl+Shift+C or 📖 toolbar button)",
+        "Auto-sync commentary with current verse",
+        "Module selector dropdown for commentaries",
+        "Sample commentary content (Genesis 1, John 3, Psalm 23, Romans 8)",
+        "Keyboard shortcut Ctrl+Shift+C"
+      ],
       "description_chirho": "Display commentaries alongside scripture",
       "requirements_chirho": [
         "Commentary panel/pane",
@@ -427,7 +434,16 @@
       "name_chirho": "Lexicon/Dictionary",
       "category_chirho": "Study Tools",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
+      "completed_items_chirho": [
+        "Lexicon panel (Ctrl+Shift+L or 📚 toolbar button)",
+        "Search lexicon entries with text input",
+        "Browse lexicon alphabetically (A-Z letter buttons)",
+        "Sample lexicon entries (love/agape, god/theos, word/logos, faith/pistis)",
+        "Entry history tracking (recent lookups)",
+        "Module selector dropdown for lexicons",
+        "Keyboard shortcut Ctrl+Shift+L"
+      ],
       "description_chirho": "Dictionary and lexicon lookup",
       "requirements_chirho": [
         "Lexicon panel/window",

@@ -43,7 +43,9 @@
 - **Cross-References Chirho**: Scripture cross-reference display with ⤴ button (clickable refs, popup preview)
 - **Footnotes Chirho**: Translator and textual footnotes with ※ button (alternative readings, variant notes)
 - **Reading Plans Chirho**: Pre-built Bible reading plans with 📅 toolbar button (1-year, 90-day NT, Gospels, Psalms/Proverbs, Chronological)
-- **Keyboard Shortcuts Chirho**: Navigate quickly with keyboard (25+ shortcuts)
+- **Commentary Chirho**: Commentary integration with 📖 toolbar button (Ctrl+Shift+C) - auto-sync with current verse, module selection
+- **Lexicon Chirho**: Dictionary/lexicon lookup with 📚 toolbar button (Ctrl+Shift+L) - search, A-Z browse, entry history
+- **Keyboard Shortcuts Chirho**: Navigate quickly with keyboard (27+ shortcuts)
 
 ## Keyboard Shortcuts Chirho
 
@@ -71,6 +73,8 @@
 | `Ctrl+Shift+X` | Toggle Cross-References display |
 | `Ctrl+Shift+F` | Toggle Footnotes display |
 | `Ctrl+Shift+P` | Toggle Reading Plans panel |
+| `Ctrl+Shift+C` | Toggle Commentary panel |
+| `Ctrl+Shift+L` | Toggle Lexicon panel |
 | `Ctrl+,` | Toggle settings panel |
 | `Escape` | Close dialogs/panels |
 
