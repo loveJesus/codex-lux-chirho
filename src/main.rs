@@ -3122,6 +3122,131 @@ fn main() -> Result<(), slint::PlatformError> {
         });
     }
 
+    // Morphology callbacks
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        // Toggle Morphology display
+        app_state_chirho.on_toggle_morphology_display_chirho(move || {
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                let current_chirho = state_chirho.get_morphology_visible_chirho();
+                state_chirho.set_morphology_visible_chirho(!current_chirho);
+                let msg_chirho = if !current_chirho {
+                    "Morphology display enabled"
+                } else {
+                    "Morphology display disabled"
+                };
+                state_chirho.set_status_message_chirho(msg_chirho.into());
+                info!("{}", msg_chirho);
+            }
+        });
+    }
+
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        // Look up a morphology code
+        app_state_chirho.on_lookup_morphology_chirho(move |code_chirho| {
+            info!("Looking up morphology code: {}", code_chirho);
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+
+                // Parse the morphology code
+                let (parsed_chirho, is_hebrew_chirho) = parse_morphology_code_chirho(&code_chirho);
+
+                state_chirho.set_morphology_code_chirho(code_chirho.clone());
+                state_chirho.set_morphology_parsed_chirho(parsed_chirho.into());
+                state_chirho.set_morphology_is_hebrew_chirho(is_hebrew_chirho);
+                state_chirho.set_morphology_popup_visible_chirho(true);
+            }
+        });
+    }
+
+    // Cross-References callbacks
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        // Toggle Cross-References display
+        app_state_chirho.on_toggle_cross_refs_display_chirho(move || {
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                let current_chirho = state_chirho.get_cross_refs_visible_chirho();
+                state_chirho.set_cross_refs_visible_chirho(!current_chirho);
+                let msg_chirho = if !current_chirho {
+                    "Cross-references display enabled"
+                } else {
+                    "Cross-references display disabled"
+                };
+                state_chirho.set_status_message_chirho(msg_chirho.into());
+                info!("{}", msg_chirho);
+            }
+        });
+    }
+
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        // Load cross-references for a verse
+        app_state_chirho.on_load_cross_refs_chirho(move |verse_ref_chirho| {
+            info!("Loading cross-references for: {}", verse_ref_chirho);
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+
+                // Get cross-references (sample data - in production from TSK module)
+                let refs_chirho = get_sample_cross_refs_chirho(&verse_ref_chirho);
+
+                state_chirho.set_cross_refs_verse_chirho(verse_ref_chirho.clone());
+                state_chirho.set_cross_refs_list_chirho(Rc::new(slint::VecModel::from(refs_chirho)).into());
+                state_chirho.set_cross_refs_popup_visible_chirho(true);
+            }
+        });
+    }
+
+    // Footnotes callbacks
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        // Toggle Footnotes display
+        app_state_chirho.on_toggle_footnotes_display_chirho(move || {
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                let current_chirho = state_chirho.get_footnotes_visible_chirho();
+                state_chirho.set_footnotes_visible_chirho(!current_chirho);
+                let msg_chirho = if !current_chirho {
+                    "Footnotes display enabled"
+                } else {
+                    "Footnotes display disabled"
+                };
+                state_chirho.set_status_message_chirho(msg_chirho.into());
+                info!("{}", msg_chirho);
+            }
+        });
+    }
+
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        // Look up a footnote
+        app_state_chirho.on_lookup_footnote_chirho(move |verse_ref_chirho, marker_chirho| {
+            info!("Looking up footnote {} for: {}", marker_chirho, verse_ref_chirho);
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+
+                // Get footnote content (sample data - in production from module)
+                let (content_chirho, type_chirho) = get_sample_footnote_chirho(&verse_ref_chirho, &marker_chirho);
+
+                state_chirho.set_footnote_marker_chirho(marker_chirho.clone());
+                state_chirho.set_footnote_content_chirho(content_chirho.into());
+                state_chirho.set_footnote_type_chirho(type_chirho.into());
+                state_chirho.set_footnote_popup_visible_chirho(true);
+            }
+        });
+    }
+
     // Reading Plans callbacks
     {
         let window_weak_chirho = main_window_chirho.as_weak();
@@ -3253,6 +3378,162 @@ fn main() -> Result<(), slint::PlatformError> {
 
     // Run the application
     main_window_chirho.run()
+}
+
+/// Parse a morphology code and return human-readable explanation
+/// In production, this would use proper morphology parsing from rsword_chirho
+fn parse_morphology_code_chirho(code_chirho: &str) -> (String, bool) {
+    // Determine if Hebrew or Greek based on code patterns
+    // Hebrew codes typically start with letters like H, N, V, A, etc. without hyphens
+    // Greek Robinson codes use patterns like V-AAI-3S
+    let is_hebrew_chirho = !code_chirho.contains('-');
+
+    if is_hebrew_chirho {
+        // Hebrew morphology parsing (simplified OSHM-style)
+        let mut parts_chirho = Vec::new();
+
+        // Parse each character
+        for (i_chirho, c_chirho) in code_chirho.chars().enumerate() {
+            match (i_chirho, c_chirho) {
+                (0, 'V') => parts_chirho.push("Verb"),
+                (0, 'N') => parts_chirho.push("Noun"),
+                (0, 'A') => parts_chirho.push("Adjective"),
+                (0, 'P') => parts_chirho.push("Preposition"),
+                (0, 'C') => parts_chirho.push("Conjunction"),
+                (0, 'R') => parts_chirho.push("Pronoun"),
+                (0, 'D') => parts_chirho.push("Adverb"),
+                (0, 'T') => parts_chirho.push("Particle"),
+                (_, 'm') => parts_chirho.push("masculine"),
+                (_, 'f') => parts_chirho.push("feminine"),
+                (1, 'c') => parts_chirho.push("common"),
+                (_, 's') => parts_chirho.push("singular"),
+                (_, 'p') => parts_chirho.push("plural"),
+                (_, 'd') => parts_chirho.push("dual"),
+                (_, 'a') => parts_chirho.push("absolute"),
+                (2.., 'c') => parts_chirho.push("construct"),
+                _ => {}
+            }
+        }
+
+        (parts_chirho.join(", "), true)
+    } else {
+        // Greek Robinson morphology parsing
+        let segments_chirho: Vec<&str> = code_chirho.split('-').collect();
+        let mut parts_chirho = Vec::new();
+
+        for (i_chirho, seg_chirho) in segments_chirho.iter().enumerate() {
+            match (i_chirho, *seg_chirho) {
+                // Part of speech
+                (0, "V") => parts_chirho.push("Verb"),
+                (0, "N") => parts_chirho.push("Noun"),
+                (0, "A") => parts_chirho.push("Adjective"),
+                (0, "ADV") => parts_chirho.push("Adverb"),
+                (0, "P") => parts_chirho.push("Preposition"),
+                (0, "C") => parts_chirho.push("Conjunction"),
+                (0, "T") => parts_chirho.push("Article"),
+                (0, "R") => parts_chirho.push("Relative Pronoun"),
+                (0, "D") => parts_chirho.push("Demonstrative"),
+                (0, "X") => parts_chirho.push("Indefinite Pronoun"),
+                (0, "I") => parts_chirho.push("Interrogative"),
+                // Tense/Voice/Mood for verbs
+                (1, "AAI") => parts_chirho.push("Aorist Active Indicative"),
+                (1, "AAM") => parts_chirho.push("Aorist Active Imperative"),
+                (1, "AAP") => parts_chirho.push("Aorist Active Participle"),
+                (1, "API") => parts_chirho.push("Aorist Passive Indicative"),
+                (1, "PAI") => parts_chirho.push("Present Active Indicative"),
+                (1, "PAP") => parts_chirho.push("Present Active Participle"),
+                (1, "PPI") => parts_chirho.push("Present Passive Indicative"),
+                (1, "PMI") => parts_chirho.push("Present Middle Indicative"),
+                (1, "FAI") => parts_chirho.push("Future Active Indicative"),
+                (1, "PEI") => parts_chirho.push("Perfect Active Indicative"),
+                (1, "RAI") => parts_chirho.push("Perfect Active Indicative"),
+                // Person/Number
+                (_, "1S") => parts_chirho.push("1st Person Singular"),
+                (_, "2S") => parts_chirho.push("2nd Person Singular"),
+                (_, "3S") => parts_chirho.push("3rd Person Singular"),
+                (_, "1P") => parts_chirho.push("1st Person Plural"),
+                (_, "2P") => parts_chirho.push("2nd Person Plural"),
+                (_, "3P") => parts_chirho.push("3rd Person Plural"),
+                // Case for nouns/adjectives
+                (_, "NSM") => parts_chirho.push("Nominative Singular Masculine"),
+                (_, "NSF") => parts_chirho.push("Nominative Singular Feminine"),
+                (_, "NSN") => parts_chirho.push("Nominative Singular Neuter"),
+                (_, "GSM") => parts_chirho.push("Genitive Singular Masculine"),
+                (_, "GSF") => parts_chirho.push("Genitive Singular Feminine"),
+                (_, "GSN") => parts_chirho.push("Genitive Singular Neuter"),
+                (_, "DSM") => parts_chirho.push("Dative Singular Masculine"),
+                (_, "DSF") => parts_chirho.push("Dative Singular Feminine"),
+                (_, "ASM") => parts_chirho.push("Accusative Singular Masculine"),
+                (_, "ASF") => parts_chirho.push("Accusative Singular Feminine"),
+                (_, "NPM") => parts_chirho.push("Nominative Plural Masculine"),
+                (_, "NPF") => parts_chirho.push("Nominative Plural Feminine"),
+                (_, "GPM") => parts_chirho.push("Genitive Plural Masculine"),
+                (_, "DPM") => parts_chirho.push("Dative Plural Masculine"),
+                (_, "APM") => parts_chirho.push("Accusative Plural Masculine"),
+                _ => parts_chirho.push(seg_chirho),
+            }
+        }
+
+        (parts_chirho.join(", "), false)
+    }
+}
+
+/// Get sample cross-references for a verse
+/// In production, this would query a TSK module via rsword_chirho
+fn get_sample_cross_refs_chirho(verse_ref_chirho: &str) -> Vec<slint::SharedString> {
+    // Sample cross-references for demonstration
+    let refs_chirho: Vec<&str> = match verse_ref_chirho {
+        "Genesis 1:1" => vec![
+            "John 1:1-3", "Hebrews 11:3", "Psalm 33:6", "Isaiah 40:26", "Colossians 1:16-17"
+        ],
+        "John 3:16" => vec![
+            "Romans 5:8", "1 John 4:9-10", "Romans 8:32", "John 1:14", "John 3:36",
+            "1 John 5:11", "Ephesians 2:4-5", "Isaiah 9:6"
+        ],
+        "Romans 8:28" => vec![
+            "Romans 8:35-39", "Jeremiah 29:11", "Genesis 50:20", "Philippians 1:6"
+        ],
+        "Psalm 23:1" => vec![
+            "Isaiah 40:11", "Ezekiel 34:11-12", "John 10:11", "Hebrews 13:20", "1 Peter 2:25"
+        ],
+        _ => vec![
+            "Install TSK module for cross-references"
+        ],
+    };
+
+    refs_chirho.into_iter().map(|s_chirho| s_chirho.into()).collect()
+}
+
+/// Get sample footnote content
+/// In production, this would come from the module's footnote markup
+fn get_sample_footnote_chirho(verse_ref_chirho: &str, marker_chirho: &str) -> (String, String) {
+    // Sample footnotes for demonstration
+    match (verse_ref_chirho, marker_chirho) {
+        ("Genesis 1:1", "a") => (
+            "Or 'When God began to create' or 'In the beginning of God's creating'".to_string(),
+            "alternative".to_string()
+        ),
+        ("Genesis 1:2", "a") => (
+            "Hebrew ruach, meaning wind, breath, or spirit".to_string(),
+            "translator".to_string()
+        ),
+        ("John 3:16", "a") => (
+            "Or 'only unique Son'; Greek monogenēs (μονογενής)".to_string(),
+            "textual".to_string()
+        ),
+        ("John 1:1", "a") => (
+            "Greek Logos (λόγος), meaning Word, reason, or divine expression".to_string(),
+            "translator".to_string()
+        ),
+        ("Matthew 1:23", "a") => (
+            "Hebrew 'Immanuel' means 'God with us'".to_string(),
+            "explanation".to_string()
+        ),
+        _ => (
+            format!("Footnote {} for {}", marker_chirho, verse_ref_chirho),
+            "translator".to_string()
+        ),
+    }
 }
 
 /// Get Strong's definition for a given number (H1234 or G5678)
@@ -4269,6 +4550,65 @@ mod tests_chirho {
         // Test unknown Strong's number
         let unknown_entry_chirho = get_strongs_definition_chirho("H99999");
         assert!(unknown_entry_chirho.definition_chirho.to_string().contains("not found"));
+    }
+
+    #[test]
+    fn test_morphology_parsing_chirho() {
+        // Test Greek morphology parsing (Robinson codes)
+        let (greek_parsed_chirho, is_hebrew_chirho) = parse_morphology_code_chirho("V-AAI-3S");
+        assert!(!is_hebrew_chirho);
+        assert!(greek_parsed_chirho.contains("Verb"));
+        assert!(greek_parsed_chirho.contains("Aorist Active Indicative"));
+        assert!(greek_parsed_chirho.contains("3rd Person Singular"));
+
+        // Test another Greek code
+        let (greek_noun_chirho, _) = parse_morphology_code_chirho("N-NSM");
+        assert!(greek_noun_chirho.contains("Noun"));
+        assert!(greek_noun_chirho.contains("Nominative Singular Masculine"));
+
+        // Test Hebrew morphology parsing (no hyphens)
+        let (hebrew_parsed_chirho, is_hebrew_chirho) = parse_morphology_code_chirho("Ncmsa");
+        assert!(is_hebrew_chirho);
+        assert!(hebrew_parsed_chirho.contains("Noun"));
+        assert!(hebrew_parsed_chirho.contains("masculine"));
+        assert!(hebrew_parsed_chirho.contains("singular"));
+        assert!(hebrew_parsed_chirho.contains("absolute"));
+    }
+
+    #[test]
+    fn test_cross_refs_chirho() {
+        // Test known verse with cross-references
+        let refs_chirho = get_sample_cross_refs_chirho("John 3:16");
+        assert!(!refs_chirho.is_empty());
+        assert!(refs_chirho.iter().any(|r_chirho| r_chirho.to_string().contains("Romans")));
+
+        // Test Genesis 1:1
+        let gen_refs_chirho = get_sample_cross_refs_chirho("Genesis 1:1");
+        assert!(!gen_refs_chirho.is_empty());
+        assert!(gen_refs_chirho.iter().any(|r_chirho| r_chirho.to_string().contains("John 1:1")));
+
+        // Test unknown verse falls back to install message
+        let unknown_refs_chirho = get_sample_cross_refs_chirho("Unknown 99:99");
+        assert!(!unknown_refs_chirho.is_empty());
+        assert!(unknown_refs_chirho[0].to_string().contains("Install"));
+    }
+
+    #[test]
+    fn test_footnotes_chirho() {
+        // Test known footnote
+        let (content_chirho, type_chirho) = get_sample_footnote_chirho("Genesis 1:1", "a");
+        assert!(content_chirho.contains("beginning"));
+        assert_eq!(type_chirho, "alternative");
+
+        // Test John 3:16 footnote
+        let (jn_content_chirho, jn_type_chirho) = get_sample_footnote_chirho("John 3:16", "a");
+        assert!(jn_content_chirho.contains("Son"));
+        assert_eq!(jn_type_chirho, "textual");
+
+        // Test unknown footnote has verse ref in content
+        let (unknown_content_chirho, unknown_type_chirho) = get_sample_footnote_chirho("Unknown 1:1", "z");
+        assert!(unknown_content_chirho.contains("z"));
+        assert_eq!(unknown_type_chirho, "translator");
     }
 
     #[test]

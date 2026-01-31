@@ -1,12 +1,12 @@
 {
   "_comment_chirho": "For God so loved the world that he gave his only begotten Son, that whoever believes in him should not perish but have eternal life. John 3:16",
   "product_name_chirho": "Codex Lux Chirho",
-  "version_chirho": "0.1.7",
+  "version_chirho": "0.1.8",
   "current_milestone_chirho": "M1_partial",
   "implementation_status_chirho": {
     "completed_chirho": 1,
-    "partial_chirho": 26,
-    "not_started_chirho": 28,
+    "partial_chirho": 29,
+    "not_started_chirho": 25,
     "total_chirho": 55
   },
   "description_chirho": "Cross-platform Bible study application - Codex of Light",
@@ -203,8 +203,17 @@
       "name_chirho": "Morphology Display",
       "category_chirho": "Study Tools",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
       "description_chirho": "Greek and Hebrew morphological analysis",
+      "completed_items_chirho": [
+        "Toggle morphology visibility (M toolbar button or Ctrl+Shift+M)",
+        "Morphology popup with code parsing and explanation",
+        "Robinson's morphology parsing for Greek (V-AAI-3S, N-NSM, etc.)",
+        "OSHM-style morphology parsing for Hebrew (Ncmsa, etc.)",
+        "Color-coded display (Hebrew vs Greek)",
+        "Morphology legend/help in popup",
+        "Unit tests for morphology parsing"
+      ],
       "requirements_chirho": [
         "Display morphology codes on hover",
         "Parse morphology into readable format",
@@ -212,30 +221,49 @@
         "OSHM morphology for Hebrew",
         "Toggle morphology visibility",
         "Morphology legend/help"
-      ]
+      ],
+      "implementation_notes_chirho": "Morphology parsing implemented for both Greek (Robinson) and Hebrew (OSHM) codes. Uses sample data for demo. Full integration requires morphology-tagged modules via rsword_chirho."
     },
 
     "CLX-007": {
       "name_chirho": "Cross-References",
       "category_chirho": "Study Tools",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
       "description_chirho": "Scripture cross-reference display",
+      "completed_items_chirho": [
+        "Toggle cross-references visibility (⤴ toolbar button or Ctrl+Shift+X)",
+        "Cross-references popup with list of references",
+        "Click cross-reference to navigate to verse",
+        "Sample cross-references for key verses (John 3:16, Genesis 1:1, Romans 8:28, Psalm 23:1)",
+        "Unit tests for cross-reference lookup"
+      ],
       "requirements_chirho": [
         "Display cross-references for verses",
         "Click cross-reference to navigate",
         "Cross-reference popup preview",
         "Treasury of Scripture Knowledge integration",
         "Toggle cross-reference visibility"
-      ]
+      ],
+      "implementation_notes_chirho": "Cross-reference popup implemented with sample data. Full integration requires TSK module via rsword_chirho."
     },
 
     "CLX-008": {
       "name_chirho": "Footnotes",
       "category_chirho": "Study Tools",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
       "description_chirho": "Display translator and textual footnotes",
+      "completed_items_chirho": [
+        "Toggle footnotes visibility (※ toolbar button or Ctrl+Shift+F)",
+        "Footnote popup with marker, type, and content",
+        "Translator notes display",
+        "Alternative readings display",
+        "Textual variant notes display",
+        "Footnote type categorization (translator, textual, alternative, explanation)",
+        "Sample footnotes for key verses",
+        "Unit tests for footnote lookup"
+      ],
       "requirements_chirho": [
         "Footnote indicators in text",
         "Footnote popup on click/hover",
@@ -243,7 +271,8 @@
         "Alternative readings",
         "Textual variant notes",
         "Toggle footnotes visibility"
-      ]
+      ],
+      "implementation_notes_chirho": "Footnote popup implemented with sample data. Full integration requires modules with footnote markup via rsword_chirho."
     },
 
     "CLX-009": {

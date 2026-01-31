@@ -8,7 +8,7 @@
 
 ## Features Chirho
 
-### Current (v0.1.6)
+### Current (v0.1.8)
 
 - **Multi-Module Support Chirho**: Load and display SWORD Bible modules via rsword_chirho (RawText, zText, RawCom, zCom, RawLD, zLD formats)
 - **Navigation Chirho**: Browse all 66 books with Old/New Testament grouping, chapter grid selector, prev/next book buttons
@@ -39,8 +39,11 @@
 - **Prayer List Chirho**: Prayer request tracking with Ctrl+R (add requests, link to verses, mark answered, categories)
 - **Verse of the Day Chirho**: Daily devotional verse with 🌅 toolbar button (31+ curated verses)
 - **Strong's Numbers Chirho**: Hebrew/Greek Strong's concordance lookup with H button and popup definitions
+- **Morphology Display Chirho**: Greek and Hebrew grammatical analysis with M button (Robinson/OSHM parsing)
+- **Cross-References Chirho**: Scripture cross-reference display with ⤴ button (clickable refs, popup preview)
+- **Footnotes Chirho**: Translator and textual footnotes with ※ button (alternative readings, variant notes)
 - **Reading Plans Chirho**: Pre-built Bible reading plans with 📅 toolbar button (1-year, 90-day NT, Gospels, Psalms/Proverbs, Chronological)
-- **Keyboard Shortcuts Chirho**: Navigate quickly with keyboard (22+ shortcuts)
+- **Keyboard Shortcuts Chirho**: Navigate quickly with keyboard (25+ shortcuts)
 
 ## Keyboard Shortcuts Chirho
 
@@ -64,6 +67,9 @@
 | `Ctrl+R` | Toggle prayer list panel |
 | `Ctrl+Shift+V` | Show Verse of the Day dialog |
 | `Ctrl+Shift+S` | Toggle Strong's Numbers display |
+| `Ctrl+Shift+M` | Toggle Morphology display |
+| `Ctrl+Shift+X` | Toggle Cross-References display |
+| `Ctrl+Shift+F` | Toggle Footnotes display |
 | `Ctrl+Shift+P` | Toggle Reading Plans panel |
 | `Ctrl+,` | Toggle settings panel |
 | `Escape` | Close dialogs/panels |

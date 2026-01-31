@@ -234,6 +234,30 @@ export struct StrongsEntryChirho {
     occurrences-chirho: int,       // Number of occurrences in Bible
 }
 
+// Morphology entry for grammatical analysis
+export struct MorphologyEntryChirho {
+    code-chirho: string,           // Raw code (e.g., "V-AAI-3S" for Greek, "Ncmsa" for Hebrew)
+    is-hebrew-chirho: bool,        // Hebrew or Greek morphology
+    word-chirho: string,           // The analyzed word
+    part-of-speech-chirho: string, // Noun, Verb, Adjective, etc.
+    details-chirho: string,        // Full parsing (e.g., "Aorist Active Indicative, 3rd Person Singular")
+    legend-chirho: string,         // Code legend explanation
+}
+
+// Cross-reference entry
+export struct CrossRefChirho {
+    reference-chirho: string,      // Target verse (e.g., "Romans 8:28")
+    preview-chirho: string,        // First few words of the verse
+    type-chirho: string,           // "parallel", "quote", "allusion", "thematic"
+}
+
+// Footnote entry
+export struct FootnoteChirho {
+    marker-chirho: string,         // Letter or symbol (a, b, *, †)
+    content-chirho: string,        // Footnote text
+    footnote-type-chirho: string,  // "translator", "textual", "alternative", "explanation"
+}
+
 // Verse data structure
 export struct VerseChirho {
     reference-chirho: string,
@@ -592,6 +616,39 @@ export global AppStateChirho {
     callback start-reading-plan-chirho(int); // Start a plan by ID
     callback mark-day-complete-chirho(int, int); // Mark a day complete (plan_id, day_number)
     callback navigate-to-reading-chirho(string); // Navigate to a reading reference
+
+    // Morphology Display (Study Tools)
+    in-out property <bool> morphology-visible-chirho: false; // Toggle morphology display
+    in-out property <bool> morphology-popup-visible-chirho: false;
+    in-out property <string> morphology-code-chirho: ""; // Current morphology code (e.g., "V-AAI-3S")
+    in-out property <string> morphology-parsed-chirho: ""; // Human-readable parsing (e.g., "Verb, Aorist Active Indicative, 3rd Person Singular")
+    in-out property <string> morphology-word-chirho: ""; // The word being analyzed
+    in-out property <bool> morphology-is-hebrew-chirho: false; // Hebrew or Greek
+    in-out property <length> morphology-popup-x-chirho: 0px;
+    in-out property <length> morphology-popup-y-chirho: 0px;
+    callback lookup-morphology-chirho(string); // Look up a morphology code
+    callback toggle-morphology-display-chirho();
+
+    // Cross-References (Study Tools)
+    in-out property <bool> cross-refs-visible-chirho: false; // Toggle cross-reference display
+    in-out property <bool> cross-refs-popup-visible-chirho: false;
+    in-out property <string> cross-refs-verse-chirho: ""; // Current verse for cross-refs
+    in-out property <[string]> cross-refs-list-chirho: []; // List of cross-reference verses
+    in-out property <length> cross-refs-popup-x-chirho: 0px;
+    in-out property <length> cross-refs-popup-y-chirho: 0px;
+    callback load-cross-refs-chirho(string); // Load cross-references for a verse
+    callback toggle-cross-refs-display-chirho();
+
+    // Footnotes (Study Tools)
+    in-out property <bool> footnotes-visible-chirho: false; // Toggle footnotes display
+    in-out property <bool> footnote-popup-visible-chirho: false;
+    in-out property <string> footnote-marker-chirho: ""; // Footnote marker (a, b, c, *)
+    in-out property <string> footnote-content-chirho: ""; // Footnote text
+    in-out property <string> footnote-type-chirho: ""; // "translator", "textual", "alternative"
+    in-out property <length> footnote-popup-x-chirho: 0px;
+    in-out property <length> footnote-popup-y-chirho: 0px;
+    callback lookup-footnote-chirho(string, string); // Look up footnote (verse_ref, marker)
+    callback toggle-footnotes-display-chirho();
 }
 
 // Icon button component with accessibility support
@@ -1919,6 +1976,279 @@ component StrongsPopupChirho inherits Rectangle {
     }
 }
 
+// Morphology popup for grammatical analysis
+component MorphologyPopupChirho inherits Rectangle {
+    in property <bool> visible-chirho: false;
+
+    width: 320px;
+    visible: visible-chirho;
+    background: ThemeChirho.background-secondary-chirho;
+    border-radius: ThemeChirho.radius-lg-chirho;
+    border-width: 1px;
+    border-color: ThemeChirho.border-chirho;
+    drop-shadow-blur: 16px;
+    drop-shadow-color: #00000040;
+
+    VerticalLayout {
+        padding: ThemeChirho.spacing-lg-chirho;
+        spacing: ThemeChirho.spacing-md-chirho;
+
+        // Header with word and morphology code
+        HorizontalLayout {
+            spacing: ThemeChirho.spacing-sm-chirho;
+
+            Rectangle {
+                width: 60px;
+                height: 28px;
+                background: AppStateChirho.morphology-is-hebrew-chirho ? ThemeChirho.hebrew-chirho.with-alpha(0.2) : ThemeChirho.greek-chirho.with-alpha(0.2);
+                border-radius: ThemeChirho.radius-sm-chirho;
+
+                Text {
+                    text: AppStateChirho.morphology-code-chirho;
+                    font-size: ThemeChirho.font-size-xs-chirho;
+                    font-weight: 700;
+                    color: AppStateChirho.morphology-is-hebrew-chirho ? ThemeChirho.hebrew-chirho : ThemeChirho.greek-chirho;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            Text {
+                text: AppStateChirho.morphology-word-chirho;
+                font-size: ThemeChirho.font-size-lg-chirho;
+                font-weight: 600;
+                color: ThemeChirho.text-primary-chirho;
+                vertical-alignment: center;
+            }
+        }
+
+        // Section label
+        Text {
+            text: AppStateChirho.morphology-is-hebrew-chirho ? "Hebrew Morphology" : "Greek Morphology";
+            font-size: ThemeChirho.font-size-xs-chirho;
+            font-weight: 600;
+            color: ThemeChirho.text-muted-chirho;
+        }
+
+        // Parsed morphology explanation
+        Text {
+            text: AppStateChirho.morphology-parsed-chirho;
+            font-size: ThemeChirho.font-size-md-chirho;
+            color: ThemeChirho.text-primary-chirho;
+            wrap: word-wrap;
+        }
+
+        // Legend/help
+        Rectangle {
+            background: ThemeChirho.background-tertiary-chirho;
+            border-radius: ThemeChirho.radius-sm-chirho;
+
+            VerticalLayout {
+                padding: ThemeChirho.spacing-sm-chirho;
+
+                Text {
+                    text: "Code Legend:";
+                    font-size: ThemeChirho.font-size-xs-chirho;
+                    font-weight: 600;
+                    color: ThemeChirho.text-muted-chirho;
+                }
+
+                Text {
+                    text: AppStateChirho.morphology-is-hebrew-chirho ?
+                        "V=Verb, N=Noun, A=Adjective, P=Preposition\n" +
+                        "m/f=masculine/feminine, s/p=singular/plural" :
+                        "V=Verb, N=Noun, A=Adjective, D=Adverb\n" +
+                        "A/P/M=Active/Passive/Middle, I/S/O=Indicative/Subjunctive/Optative";
+                    font-size: ThemeChirho.font-size-xs-chirho;
+                    color: ThemeChirho.text-secondary-chirho;
+                    wrap: word-wrap;
+                }
+            }
+        }
+    }
+
+    // Close on click outside
+    TouchArea {
+        clicked => {
+            AppStateChirho.morphology-popup-visible-chirho = false;
+        }
+    }
+}
+
+// Cross-references popup
+component CrossRefsPopupChirho inherits Rectangle {
+    in property <bool> visible-chirho: false;
+
+    width: 300px;
+    max-height: 400px;
+    visible: visible-chirho;
+    background: ThemeChirho.background-secondary-chirho;
+    border-radius: ThemeChirho.radius-lg-chirho;
+    border-width: 1px;
+    border-color: ThemeChirho.border-chirho;
+    drop-shadow-blur: 16px;
+    drop-shadow-color: #00000040;
+
+    VerticalLayout {
+        padding: ThemeChirho.spacing-lg-chirho;
+        spacing: ThemeChirho.spacing-md-chirho;
+
+        // Header
+        HorizontalLayout {
+            Text {
+                text: "Cross-References";
+                font-size: ThemeChirho.font-size-md-chirho;
+                font-weight: 600;
+                color: ThemeChirho.text-primary-chirho;
+                vertical-alignment: center;
+            }
+            Rectangle { horizontal-stretch: 1; }
+            IconButtonChirho {
+                icon-chirho: LabelsChirho.close-icon-chirho;
+                clicked-chirho => {
+                    AppStateChirho.cross-refs-popup-visible-chirho = false;
+                }
+            }
+        }
+
+        Text {
+            text: AppStateChirho.cross-refs-verse-chirho;
+            font-size: ThemeChirho.font-size-sm-chirho;
+            color: ThemeChirho.text-muted-chirho;
+        }
+
+        Rectangle {
+            height: 1px;
+            background: ThemeChirho.divider-chirho;
+        }
+
+        // Cross-reference list
+        if AppStateChirho.cross-refs-list-chirho.length == 0: Text {
+            text: "No cross-references found";
+            font-size: ThemeChirho.font-size-sm-chirho;
+            color: ThemeChirho.text-muted-chirho;
+            horizontal-alignment: center;
+        }
+
+        ScrollView {
+            vertical-stretch: 1;
+            max-height: 250px;
+
+            VerticalLayout {
+                spacing: ThemeChirho.spacing-xs-chirho;
+
+                for ref-chirho in AppStateChirho.cross-refs-list-chirho: Rectangle {
+                    height: 36px;
+                    background: xref-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : transparent;
+                    border-radius: ThemeChirho.radius-sm-chirho;
+
+                    xref-touch-chirho := TouchArea {
+                        clicked => {
+                            AppStateChirho.navigate-to-reference-chirho(ref-chirho);
+                            AppStateChirho.cross-refs-popup-visible-chirho = false;
+                        }
+                        mouse-cursor: pointer;
+                    }
+
+                    HorizontalLayout {
+                        padding-left: ThemeChirho.spacing-sm-chirho;
+                        padding-right: ThemeChirho.spacing-sm-chirho;
+
+                        Text {
+                            text: "→";
+                            font-size: ThemeChirho.font-size-sm-chirho;
+                            color: ThemeChirho.accent-chirho;
+                            vertical-alignment: center;
+                        }
+
+                        Text {
+                            text: ref-chirho;
+                            font-size: ThemeChirho.font-size-sm-chirho;
+                            color: ThemeChirho.text-primary-chirho;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Footnote popup
+component FootnotePopupChirho inherits Rectangle {
+    in property <bool> visible-chirho: false;
+
+    width: 300px;
+    visible: visible-chirho;
+    background: ThemeChirho.background-secondary-chirho;
+    border-radius: ThemeChirho.radius-lg-chirho;
+    border-width: 1px;
+    border-color: ThemeChirho.border-chirho;
+    drop-shadow-blur: 16px;
+    drop-shadow-color: #00000040;
+
+    VerticalLayout {
+        padding: ThemeChirho.spacing-lg-chirho;
+        spacing: ThemeChirho.spacing-md-chirho;
+
+        // Header
+        HorizontalLayout {
+            spacing: ThemeChirho.spacing-sm-chirho;
+
+            Rectangle {
+                width: 24px;
+                height: 24px;
+                background: ThemeChirho.accent-chirho.with-alpha(0.2);
+                border-radius: 12px;
+
+                Text {
+                    text: AppStateChirho.footnote-marker-chirho;
+                    font-size: ThemeChirho.font-size-xs-chirho;
+                    font-weight: 700;
+                    color: ThemeChirho.accent-chirho;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            Text {
+                text: AppStateChirho.footnote-type-chirho == "translator" ? "Translator's Note" :
+                      AppStateChirho.footnote-type-chirho == "textual" ? "Textual Note" :
+                      AppStateChirho.footnote-type-chirho == "alternative" ? "Alternative Reading" :
+                      "Footnote";
+                font-size: ThemeChirho.font-size-sm-chirho;
+                font-weight: 600;
+                color: ThemeChirho.text-muted-chirho;
+                vertical-alignment: center;
+            }
+
+            Rectangle { horizontal-stretch: 1; }
+
+            IconButtonChirho {
+                icon-chirho: LabelsChirho.close-icon-chirho;
+                clicked-chirho => {
+                    AppStateChirho.footnote-popup-visible-chirho = false;
+                }
+            }
+        }
+
+        // Footnote content
+        Text {
+            text: AppStateChirho.footnote-content-chirho;
+            font-size: ThemeChirho.font-size-md-chirho;
+            color: ThemeChirho.text-primary-chirho;
+            wrap: word-wrap;
+        }
+    }
+
+    // Close on click outside
+    TouchArea {
+        clicked => {
+            AppStateChirho.footnote-popup-visible-chirho = false;
+        }
+    }
+}
+
 // Top toolbar
 component ToolbarChirho inherits Rectangle {
     height: 52px;
@@ -2041,6 +2371,33 @@ component ToolbarChirho inherits Rectangle {
             active-chirho: AppStateChirho.strongs-visible-chirho;
             clicked-chirho => {
                 AppStateChirho.toggle-strongs-display-chirho();
+            }
+        }
+
+        // Morphology button (grammatical analysis)
+        IconButtonChirho {
+            icon-chirho: "M";  // M for Morphology
+            active-chirho: AppStateChirho.morphology-visible-chirho;
+            clicked-chirho => {
+                AppStateChirho.toggle-morphology-display-chirho();
+            }
+        }
+
+        // Cross-References button
+        IconButtonChirho {
+            icon-chirho: "⤴";  // Arrow for cross-refs
+            active-chirho: AppStateChirho.cross-refs-visible-chirho;
+            clicked-chirho => {
+                AppStateChirho.toggle-cross-refs-display-chirho();
+            }
+        }
+
+        // Footnotes button
+        IconButtonChirho {
+            icon-chirho: "※";  // Reference mark for footnotes
+            active-chirho: AppStateChirho.footnotes-visible-chirho;
+            clicked-chirho => {
+                AppStateChirho.toggle-footnotes-display-chirho();
             }
         }
 
@@ -6941,6 +7298,21 @@ export component MainWindowChirho inherits Window {
                 }
                 return accept;
             }
+            // Ctrl+Shift+M: Toggle Morphology display
+            if (event-chirho.text == "M" && event-chirho.modifiers.control && event-chirho.modifiers.shift) {
+                AppStateChirho.toggle-morphology-display-chirho();
+                return accept;
+            }
+            // Ctrl+Shift+X: Toggle Cross-References display
+            if (event-chirho.text == "X" && event-chirho.modifiers.control && event-chirho.modifiers.shift) {
+                AppStateChirho.toggle-cross-refs-display-chirho();
+                return accept;
+            }
+            // Ctrl+Shift+F: Toggle Footnotes display
+            if (event-chirho.text == "F" && event-chirho.modifiers.control && event-chirho.modifiers.shift) {
+                AppStateChirho.toggle-footnotes-display-chirho();
+                return accept;
+            }
             return reject;
         }
 
@@ -7043,6 +7415,36 @@ export component MainWindowChirho inherits Window {
             StrongsPopupChirho {
                 entry-chirho: AppStateChirho.strongs-current-entry-chirho;
                 visible-chirho: AppStateChirho.strongs-popup-visible-chirho;
+            }
+        }
+
+        // Morphology popup (positioned at click location)
+        if AppStateChirho.morphology-popup-visible-chirho: Rectangle {
+            x: AppStateChirho.morphology-popup-x-chirho;
+            y: AppStateChirho.morphology-popup-y-chirho;
+
+            MorphologyPopupChirho {
+                visible-chirho: AppStateChirho.morphology-popup-visible-chirho;
+            }
+        }
+
+        // Cross-references popup
+        if AppStateChirho.cross-refs-popup-visible-chirho: Rectangle {
+            x: AppStateChirho.cross-refs-popup-x-chirho;
+            y: AppStateChirho.cross-refs-popup-y-chirho;
+
+            CrossRefsPopupChirho {
+                visible-chirho: AppStateChirho.cross-refs-popup-visible-chirho;
+            }
+        }
+
+        // Footnote popup
+        if AppStateChirho.footnote-popup-visible-chirho: Rectangle {
+            x: AppStateChirho.footnote-popup-x-chirho;
+            y: AppStateChirho.footnote-popup-y-chirho;
+
+            FootnotePopupChirho {
+                visible-chirho: AppStateChirho.footnote-popup-visible-chirho;
             }
         }
 
