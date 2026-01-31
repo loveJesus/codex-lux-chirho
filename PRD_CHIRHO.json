@@ -1,12 +1,12 @@
 {
   "_comment_chirho": "For God so loved the world that he gave his only begotten Son, that whoever believes in him should not perish but have eternal life. John 3:16",
   "product_name_chirho": "Codex Lux Chirho",
-  "version_chirho": "0.1.6",
+  "version_chirho": "0.1.7",
   "current_milestone_chirho": "M1_partial",
   "implementation_status_chirho": {
     "completed_chirho": 1,
-    "partial_chirho": 24,
-    "not_started_chirho": 30,
+    "partial_chirho": 26,
+    "not_started_chirho": 28,
     "total_chirho": 55
   },
   "description_chirho": "Cross-platform Bible study application - Codex of Light",
@@ -174,8 +174,19 @@
       "name_chirho": "Strong's Numbers",
       "category_chirho": "Study Tools",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
       "description_chirho": "Strong's concordance number display and lookup",
+      "completed_items_chirho": [
+        "Toggle Strong's numbers visibility (H toolbar button or Ctrl+Shift+S)",
+        "Strong's lookup popup with lexicon entry display",
+        "Hebrew Strong's support with Hebrew text, transliteration, definition",
+        "Greek Strong's support with Greek text, transliteration, definition",
+        "Color-coded display (Hebrew vs Greek)",
+        "Occurrence count display in popup",
+        "Usage notes display",
+        "StrongsEntryChirho and StrongsWordChirho data structures",
+        "Sample Strong's definitions for demonstration (H1, H430, H3068, G26, G2316, etc.)"
+      ],
       "requirements_chirho": [
         "Display Strong's numbers inline or on hover",
         "Toggle Strong's numbers visibility",
@@ -184,7 +195,8 @@
         "Greek Strong's (G1-G5624)",
         "Link to installed lexicon modules",
         "Strong's number search"
-      ]
+      ],
+      "implementation_notes_chirho": "Strong's framework implemented with toggle button, keyboard shortcut, and popup display. Uses sample definitions for demo. Full integration requires lexicon modules via rsword_chirho."
     },
 
     "CLX-006": {
@@ -434,8 +446,18 @@
       "name_chirho": "Reading Plans",
       "category_chirho": "Devotional",
       "priority_chirho": "P2",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
       "description_chirho": "Bible reading plans and tracking",
+      "completed_items_chirho": [
+        "Reading plan panel UI (📅 toolbar button, Ctrl+Shift+P)",
+        "Pre-built reading plans (Bible in a Year, NT in 90 Days, Psalms/Proverbs, Gospels, Chronological)",
+        "Today's reading display with Start Reading button",
+        "Mark day as complete with progress update",
+        "Progress bar and percentage display",
+        "Plan selection and activation",
+        "Navigate to reading reference",
+        "Database schema for plans and daily assignments"
+      ],
       "requirements_chirho": [
         "Pre-built reading plans (1-year, chronological, etc.)",
         "Custom reading plan creation",
@@ -445,7 +467,8 @@
         "Reading streak tracking",
         "Reminders/notifications",
         "Catch-up mode for missed days"
-      ]
+      ],
+      "implementation_notes_chirho": "Reading plan panel with pre-built plans, today's reading, progress tracking. Pending: custom plan creation, notifications, catch-up mode."
     },
 
     "CLX-017": {
@@ -584,6 +607,8 @@
         "Ctrl+J for study journal toggle",
         "Ctrl+R for prayer list toggle",
         "Ctrl+Shift+V for Verse of the Day dialog",
+        "Ctrl+Shift+S for Strong's Numbers toggle",
+        "Ctrl+Shift+P for Reading Plans panel",
         "Ctrl+, for settings panel toggle",
         "Escape to close dialogs",
         "Goto verse dialog with reference parsing",
@@ -592,7 +617,7 @@
         "Keyboard shortcut help dialog in settings"
       ],
       "description_chirho": "Keyboard navigation and shortcuts",
-      "implementation_notes_chirho": "20+ keyboard shortcuts implemented for all major features",
+      "implementation_notes_chirho": "22+ keyboard shortcuts implemented for all major features",
       "requirements_chirho": [
         "Navigate with arrow keys",
         "Ctrl+F for search",

@@ -4,7 +4,7 @@
 
 [package]
 name = "codex_lux_chirho"
-version = "0.1.6"
+version = "0.1.7"
 edition = "2021"
 description = "Cross-platform Bible study application - Codex of Light"
 license = "GPL-2.0-or-later"

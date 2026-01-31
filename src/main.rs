@@ -180,6 +180,30 @@ mod database_chirho {
                 created_at_chirho DATETIME DEFAULT CURRENT_TIMESTAMP
             );
 
+            -- Reading plans table
+            CREATE TABLE IF NOT EXISTS reading_plans_chirho (
+                id_chirho INTEGER PRIMARY KEY AUTOINCREMENT,
+                name_chirho TEXT NOT NULL,
+                description_chirho TEXT,
+                plan_type_chirho TEXT NOT NULL, -- 'daily', 'chronological', 'custom'
+                total_days_chirho INTEGER NOT NULL,
+                current_day_chirho INTEGER NOT NULL DEFAULT 1,
+                start_date_chirho DATE,
+                is_active_chirho INTEGER DEFAULT 0,
+                created_at_chirho DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+
+            -- Reading plan days (individual day assignments)
+            CREATE TABLE IF NOT EXISTS reading_plan_days_chirho (
+                id_chirho INTEGER PRIMARY KEY AUTOINCREMENT,
+                plan_id_chirho INTEGER NOT NULL,
+                day_number_chirho INTEGER NOT NULL,
+                readings_chirho TEXT NOT NULL, -- JSON array of verse references
+                is_completed_chirho INTEGER DEFAULT 0,
+                completed_at_chirho DATETIME,
+                FOREIGN KEY (plan_id_chirho) REFERENCES reading_plans_chirho(id_chirho)
+            );
+
             -- Create indexes for faster lookups
             CREATE INDEX IF NOT EXISTS idx_journal_created_chirho
                 ON journal_entries_chirho(created_at_chirho);
@@ -1270,6 +1294,8 @@ fn raw_verses_to_verse_chirho(raw_verses_chirho: Vec<(String, String)>) -> Vec<V
             section_heading_chirho: "".into(),
             poetry_indent_chirho: 0,
             is_paragraph_start_chirho: false,
+            strongs_text_chirho: "".into(),
+            has_strongs_chirho: false,
         })
         .collect()
 }
@@ -1415,6 +1441,8 @@ impl AppBackendChirho {
                     section_heading_chirho: "".into(),
                     poetry_indent_chirho: 0,
                     is_paragraph_start_chirho: false,
+                    strongs_text_chirho: "".into(),
+                    has_strongs_chirho: false,
                 }
             })
             .collect()
@@ -1692,6 +1720,8 @@ fn main() -> Result<(), slint::PlatformError> {
                         section_heading_chirho: slint::SharedString::default(),
                         poetry_indent_chirho: 0,
                         is_paragraph_start_chirho: false,
+                        strongs_text_chirho: slint::SharedString::default(),
+                        has_strongs_chirho: false,
                     })
                     .collect();
 
@@ -3052,6 +3082,158 @@ fn main() -> Result<(), slint::PlatformError> {
         });
     }
 
+    // Strong's Numbers callbacks
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        // Toggle Strong's display
+        app_state_chirho.on_toggle_strongs_display_chirho(move || {
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                let current_chirho = state_chirho.get_strongs_visible_chirho();
+                state_chirho.set_strongs_visible_chirho(!current_chirho);
+                let msg_chirho = if !current_chirho {
+                    "Strong's Numbers display enabled"
+                } else {
+                    "Strong's Numbers display disabled"
+                };
+                state_chirho.set_status_message_chirho(msg_chirho.into());
+                info!("{}", msg_chirho);
+            }
+        });
+    }
+
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        // Look up a Strong's number
+        app_state_chirho.on_lookup_strongs_chirho(move |number_chirho| {
+            info!("Looking up Strong's number: {}", number_chirho);
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+
+                // Get the Strong's definition (in production, from a lexicon module)
+                let entry_chirho = get_strongs_definition_chirho(&number_chirho);
+
+                state_chirho.set_strongs_current_entry_chirho(entry_chirho);
+                state_chirho.set_strongs_popup_visible_chirho(true);
+            }
+        });
+    }
+
+    // Reading Plans callbacks
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        // Load reading plans
+        app_state_chirho.on_load_reading_plans_chirho(move || {
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+
+                // Pre-built reading plans
+                let plans_chirho = get_builtin_reading_plans_chirho();
+                state_chirho.set_reading_plans_chirho(Rc::new(slint::VecModel::from(plans_chirho)).into());
+
+                // Set today's reading if there's an active plan
+                let today_reading_chirho = get_todays_reading_chirho();
+                state_chirho.set_today_reading_chirho(today_reading_chirho);
+
+                info!("Loaded reading plans");
+            }
+        });
+    }
+
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        // Start a reading plan
+        app_state_chirho.on_start_reading_plan_chirho(move |plan_id_chirho| {
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+
+                info!("Starting reading plan {}", plan_id_chirho);
+
+                // Get the plan and mark it active
+                let plans_chirho = get_builtin_reading_plans_chirho();
+                if let Some(mut plan_chirho) = plans_chirho.into_iter().find(|p_chirho| p_chirho.id_chirho == plan_id_chirho) {
+                    plan_chirho.is_active_chirho = true;
+                    state_chirho.set_active_plan_chirho(plan_chirho);
+                }
+
+                // Set today's reading
+                let today_reading_chirho = get_todays_reading_chirho();
+                state_chirho.set_today_reading_chirho(today_reading_chirho);
+
+                state_chirho.set_status_message_chirho("Reading plan started!".into());
+            }
+        });
+    }
+
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        // Mark a day as complete
+        app_state_chirho.on_mark_day_complete_chirho(move |_plan_id_chirho, day_number_chirho| {
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+
+                info!("Marking day {} as complete", day_number_chirho);
+
+                // Update the reading day
+                let mut today_chirho = state_chirho.get_today_reading_chirho();
+                today_chirho.is_completed_chirho = true;
+                state_chirho.set_today_reading_chirho(today_chirho);
+
+                // Update active plan progress
+                let mut plan_chirho = state_chirho.get_active_plan_chirho();
+                plan_chirho.current_day_chirho = day_number_chirho + 1;
+                plan_chirho.progress_percent_chirho = (day_number_chirho * 100 / plan_chirho.total_days_chirho).min(100);
+                state_chirho.set_active_plan_chirho(plan_chirho);
+
+                state_chirho.set_status_message_chirho(format!("Day {} complete! 🎉", day_number_chirho).into());
+            }
+        });
+    }
+
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+        let backend_clone_chirho = backend_chirho.clone();
+
+        // Navigate to a reading reference
+        app_state_chirho.on_navigate_to_reading_chirho(move |reading_chirho| {
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+
+                // Parse the first reference from the reading
+                let first_ref_chirho = reading_chirho.split(',').next().unwrap_or(&reading_chirho);
+
+                if let Some((book_chirho, chapter_chirho, _)) = parse_reference_chirho(first_ref_chirho.trim()) {
+                    let mut backend_ref_chirho = backend_clone_chirho.borrow_mut();
+                    backend_ref_chirho.navigate_to_chirho(&book_chirho, chapter_chirho);
+
+                    // Update UI state
+                    state_chirho.set_current_book_chirho(book_chirho.clone().into());
+                    state_chirho.set_current_chapter_chirho(chapter_chirho);
+
+                    let chapter_count_chirho = BIBLE_BOOKS_CHIRHO
+                        .iter()
+                        .find(|(name_chirho, _)| *name_chirho == book_chirho.as_str())
+                        .map(|(_, count_chirho)| *count_chirho)
+                        .unwrap_or(1);
+                    state_chirho.set_current_book_chapter_count_chirho(chapter_count_chirho);
+
+                    let verses_chirho = backend_ref_chirho.get_verses_chirho();
+                    state_chirho.set_verses_chirho(Rc::new(slint::VecModel::from(verses_chirho)).into());
+
+                    state_chirho.set_status_message_chirho(format!("Reading: {}", reading_chirho).into());
+
+                    info!("Navigating to reading: {}", reading_chirho);
+                }
+            }
+        });
+    }
+
     // Check if first run and show onboarding
     {
         let backend_ref_chirho = backend_chirho.borrow();
@@ -3071,6 +3253,127 @@ fn main() -> Result<(), slint::PlatformError> {
 
     // Run the application
     main_window_chirho.run()
+}
+
+/// Get Strong's definition for a given number (H1234 or G5678)
+/// In production, this would query a lexicon module via rsword_chirho
+fn get_strongs_definition_chirho(number_chirho: &str) -> StrongsEntryChirho {
+    // Sample Strong's definitions for demonstration
+    // In production, these would come from installed lexicon modules
+    let is_hebrew_chirho = number_chirho.starts_with('H');
+
+    let (lemma_chirho, transliteration_chirho, pronunciation_chirho, definition_chirho, usage_chirho, occurrences_chirho) = match number_chirho {
+        // Hebrew Strong's numbers
+        "H1" => ("אָב", "av", "awb", "Father, ancestor, originator, patron", "father, ancestor, forefather", 1212),
+        "H430" => ("אֱלֹהִים", "elohim", "el-o-heem'", "God, gods, judges, mighty ones", "Used of the true God, false gods, and supernatural beings", 2606),
+        "H3068" => ("יְהוָה", "Yᵉhōvâh", "yeh-ho-vaw'", "The LORD, the proper name of the God of Israel", "The tetragrammaton, the covenant name of God", 6519),
+        "H7225" => ("רֵאשִׁית", "reshiyth", "ray-sheeth'", "Beginning, first, chief", "beginning, first, firstfruits, best", 51),
+        "H776" => ("אֶרֶץ", "erets", "eh'-rets", "Earth, land, ground, country", "earth, land, territory, country, ground", 2504),
+        "H8064" => ("שָׁמַיִם", "shamayim", "shaw-mah'-yim", "Heavens, sky", "heaven, heavens, sky, visible heavens", 421),
+
+        // Greek Strong's numbers
+        "G1" => ("Α", "alpha", "al'-fah", "Alpha, the first letter of the Greek alphabet", "Used symbolically for 'first' or 'beginning'", 4),
+        "G26" => ("ἀγάπη", "agape", "ag-ah'-pay", "Love, affection, benevolence", "love, benevolence, good will, esteem; God's love", 116),
+        "G2316" => ("θεός", "theos", "theh'-os", "God, a deity", "a god, deity, the supreme Divinity; God", 1343),
+        "G2424" => ("Ἰησοῦς", "Iesous", "ee-ay-sooce'", "Jesus, Joshua", "Jesus, the Son of God; Joshua", 975),
+        "G3056" => ("λόγος", "logos", "log'-os", "Word, reason, account", "word, saying, account, matter; the Word (Christ)", 330),
+        "G4102" => ("πίστις", "pistis", "pis'-tis", "Faith, belief, trust, confidence", "faith, belief, trust, confidence, fidelity", 244),
+        "G5547" => ("Χριστός", "Christos", "khris-tos'", "Christ, anointed one, Messiah", "Christ, the Anointed One, the Messiah", 569),
+
+        _ => ("", "", "", "Strong's number not found in sample data", "Install a lexicon module for full definitions", 0),
+    };
+
+    StrongsEntryChirho {
+        number_chirho: number_chirho.into(),
+        is_hebrew_chirho,
+        lemma_chirho: lemma_chirho.into(),
+        transliteration_chirho: transliteration_chirho.into(),
+        pronunciation_chirho: pronunciation_chirho.into(),
+        definition_chirho: definition_chirho.into(),
+        usage_chirho: usage_chirho.into(),
+        occurrences_chirho,
+    }
+}
+
+/// Get built-in reading plans
+fn get_builtin_reading_plans_chirho() -> Vec<ReadingPlanChirho> {
+    vec![
+        ReadingPlanChirho {
+            id_chirho: 1,
+            name_chirho: "Bible in a Year".into(),
+            description_chirho: "Read through the entire Bible in 365 days".into(),
+            plan_type_chirho: "daily".into(),
+            total_days_chirho: 365,
+            current_day_chirho: 1,
+            is_active_chirho: false,
+            progress_percent_chirho: 0,
+        },
+        ReadingPlanChirho {
+            id_chirho: 2,
+            name_chirho: "New Testament (90 Days)".into(),
+            description_chirho: "Read the New Testament in 90 days".into(),
+            plan_type_chirho: "daily".into(),
+            total_days_chirho: 90,
+            current_day_chirho: 1,
+            is_active_chirho: false,
+            progress_percent_chirho: 0,
+        },
+        ReadingPlanChirho {
+            id_chirho: 3,
+            name_chirho: "Psalms & Proverbs (30 Days)".into(),
+            description_chirho: "Daily wisdom from Psalms and Proverbs".into(),
+            plan_type_chirho: "daily".into(),
+            total_days_chirho: 30,
+            current_day_chirho: 1,
+            is_active_chirho: false,
+            progress_percent_chirho: 0,
+        },
+        ReadingPlanChirho {
+            id_chirho: 4,
+            name_chirho: "Gospels (30 Days)".into(),
+            description_chirho: "Walk with Jesus through the four Gospels".into(),
+            plan_type_chirho: "daily".into(),
+            total_days_chirho: 30,
+            current_day_chirho: 1,
+            is_active_chirho: false,
+            progress_percent_chirho: 0,
+        },
+        ReadingPlanChirho {
+            id_chirho: 5,
+            name_chirho: "Chronological Bible".into(),
+            description_chirho: "Read the Bible in historical order".into(),
+            plan_type_chirho: "chronological".into(),
+            total_days_chirho: 365,
+            current_day_chirho: 1,
+            is_active_chirho: false,
+            progress_percent_chirho: 0,
+        },
+    ]
+}
+
+/// Get today's reading assignment based on day of year
+fn get_todays_reading_chirho() -> ReadingDayChirho {
+    use chrono::Datelike;
+    let today_chirho = chrono::Local::now();
+    let day_of_year_chirho = today_chirho.ordinal() as i32;
+
+    // Sample readings for demonstration (rotating through common passages)
+    let readings_chirho = match day_of_year_chirho % 7 {
+        0 => "Genesis 1-3",
+        1 => "Psalm 23, Proverbs 1",
+        2 => "Matthew 5-7",
+        3 => "John 1-3",
+        4 => "Romans 8, 12",
+        5 => "Isaiah 40, 53",
+        _ => "Psalm 119:1-48",
+    };
+
+    ReadingDayChirho {
+        day_number_chirho: day_of_year_chirho,
+        readings_chirho: readings_chirho.into(),
+        is_completed_chirho: false,
+        is_today_chirho: true,
+    }
 }
 
 /// Format timestamp for display (e.g., "Today 10:30 AM" or "Jan 15")
@@ -3947,6 +4250,28 @@ mod tests_chirho {
     }
 
     #[test]
+    fn test_strongs_definition_chirho() {
+        // Test Hebrew Strong's lookup
+        let hebrew_entry_chirho = get_strongs_definition_chirho("H430");
+        assert_eq!(hebrew_entry_chirho.number_chirho.as_str(), "H430");
+        assert!(hebrew_entry_chirho.is_hebrew_chirho);
+        assert!(hebrew_entry_chirho.lemma_chirho.to_string().contains("אֱלֹהִים"));
+        assert!(hebrew_entry_chirho.definition_chirho.to_string().contains("God"));
+        assert!(hebrew_entry_chirho.occurrences_chirho > 0);
+
+        // Test Greek Strong's lookup
+        let greek_entry_chirho = get_strongs_definition_chirho("G26");
+        assert_eq!(greek_entry_chirho.number_chirho.as_str(), "G26");
+        assert!(!greek_entry_chirho.is_hebrew_chirho);
+        assert!(greek_entry_chirho.lemma_chirho.to_string().contains("ἀγάπη"));
+        assert!(greek_entry_chirho.definition_chirho.to_string().contains("Love"));
+
+        // Test unknown Strong's number
+        let unknown_entry_chirho = get_strongs_definition_chirho("H99999");
+        assert!(unknown_entry_chirho.definition_chirho.to_string().contains("not found"));
+    }
+
+    #[test]
     fn test_get_chapter_count_chirho() {
         assert_eq!(AppBackendChirho::get_chapter_count_chirho("Genesis"), Some(50));
         assert_eq!(AppBackendChirho::get_chapter_count_chirho("Psalms"), Some(150));
@@ -4556,7 +4881,7 @@ mod tests_chirho {
         assert!(results_chirho.iter().any(|r_chirho| r_chirho.book_chirho.as_str() == "1 Corinthians"));
 
         // Test single letter (should find nothing specific but not crash)
-        let results_chirho = quick_nav_search_chirho("x", &conn_chirho);
+        let _results_chirho = quick_nav_search_chirho("x", &conn_chirho);
         // May be empty or find Exodus
 
         // Test exact book name

@@ -212,6 +212,28 @@ export struct HighlightColorChirho {
     color-chirho: color,
 }
 
+// Strong's word entry for interlinear display
+export struct StrongsWordChirho {
+    word-chirho: string,           // The word in the text
+    strongs-number-chirho: string, // H1234 (Hebrew) or G5678 (Greek)
+    lemma-chirho: string,          // Original language root word
+    transliteration-chirho: string,// Romanized pronunciation
+    definition-chirho: string,     // Brief definition
+    morph-chirho: string,          // Morphology code
+}
+
+// Strong's definition entry for lexicon lookup
+export struct StrongsEntryChirho {
+    number-chirho: string,         // H1234 or G5678
+    is-hebrew-chirho: bool,        // true for Hebrew (H), false for Greek (G)
+    lemma-chirho: string,          // Original word
+    transliteration-chirho: string,
+    pronunciation-chirho: string,
+    definition-chirho: string,     // Full definition
+    usage-chirho: string,          // Usage notes
+    occurrences-chirho: int,       // Number of occurrences in Bible
+}
+
 // Verse data structure
 export struct VerseChirho {
     reference-chirho: string,
@@ -227,6 +249,10 @@ export struct VerseChirho {
     poetry-indent-chirho: int,
     // Is this the start of a paragraph (for pilcrow markers)
     is-paragraph-start-chirho: bool,
+    // Strong's numbers text (display format, e.g., "In <H7225> beginning <H430>")
+    strongs-text-chirho: string,
+    // Has Strong's data available
+    has-strongs-chirho: bool,
 }
 
 // Book structure for navigation
@@ -289,6 +315,26 @@ export struct RemoteModuleChirho {
     language-chirho: string,
     type-chirho: string,
     is-installed-chirho: bool,
+}
+
+// Reading plan structure
+export struct ReadingPlanChirho {
+    id-chirho: int,
+    name-chirho: string,
+    description-chirho: string,
+    plan-type-chirho: string, // "daily", "chronological", "custom"
+    total-days-chirho: int,
+    current-day-chirho: int,
+    is-active-chirho: bool,
+    progress-percent-chirho: int, // 0-100
+}
+
+// Reading plan day assignment
+export struct ReadingDayChirho {
+    day-number-chirho: int,
+    readings-chirho: string, // Comma-separated references
+    is-completed-chirho: bool,
+    is-today-chirho: bool,
 }
 
 // Journal entry for display
@@ -525,6 +571,27 @@ export global AppStateChirho {
     in-out property <string> votd-date-chirho: "";
     callback load-verse-of-the-day-chirho();
     callback goto-votd-chirho();
+
+    // Strong's Numbers (Study Tools)
+    in-out property <bool> strongs-visible-chirho: false; // Toggle Strong's display
+    in-out property <bool> strongs-popup-visible-chirho: false;
+    in-out property <StrongsEntryChirho> strongs-current-entry-chirho;
+    in-out property <length> strongs-popup-x-chirho: 0px;
+    in-out property <length> strongs-popup-y-chirho: 0px;
+    callback lookup-strongs-chirho(string); // Look up a Strong's number (H1234 or G5678)
+    callback toggle-strongs-display-chirho();
+
+    // Reading Plans
+    in-out property <bool> reading-plan-panel-visible-chirho: false;
+    in-out property <[ReadingPlanChirho]> reading-plans-chirho: [];
+    in-out property <ReadingPlanChirho> active-plan-chirho;
+    in-out property <[ReadingDayChirho]> plan-days-chirho: [];
+    in-out property <ReadingDayChirho> today-reading-chirho;
+    in-out property <bool> plan-selector-visible-chirho: false;
+    callback load-reading-plans-chirho();
+    callback start-reading-plan-chirho(int); // Start a plan by ID
+    callback mark-day-complete-chirho(int, int); // Mark a day complete (plan_id, day_number)
+    callback navigate-to-reading-chirho(string); // Navigate to a reading reference
 }
 
 // Icon button component with accessibility support
@@ -1125,22 +1192,36 @@ component VerseViewChirho inherits Rectangle {
             }
 
             // Verse text - takes remaining space
+            // Shows Strong's annotated text when enabled and available, otherwise plain text
             // Red letter text uses red color, poetry uses lighter weight
-            Text {
-                text: verse-chirho.text-chirho;
-                font-size: ThemeChirho.font-size-scripture-chirho * AppStateChirho.font-scale-chirho;
-                font-family: AppStateChirho.font-family-index-chirho == 1 ? "Georgia, Times New Roman, serif" :
-                             AppStateChirho.font-family-index-chirho == 2 ? "Helvetica, Arial, sans-serif" :
-                             "system-ui";
-                // Red letter text for words of Jesus, otherwise normal text color
-                color: verse-chirho.is-red-letter-chirho ? ThemeChirho.red-letter-chirho :
-                       (verse-chirho.poetry-indent-chirho > 0 ? ThemeChirho.poetry-text-chirho : ThemeChirho.text-primary-chirho);
-                // Poetry uses lighter font weight for visual distinction
-                font-weight: verse-chirho.poetry-indent-chirho > 0 ? 300 : 400;
-                wrap: word-wrap;
-                horizontal-alignment: left;
-                vertical-alignment: top;
+            VerticalLayout {
                 horizontal-stretch: 1;
+                spacing: 2px;
+
+                // Primary verse text (or Strong's annotated text)
+                Text {
+                    text: AppStateChirho.strongs-visible-chirho && verse-chirho.has-strongs-chirho ?
+                          verse-chirho.strongs-text-chirho : verse-chirho.text-chirho;
+                    font-size: ThemeChirho.font-size-scripture-chirho * AppStateChirho.font-scale-chirho;
+                    font-family: AppStateChirho.font-family-index-chirho == 1 ? "Georgia, Times New Roman, serif" :
+                                 AppStateChirho.font-family-index-chirho == 2 ? "Helvetica, Arial, sans-serif" :
+                                 "system-ui";
+                    // Red letter text for words of Jesus, otherwise normal text color
+                    color: verse-chirho.is-red-letter-chirho ? ThemeChirho.red-letter-chirho :
+                           (verse-chirho.poetry-indent-chirho > 0 ? ThemeChirho.poetry-text-chirho : ThemeChirho.text-primary-chirho);
+                    // Poetry uses lighter font weight for visual distinction
+                    font-weight: verse-chirho.poetry-indent-chirho > 0 ? 300 : 400;
+                    wrap: word-wrap;
+                    horizontal-alignment: left;
+                    vertical-alignment: top;
+                }
+
+                // Strong's numbers indicator (when showing Strong's text)
+                if AppStateChirho.strongs-visible-chirho && verse-chirho.has-strongs-chirho: Text {
+                    text: "Tap Strong's numbers (H/G) for definitions";
+                    font-size: ThemeChirho.font-size-xs-chirho;
+                    color: ThemeChirho.text-muted-chirho;
+                }
             }
 
         // Action buttons (visible on hover)
@@ -1726,6 +1807,118 @@ component SearchPanelChirho inherits Rectangle {
     }
 }
 
+// Strong's Number Popup - shows lexicon entry for a Strong's number
+component StrongsPopupChirho inherits Rectangle {
+    in property <StrongsEntryChirho> entry-chirho;
+    in property <bool> visible-chirho: false;
+
+    width: 320px;
+    visible: visible-chirho;
+    background: ThemeChirho.background-secondary-chirho;
+    border-radius: ThemeChirho.radius-lg-chirho;
+    border-width: 1px;
+    border-color: ThemeChirho.border-chirho;
+    drop-shadow-blur: 16px;
+    drop-shadow-color: #00000040;
+
+    VerticalLayout {
+        padding: ThemeChirho.spacing-lg-chirho;
+        spacing: ThemeChirho.spacing-md-chirho;
+
+        // Header with Strong's number
+        HorizontalLayout {
+            spacing: ThemeChirho.spacing-sm-chirho;
+
+            Rectangle {
+                width: 48px;
+                height: 28px;
+                background: entry-chirho.is-hebrew-chirho ? ThemeChirho.hebrew-chirho.with-alpha(0.2) : ThemeChirho.greek-chirho.with-alpha(0.2);
+                border-radius: ThemeChirho.radius-sm-chirho;
+
+                Text {
+                    text: entry-chirho.number-chirho;
+                    font-size: ThemeChirho.font-size-sm-chirho;
+                    font-weight: 700;
+                    color: entry-chirho.is-hebrew-chirho ? ThemeChirho.hebrew-chirho : ThemeChirho.greek-chirho;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            Text {
+                text: entry-chirho.lemma-chirho;
+                font-size: ThemeChirho.font-size-lg-chirho;
+                font-weight: 600;
+                color: ThemeChirho.text-primary-chirho;
+                vertical-alignment: center;
+            }
+        }
+
+        // Transliteration and pronunciation
+        if entry-chirho.transliteration-chirho != "": HorizontalLayout {
+            spacing: ThemeChirho.spacing-sm-chirho;
+
+            Text {
+                text: entry-chirho.transliteration-chirho;
+                font-size: ThemeChirho.font-size-md-chirho;
+                color: ThemeChirho.text-secondary-chirho;
+            }
+
+            if entry-chirho.pronunciation-chirho != "": Text {
+                text: "(" + entry-chirho.pronunciation-chirho + ")";
+                font-size: ThemeChirho.font-size-sm-chirho;
+                color: ThemeChirho.text-muted-chirho;
+            }
+        }
+
+        // Definition
+        Text {
+            text: entry-chirho.definition-chirho;
+            font-size: ThemeChirho.font-size-md-chirho;
+            color: ThemeChirho.text-primary-chirho;
+            wrap: word-wrap;
+        }
+
+        // Usage notes (if present)
+        if entry-chirho.usage-chirho != "": Rectangle {
+            background: ThemeChirho.background-tertiary-chirho;
+            border-radius: ThemeChirho.radius-sm-chirho;
+
+            VerticalLayout {
+                padding: ThemeChirho.spacing-sm-chirho;
+
+                Text {
+                    text: "Usage:";
+                    font-size: ThemeChirho.font-size-xs-chirho;
+                    font-weight: 600;
+                    color: ThemeChirho.text-muted-chirho;
+                }
+
+                Text {
+                    text: entry-chirho.usage-chirho;
+                    font-size: ThemeChirho.font-size-sm-chirho;
+                    color: ThemeChirho.text-secondary-chirho;
+                    wrap: word-wrap;
+                }
+            }
+        }
+
+        // Occurrences
+        if entry-chirho.occurrences-chirho > 0: Text {
+            text: "Occurs " + entry-chirho.occurrences-chirho + " times";
+            font-size: ThemeChirho.font-size-xs-chirho;
+            color: ThemeChirho.text-muted-chirho;
+        }
+    }
+
+    // Close on click outside
+    popup-touch-chirho := TouchArea {
+        clicked => {
+            AppStateChirho.strongs-popup-visible-chirho = false;
+        }
+    }
+}
+
 // Top toolbar
 component ToolbarChirho inherits Rectangle {
     height: 52px;
@@ -1842,6 +2035,15 @@ component ToolbarChirho inherits Rectangle {
             }
         }
 
+        // Strong's Numbers button (study tool)
+        IconButtonChirho {
+            icon-chirho: "H";  // H for Hebrew/Greek Strong's
+            active-chirho: AppStateChirho.strongs-visible-chirho;
+            clicked-chirho => {
+                AppStateChirho.toggle-strongs-display-chirho();
+            }
+        }
+
         // Info Panel button (verse details)
         IconButtonChirho {
             icon-chirho: "ℹ";
@@ -1883,6 +2085,18 @@ component ToolbarChirho inherits Rectangle {
                 AppStateChirho.prayer-panel-visible-chirho = !AppStateChirho.prayer-panel-visible-chirho;
                 if AppStateChirho.prayer-panel-visible-chirho {
                     AppStateChirho.load-prayer-requests-chirho();
+                }
+            }
+        }
+
+        // Reading Plans button
+        IconButtonChirho {
+            icon-chirho: "📅";
+            active-chirho: AppStateChirho.reading-plan-panel-visible-chirho;
+            clicked-chirho => {
+                AppStateChirho.reading-plan-panel-visible-chirho = !AppStateChirho.reading-plan-panel-visible-chirho;
+                if AppStateChirho.reading-plan-panel-visible-chirho {
+                    AppStateChirho.load-reading-plans-chirho();
                 }
             }
         }
@@ -4602,6 +4816,314 @@ component StatisticsPanelChirho inherits Rectangle {
     }
 }
 
+// Reading Plan Panel - Bible reading plans and progress
+component ReadingPlanPanelChirho inherits Rectangle {
+    in-out property <bool> visible-chirho: false;
+
+    width: visible-chirho ? 380px : 0px;
+    background: ThemeChirho.background-secondary-chirho;
+
+    // Left border (using a child rectangle)
+    Rectangle {
+        width: 1px;
+        background: ThemeChirho.border-chirho;
+    }
+
+    animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
+
+    VerticalLayout {
+        padding: ThemeChirho.spacing-lg-chirho;
+        spacing: ThemeChirho.spacing-md-chirho;
+
+        // Header
+        HorizontalLayout {
+            spacing: ThemeChirho.spacing-sm-chirho;
+
+            Text {
+                text: "📅 Reading Plans";
+                font-size: ThemeChirho.font-size-lg-chirho;
+                font-weight: 700;
+                color: ThemeChirho.text-primary-chirho;
+                horizontal-stretch: 1;
+            }
+
+            Rectangle {
+                width: 28px;
+                height: 28px;
+                background: close-plan-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : transparent;
+                border-radius: 14px;
+
+                Text {
+                    text: LabelsChirho.close-icon-chirho;
+                    font-size: ThemeChirho.font-size-md-chirho;
+                    color: ThemeChirho.text-secondary-chirho;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+
+                close-plan-touch-chirho := TouchArea {
+                    clicked => { AppStateChirho.reading-plan-panel-visible-chirho = false; }
+                    mouse-cursor: pointer;
+                }
+            }
+        }
+
+        // Today's Reading Section
+        if AppStateChirho.active-plan-chirho.id-chirho > 0: Rectangle {
+            background: ThemeChirho.accent-chirho.with-alpha(0.1);
+            border-radius: ThemeChirho.radius-md-chirho;
+
+            VerticalLayout {
+                padding: ThemeChirho.spacing-md-chirho;
+                spacing: ThemeChirho.spacing-sm-chirho;
+
+                Text {
+                    text: "Today's Reading";
+                    font-size: ThemeChirho.font-size-sm-chirho;
+                    font-weight: 600;
+                    color: ThemeChirho.accent-chirho;
+                }
+
+                Text {
+                    text: AppStateChirho.today-reading-chirho.readings-chirho;
+                    font-size: ThemeChirho.font-size-md-chirho;
+                    color: ThemeChirho.text-primary-chirho;
+                    wrap: word-wrap;
+                }
+
+                HorizontalLayout {
+                    spacing: ThemeChirho.spacing-sm-chirho;
+
+                    Rectangle {
+                        horizontal-stretch: 1;
+                        height: 32px;
+                        background: go-reading-touch-chirho.has-hover ? ThemeChirho.accent-chirho : ThemeChirho.accent-secondary-chirho;
+                        border-radius: ThemeChirho.radius-sm-chirho;
+
+                        Text {
+                            text: "Start Reading";
+                            font-size: ThemeChirho.font-size-sm-chirho;
+                            color: ThemeChirho.text-primary-chirho;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+
+                        go-reading-touch-chirho := TouchArea {
+                            clicked => {
+                                AppStateChirho.navigate-to-reading-chirho(AppStateChirho.today-reading-chirho.readings-chirho);
+                            }
+                            mouse-cursor: pointer;
+                        }
+                    }
+
+                    if !AppStateChirho.today-reading-chirho.is-completed-chirho: Rectangle {
+                        width: 100px;
+                        height: 32px;
+                        background: mark-done-touch-chirho.has-hover ? ThemeChirho.success-chirho : ThemeChirho.success-chirho.with-alpha(0.7);
+                        border-radius: ThemeChirho.radius-sm-chirho;
+
+                        Text {
+                            text: "✓ Done";
+                            font-size: ThemeChirho.font-size-sm-chirho;
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+
+                        mark-done-touch-chirho := TouchArea {
+                            clicked => {
+                                AppStateChirho.mark-day-complete-chirho(
+                                    AppStateChirho.active-plan-chirho.id-chirho,
+                                    AppStateChirho.today-reading-chirho.day-number-chirho
+                                );
+                            }
+                            mouse-cursor: pointer;
+                        }
+                    }
+
+                    if AppStateChirho.today-reading-chirho.is-completed-chirho: Rectangle {
+                        width: 100px;
+                        height: 32px;
+                        background: ThemeChirho.background-tertiary-chirho;
+                        border-radius: ThemeChirho.radius-sm-chirho;
+
+                        Text {
+                            text: "✓ Complete";
+                            font-size: ThemeChirho.font-size-sm-chirho;
+                            color: ThemeChirho.success-chirho;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Active Plan Progress
+        if AppStateChirho.active-plan-chirho.id-chirho > 0: Rectangle {
+            background: ThemeChirho.background-tertiary-chirho;
+            border-radius: ThemeChirho.radius-md-chirho;
+
+            VerticalLayout {
+                padding: ThemeChirho.spacing-md-chirho;
+                spacing: ThemeChirho.spacing-sm-chirho;
+
+                HorizontalLayout {
+                    Text {
+                        text: AppStateChirho.active-plan-chirho.name-chirho;
+                        font-size: ThemeChirho.font-size-md-chirho;
+                        font-weight: 600;
+                        color: ThemeChirho.text-primary-chirho;
+                        horizontal-stretch: 1;
+                    }
+
+                    Text {
+                        text: "Day " + AppStateChirho.active-plan-chirho.current-day-chirho + "/" + AppStateChirho.active-plan-chirho.total-days-chirho;
+                        font-size: ThemeChirho.font-size-sm-chirho;
+                        color: ThemeChirho.text-secondary-chirho;
+                    }
+                }
+
+                // Progress bar
+                Rectangle {
+                    height: 8px;
+                    background: ThemeChirho.background-elevated-chirho;
+                    border-radius: 4px;
+
+                    Rectangle {
+                        width: parent.width * AppStateChirho.active-plan-chirho.progress-percent-chirho / 100;
+                        height: parent.height;
+                        background: ThemeChirho.accent-chirho;
+                        border-radius: 4px;
+                    }
+                }
+
+                Text {
+                    text: AppStateChirho.active-plan-chirho.progress-percent-chirho + "% complete";
+                    font-size: ThemeChirho.font-size-xs-chirho;
+                    color: ThemeChirho.text-muted-chirho;
+                }
+            }
+        }
+
+        // Available Plans Section
+        Text {
+            text: "Available Plans";
+            font-size: ThemeChirho.font-size-sm-chirho;
+            font-weight: 600;
+            color: ThemeChirho.text-muted-chirho;
+        }
+
+        ScrollView {
+            vertical-stretch: 1;
+
+            VerticalLayout {
+                spacing: ThemeChirho.spacing-sm-chirho;
+
+                for plan-chirho in AppStateChirho.reading-plans-chirho: Rectangle {
+                    height: 80px;
+                    background: plan-item-touch-chirho.has-hover ? ThemeChirho.background-tertiary-chirho : ThemeChirho.background-secondary-chirho;
+                    border-radius: ThemeChirho.radius-md-chirho;
+                    border-width: plan-chirho.is-active-chirho ? 2px : 1px;
+                    border-color: plan-chirho.is-active-chirho ? ThemeChirho.accent-chirho : ThemeChirho.border-subtle-chirho;
+
+                    HorizontalLayout {
+                        padding: ThemeChirho.spacing-md-chirho;
+                        spacing: ThemeChirho.spacing-md-chirho;
+
+                        VerticalLayout {
+                            horizontal-stretch: 1;
+                            spacing: ThemeChirho.spacing-xs-chirho;
+
+                            Text {
+                                text: plan-chirho.name-chirho;
+                                font-size: ThemeChirho.font-size-md-chirho;
+                                font-weight: 600;
+                                color: ThemeChirho.text-primary-chirho;
+                            }
+
+                            Text {
+                                text: plan-chirho.description-chirho;
+                                font-size: ThemeChirho.font-size-sm-chirho;
+                                color: ThemeChirho.text-secondary-chirho;
+                                overflow: elide;
+                            }
+
+                            Text {
+                                text: plan-chirho.total-days-chirho + " days";
+                                font-size: ThemeChirho.font-size-xs-chirho;
+                                color: ThemeChirho.text-muted-chirho;
+                            }
+                        }
+
+                        if !plan-chirho.is-active-chirho: Rectangle {
+                            width: 60px;
+                            height: 28px;
+                            background: start-plan-touch-chirho.has-hover ? ThemeChirho.accent-chirho : ThemeChirho.accent-secondary-chirho;
+                            border-radius: ThemeChirho.radius-sm-chirho;
+
+                            Text {
+                                text: "Start";
+                                font-size: ThemeChirho.font-size-sm-chirho;
+                                color: ThemeChirho.text-primary-chirho;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+
+                            start-plan-touch-chirho := TouchArea {
+                                clicked => {
+                                    AppStateChirho.start-reading-plan-chirho(plan-chirho.id-chirho);
+                                }
+                                mouse-cursor: pointer;
+                            }
+                        }
+
+                        if plan-chirho.is-active-chirho: Rectangle {
+                            width: 60px;
+                            height: 28px;
+
+                            Text {
+                                text: "Active";
+                                font-size: ThemeChirho.font-size-sm-chirho;
+                                color: ThemeChirho.success-chirho;
+                                font-weight: 600;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+
+                    plan-item-touch-chirho := TouchArea {
+                        mouse-cursor: pointer;
+                    }
+                }
+
+                // Empty state
+                if AppStateChirho.reading-plans-chirho.length == 0: Rectangle {
+                    height: 100px;
+
+                    VerticalLayout {
+                        alignment: center;
+
+                        Text {
+                            text: "📚";
+                            font-size: 32px;
+                            horizontal-alignment: center;
+                        }
+
+                        Text {
+                            text: "No reading plans yet";
+                            font-size: ThemeChirho.font-size-md-chirho;
+                            color: ThemeChirho.text-muted-chirho;
+                            horizontal-alignment: center;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 // Journal Panel - personal Bible study journal
 component JournalPanelChirho inherits Rectangle {
     in-out property <bool> visible-chirho: false;
@@ -6406,6 +6928,19 @@ export component MainWindowChirho inherits Window {
                 AppStateChirho.settings-visible-chirho = !AppStateChirho.settings-visible-chirho;
                 return accept;
             }
+            // Ctrl+Shift+S: Toggle Strong's Numbers display
+            if (event-chirho.text == "S" && event-chirho.modifiers.control && event-chirho.modifiers.shift) {
+                AppStateChirho.toggle-strongs-display-chirho();
+                return accept;
+            }
+            // Ctrl+Shift+P: Toggle Reading Plans panel
+            if (event-chirho.text == "P" && event-chirho.modifiers.control && event-chirho.modifiers.shift) {
+                AppStateChirho.reading-plan-panel-visible-chirho = !AppStateChirho.reading-plan-panel-visible-chirho;
+                if AppStateChirho.reading-plan-panel-visible-chirho {
+                    AppStateChirho.load-reading-plans-chirho();
+                }
+                return accept;
+            }
             return reject;
         }
 
@@ -6459,6 +6994,10 @@ export component MainWindowChirho inherits Window {
                     visible-chirho: AppStateChirho.prayer-panel-visible-chirho;
                 }
 
+                ReadingPlanPanelChirho {
+                    visible-chirho: AppStateChirho.reading-plan-panel-visible-chirho;
+                }
+
                 ModuleManagerPanelChirho {
                     visible-chirho: AppStateChirho.module-manager-visible-chirho;
                 }
@@ -6495,6 +7034,17 @@ export component MainWindowChirho inherits Window {
         ImportDialogChirho {}
 
         VotdDialogChirho {}
+
+        // Strong's lookup popup (positioned at the cursor/click location)
+        if AppStateChirho.strongs-popup-visible-chirho: Rectangle {
+            x: AppStateChirho.strongs-popup-x-chirho;
+            y: AppStateChirho.strongs-popup-y-chirho;
+
+            StrongsPopupChirho {
+                entry-chirho: AppStateChirho.strongs-current-entry-chirho;
+                visible-chirho: AppStateChirho.strongs-popup-visible-chirho;
+            }
+        }
 
         HistoryPanelChirho {
             visible-chirho: AppStateChirho.history-visible-chirho;
