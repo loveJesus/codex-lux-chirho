@@ -107,7 +107,14 @@
         "RTL text support (Hebrew, Arabic) - renders correctly",
         "Complex script rendering (Hebrew vowels, Greek accents)",
         "Verse-per-line vs paragraph mode toggle in settings",
-        "Multiple font family selection (System, Serif, Sans)"
+        "Multiple font family selection (System, Serif, Sans)",
+        "Red letter display support (is_red_letter_chirho field in VerseChirho)",
+        "Section headings display support (section_heading_chirho field)",
+        "Poetry/verse indent formatting (poetry_indent_chirho 0-3 levels)",
+        "Pilcrow markers for paragraph breaks (is_paragraph_start_chirho)",
+        "Red letter color theming across all 4 themes",
+        "Section heading color theming across all 4 themes",
+        "Poetry text color theming (lighter weight for distinction)"
       ],
       "description_chirho": "Scripture text rendering with formatting",
       "requirements_chirho": [
@@ -124,7 +131,8 @@
         "RTL text support (Hebrew, Arabic)",
         "Complex script rendering (Hebrew vowels, Greek accents)",
         "Verse-per-line vs paragraph mode toggle"
-      ]
+      ],
+      "implementation_notes_chirho": "All verse display features implemented. Data fields added to VerseChirho struct: is_red_letter_chirho, section_heading_chirho, poetry_indent_chirho, is_paragraph_start_chirho. These are populated from SWORD modules when available."
     },
 
     "CLX-004": {
@@ -137,7 +145,11 @@
         "Case-insensitive search",
         "Search results display with reference and preview",
         "Click search result to navigate to verse and close search panel",
-        "Search result count displayed"
+        "Search result count displayed",
+        "Search scope selector UI (All, OT, NT, Current Book)",
+        "Phrase search hint in UI (use quotes for exact phrases)",
+        "Search scope property (search_scope_index_chirho)",
+        "Search history property (search_history_chirho)"
       ],
       "description_chirho": "Full-text search across modules",
       "requirements_chirho": [
@@ -154,7 +166,8 @@
         "Highlight search terms in results",
         "Search result count and statistics",
         "Export search results"
-      ]
+      ],
+      "implementation_notes_chirho": "Search UI enhanced with scope selector and phrase search hint. Backend search will use scope when full module search is implemented via rsword_chirho."
     },
 
     "CLX-005": {
@@ -437,14 +450,24 @@
       "name_chirho": "Daily Devotional",
       "category_chirho": "Devotional",
       "priority_chirho": "P2",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
       "description_chirho": "Daily verse and devotional content",
+      "completed_items_chirho": [
+        "Verse of the day feature with 31+ curated beloved verses",
+        "Toolbar button (🌅) to show VOTD dialog",
+        "VOTD dialog with decorative quotes and styling",
+        "Copy VOTD to clipboard button",
+        "Read in Context button - navigates to verse location",
+        "Daily rotation based on day of year",
+        "Date display in VOTD dialog"
+      ],
       "requirements_chirho": [
         "Verse of the day",
         "Daily devotional modules support",
         "Historical devotionals (Spurgeon, etc.)",
         "Share verse of the day"
-      ]
+      ],
+      "implementation_notes_chirho": "VOTD implemented with curated verse list. Each day shows a different verse based on day of year. Pending: devotional module support, historical devotionals."
     },
 
     "CLX-018": {

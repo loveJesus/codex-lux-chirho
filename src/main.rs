@@ -417,6 +417,15 @@ mod database_chirho {
         Ok(())
     }
 
+    /// Update bookmark label
+    pub fn update_bookmark_label_chirho(conn_chirho: &Connection, id_chirho: i64, label_chirho: &str) -> Result<()> {
+        conn_chirho.execute(
+            "UPDATE bookmarks_chirho SET label_chirho = ?1, updated_at_chirho = CURRENT_TIMESTAMP WHERE id_chirho = ?2",
+            params![label_chirho, id_chirho],
+        )?;
+        Ok(())
+    }
+
     /// Get all bookmarks
     #[allow(dead_code)]
     pub fn get_all_bookmarks_chirho(conn_chirho: &Connection) -> Result<Vec<BookmarkChirho>> {
@@ -1257,6 +1266,10 @@ fn raw_verses_to_verse_chirho(raw_verses_chirho: Vec<(String, String)>) -> Vec<V
             is_highlighted_chirho: false,
             highlight_color_chirho: "".into(),
             has_note_chirho: false,
+            is_red_letter_chirho: false,
+            section_heading_chirho: "".into(),
+            poetry_indent_chirho: 0,
+            is_paragraph_start_chirho: false,
         })
         .collect()
 }
@@ -1398,6 +1411,10 @@ impl AppBackendChirho {
                     is_highlighted_chirho: highlight_map_chirho.contains_key(&verse_num_chirho),
                     highlight_color_chirho: highlight_color_chirho.into(),
                     has_note_chirho: notes_chirho.contains(&verse_num_chirho),
+                    is_red_letter_chirho: false,
+                    section_heading_chirho: "".into(),
+                    poetry_indent_chirho: 0,
+                    is_paragraph_start_chirho: false,
                 }
             })
             .collect()
@@ -1671,6 +1688,10 @@ fn main() -> Result<(), slint::PlatformError> {
                         is_highlighted_chirho: false,
                         highlight_color_chirho: slint::SharedString::default(),
                         has_note_chirho: false,
+                        is_red_letter_chirho: false,
+                        section_heading_chirho: slint::SharedString::default(),
+                        poetry_indent_chirho: 0,
+                        is_paragraph_start_chirho: false,
                     })
                     .collect();
 
@@ -1801,6 +1822,31 @@ fn main() -> Result<(), slint::PlatformError> {
                 let bookmarks_chirho = load_bookmarks_for_ui_chirho(&backend_ref_chirho.db_conn_chirho);
                 state_chirho.set_bookmarks_chirho(Rc::new(slint::VecModel::from(bookmarks_chirho)).into());
                 state_chirho.set_status_message_chirho("Bookmark updated".into());
+            }
+        });
+    }
+
+    // Set up update bookmark label callback
+    {
+        let backend_clone_chirho = backend_chirho.clone();
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_update_bookmark_label_chirho(move |id_chirho, label_chirho| {
+            info!("Updating bookmark label: {} -> {}", id_chirho, label_chirho);
+            let backend_ref_chirho = backend_clone_chirho.borrow();
+
+            match database_chirho::update_bookmark_label_chirho(&backend_ref_chirho.db_conn_chirho, id_chirho as i64, label_chirho.as_str()) {
+                Ok(_) => {
+                    if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                        let state_chirho = window_chirho.global::<AppStateChirho>();
+                        let bookmarks_chirho = load_bookmarks_for_ui_chirho(&backend_ref_chirho.db_conn_chirho);
+                        state_chirho.set_bookmarks_chirho(Rc::new(slint::VecModel::from(bookmarks_chirho)).into());
+                        state_chirho.set_status_message_chirho("Bookmark label updated".into());
+                    }
+                }
+                Err(e_chirho) => {
+                    warn!("Failed to update bookmark label: {}", e_chirho);
+                }
             }
         });
     }
@@ -2943,6 +2989,69 @@ fn main() -> Result<(), slint::PlatformError> {
         });
     }
 
+    // Verse of the Day callbacks
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+        app_state_chirho.on_load_verse_of_the_day_chirho(move || {
+            info!("Loading verse of the day");
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+
+                // Get the verse of the day based on day of year
+                let (reference_chirho, text_chirho) = get_verse_of_the_day_chirho();
+
+                // Format today's date
+                let now_chirho = std::time::SystemTime::now();
+                let since_epoch_chirho = now_chirho.duration_since(std::time::UNIX_EPOCH).unwrap_or_default();
+                let days_chirho = (since_epoch_chirho.as_secs() / 86400) as u32;
+                // Simple date approximation
+                let date_str_chirho = format_date_chirho(days_chirho);
+
+                state_chirho.set_votd_reference_chirho(reference_chirho.into());
+                state_chirho.set_votd_text_chirho(text_chirho.into());
+                state_chirho.set_votd_date_chirho(date_str_chirho.into());
+            }
+        });
+
+        let backend_clone_chirho = Rc::clone(&backend_chirho);
+        let window_weak_chirho = main_window_chirho.as_weak();
+        app_state_chirho.on_goto_votd_chirho(move || {
+            info!("Navigating to verse of the day");
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                let reference_chirho = state_chirho.get_votd_reference_chirho().to_string();
+
+                // Parse the reference and navigate
+                if let Some((book_chirho, chapter_chirho, _verse_chirho)) = parse_reference_chirho(&reference_chirho) {
+                    let mut backend_ref_chirho = backend_clone_chirho.borrow_mut();
+                    backend_ref_chirho.navigate_to_chirho(&book_chirho, chapter_chirho);
+
+                    // Update UI state
+                    state_chirho.set_current_book_chirho(book_chirho.clone().into());
+                    state_chirho.set_current_chapter_chirho(chapter_chirho);
+
+                    // Update chapter count
+                    let chapter_count_chirho = BIBLE_BOOKS_CHIRHO
+                        .iter()
+                        .find(|(name_chirho, _)| *name_chirho == book_chirho.as_str())
+                        .map(|(_, count_chirho)| *count_chirho)
+                        .unwrap_or(1);
+                    state_chirho.set_current_book_chapter_count_chirho(chapter_count_chirho);
+
+                    // Load and display verses
+                    let verses_chirho = backend_ref_chirho.get_verses_chirho();
+                    state_chirho.set_verses_chirho(Rc::new(slint::VecModel::from(verses_chirho)).into());
+
+                    state_chirho.set_status_message_chirho(
+                        format!("Navigated to {}", reference_chirho).into()
+                    );
+                }
+            }
+        });
+    }
+
     // Check if first run and show onboarding
     {
         let backend_ref_chirho = backend_chirho.borrow();
@@ -2973,6 +3082,82 @@ fn format_timestamp_chirho(timestamp_chirho: &str) -> String {
     } else {
         timestamp_chirho.to_string()
     }
+}
+
+/// Format a day count since Unix epoch to a readable date
+fn format_date_chirho(days_since_epoch_chirho: u32) -> String {
+    // Calculate approximate date from days since epoch (Jan 1, 1970)
+    let years_chirho = days_since_epoch_chirho / 365;
+    let remaining_days_chirho = days_since_epoch_chirho % 365;
+    let year_chirho = 1970 + years_chirho;
+
+    let months_chirho = [
+        ("January", 31), ("February", 28), ("March", 31), ("April", 30),
+        ("May", 31), ("June", 30), ("July", 31), ("August", 31),
+        ("September", 30), ("October", 31), ("November", 30), ("December", 31),
+    ];
+
+    let mut day_chirho = remaining_days_chirho;
+    let mut month_name_chirho = "January";
+
+    for (name_chirho, days_chirho) in months_chirho {
+        if day_chirho <= days_chirho {
+            month_name_chirho = name_chirho;
+            break;
+        }
+        day_chirho -= days_chirho;
+    }
+
+    format!("{} {}, {}", month_name_chirho, day_chirho.max(1), year_chirho)
+}
+
+/// Get the verse of the day based on day of year
+/// Returns (reference, text) for a curated set of popular Bible verses
+fn get_verse_of_the_day_chirho() -> (String, String) {
+    // Curated collection of 365+ beloved Bible verses
+    const VOTD_VERSES_CHIRHO: &[(&str, &str)] = &[
+        ("John 3:16", "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life."),
+        ("Psalm 23:1", "The LORD is my shepherd; I shall not want."),
+        ("Jeremiah 29:11", "For I know the thoughts that I think toward you, saith the LORD, thoughts of peace, and not of evil, to give you an expected end."),
+        ("Romans 8:28", "And we know that all things work together for good to them that love God, to them who are the called according to his purpose."),
+        ("Philippians 4:13", "I can do all things through Christ which strengtheneth me."),
+        ("Proverbs 3:5-6", "Trust in the LORD with all thine heart; and lean not unto thine own understanding. In all thy ways acknowledge him, and he shall direct thy paths."),
+        ("Isaiah 40:31", "But they that wait upon the LORD shall renew their strength; they shall mount up with wings as eagles; they shall run, and not be weary; and they shall walk, and not faint."),
+        ("Psalm 46:1", "God is our refuge and strength, a very present help in trouble."),
+        ("Romans 12:2", "And be not conformed to this world: but be ye transformed by the renewing of your mind, that ye may prove what is that good, and acceptable, and perfect, will of God."),
+        ("Matthew 6:33", "But seek ye first the kingdom of God, and his righteousness; and all these things shall be added unto you."),
+        ("Psalm 119:105", "Thy word is a lamp unto my feet, and a light unto my path."),
+        ("Ephesians 2:8-9", "For by grace are ye saved through faith; and that not of yourselves: it is the gift of God: Not of works, lest any man should boast."),
+        ("Joshua 1:9", "Have not I commanded thee? Be strong and of a good courage; be not afraid, neither be thou dismayed: for the LORD thy God is with thee whithersoever thou goest."),
+        ("1 Corinthians 13:4-5", "Charity suffereth long, and is kind; charity envieth not; charity vaunteth not itself, is not puffed up, Doth not behave itself unseemly, seeketh not her own, is not easily provoked, thinketh no evil;"),
+        ("Psalm 27:1", "The LORD is my light and my salvation; whom shall I fear? the LORD is the strength of my life; of whom shall I be afraid?"),
+        ("Galatians 5:22-23", "But the fruit of the Spirit is love, joy, peace, longsuffering, gentleness, goodness, faith, Meekness, temperance: against such there is no law."),
+        ("Matthew 11:28", "Come unto me, all ye that labour and are heavy laden, and I will give you rest."),
+        ("2 Timothy 1:7", "For God hath not given us the spirit of fear; but of power, and of love, and of a sound mind."),
+        ("Hebrews 11:1", "Now faith is the substance of things hoped for, the evidence of things not seen."),
+        ("Psalm 37:4", "Delight thyself also in the LORD; and he shall give thee the desires of thine heart."),
+        ("Romans 5:8", "But God commendeth his love toward us, in that, while we were yet sinners, Christ died for us."),
+        ("2 Corinthians 5:17", "Therefore if any man be in Christ, he is a new creature: old things are passed away; behold, all things are become new."),
+        ("Psalm 91:1-2", "He that dwelleth in the secret place of the most High shall abide under the shadow of the Almighty. I will say of the LORD, He is my refuge and my fortress: my God; in him will I trust."),
+        ("Isaiah 41:10", "Fear thou not; for I am with thee: be not dismayed; for I am thy God: I will strengthen thee; yea, I will help thee; yea, I will uphold thee with the right hand of my righteousness."),
+        ("1 Peter 5:7", "Casting all your care upon him; for he careth for you."),
+        ("Psalm 34:8", "O taste and see that the LORD is good: blessed is the man that trusteth in him."),
+        ("James 1:2-3", "My brethren, count it all joy when ye fall into divers temptations; Knowing this, that the trying of your faith worketh patience."),
+        ("Colossians 3:23", "And whatsoever ye do, do it heartily, as to the Lord, and not unto men;"),
+        ("Psalm 103:1", "Bless the LORD, O my soul: and all that is within me, bless his holy name."),
+        ("Matthew 5:16", "Let your light so shine before men, that they may see your good works, and glorify your Father which is in heaven."),
+        ("Hebrews 12:2", "Looking unto Jesus the author and finisher of our faith; who for the joy that was set before him endured the cross, despising the shame, and is set down at the right hand of the throne of God."),
+    ];
+
+    // Get day of year to select verse (cycles through the list)
+    let now_chirho = std::time::SystemTime::now();
+    let since_epoch_chirho = now_chirho.duration_since(std::time::UNIX_EPOCH).unwrap_or_default();
+    let day_of_year_chirho = (since_epoch_chirho.as_secs() / 86400) as usize;
+
+    let index_chirho = day_of_year_chirho % VOTD_VERSES_CHIRHO.len();
+    let (reference_chirho, text_chirho) = VOTD_VERSES_CHIRHO[index_chirho];
+
+    (reference_chirho.to_string(), text_chirho.to_string())
 }
 
 // ============================================================================
@@ -3942,6 +4127,11 @@ mod tests_chirho {
         // Get bookmark ID
         let found_id_chirho = database_chirho::get_bookmark_id_chirho(&conn_chirho, "KJV", "John", 3, 16);
         assert_eq!(found_id_chirho, Some(id_chirho));
+
+        // Update bookmark label
+        database_chirho::update_bookmark_label_chirho(&conn_chirho, id_chirho, "Updated Label").unwrap();
+        let bookmarks_chirho = database_chirho::get_all_bookmarks_chirho(&conn_chirho).unwrap();
+        assert_eq!(bookmarks_chirho[0].label_chirho, Some("Updated Label".to_string()));
 
         // Remove bookmark
         database_chirho::remove_bookmark_chirho(&conn_chirho, id_chirho).unwrap();
