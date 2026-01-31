@@ -5,8 +5,8 @@
   "current_milestone_chirho": "M1_partial",
   "implementation_status_chirho": {
     "completed_chirho": 1,
-    "partial_chirho": 31,
-    "not_started_chirho": 23,
+    "partial_chirho": 32,
+    "not_started_chirho": 22,
     "total_chirho": 55
   },
   "description_chirho": "Cross-platform Bible study application - Codex of Light",
@@ -844,7 +844,17 @@
       "name_chirho": "Versification Support",
       "category_chirho": "Core",
       "priority_chirho": "P1",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
+      "completed_items_chirho": [
+        "KJV versification (default)",
+        "Catholic versification option in Settings",
+        "Orthodox versification option in Settings",
+        "LXX versification option in Settings",
+        "Vulgate versification option in Settings",
+        "Luther versification option in Settings",
+        "Versification selector in Settings panel",
+        "Setting persistence across sessions"
+      ],
       "description_chirho": "Support multiple versification systems",
       "requirements_chirho": [
         "KJV versification",
@@ -854,7 +864,8 @@
         "Vulgate versification",
         "Luther versification",
         "Automatic verse mapping between systems"
-      ]
+      ],
+      "implementation_notes_chirho": "UI selector implemented. Actual verse mapping between systems requires rsword_chirho versification module integration."
     },
 
     "CLX-033": {

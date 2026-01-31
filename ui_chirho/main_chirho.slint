@@ -686,6 +686,12 @@ export global AppStateChirho {
     callback search-lexicon-chirho(string);
     callback browse-lexicon-chirho(string); // Browse by letter
     callback select-lexicon-module-chirho(string);
+
+    // Versification System (CLX-032)
+    // 0=KJV (default), 1=Catholic, 2=Orthodox, 3=LXX, 4=Vulgate, 5=Luther
+    in-out property <int> versification-index-chirho: 0;
+    in-out property <[string]> versification-systems-chirho: ["KJV", "Catholic", "Orthodox", "LXX", "Vulgate", "Luther"];
+    callback set-versification-chirho(int);
 }
 
 // Icon button component with accessibility support
@@ -2861,6 +2867,49 @@ component SettingsPanelChirho inherits Rectangle {
                                 TouchArea {
                                     clicked => {
                                         AppStateChirho.paragraph-mode-chirho = !AppStateChirho.paragraph-mode-chirho;
+                                    }
+                                    mouse-cursor: pointer;
+                                }
+                            }
+                        }
+
+                        // Versification System selector
+                        HorizontalLayout {
+                            spacing: ThemeChirho.spacing-md-chirho;
+                            height: 40px;
+
+                            Text {
+                                text: "Versification";
+                                font-size: ThemeChirho.font-size-md-chirho;
+                                color: ThemeChirho.text-primary-chirho;
+                                vertical-alignment: center;
+                                horizontal-stretch: 1;
+                            }
+                        }
+
+                        HorizontalLayout {
+                            spacing: ThemeChirho.spacing-xs-chirho;
+
+                            for vers-chirho[idx-chirho] in AppStateChirho.versification-systems-chirho: Rectangle {
+                                horizontal-stretch: 1;
+                                height: 28px;
+                                background: idx-chirho == AppStateChirho.versification-index-chirho ?
+                                    ThemeChirho.accent-chirho : ThemeChirho.background-tertiary-chirho;
+                                border-radius: ThemeChirho.radius-sm-chirho;
+
+                                Text {
+                                    text: vers-chirho;
+                                    font-size: ThemeChirho.font-size-xs-chirho;
+                                    color: idx-chirho == AppStateChirho.versification-index-chirho ?
+                                        white : ThemeChirho.text-secondary-chirho;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+
+                                TouchArea {
+                                    clicked => {
+                                        AppStateChirho.versification-index-chirho = idx-chirho;
+                                        AppStateChirho.set-versification-chirho(idx-chirho);
                                     }
                                     mouse-cursor: pointer;
                                 }

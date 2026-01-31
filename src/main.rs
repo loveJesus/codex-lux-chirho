@@ -7,7 +7,7 @@ use std::cell::RefCell;
 use std::path::PathBuf;
 use std::collections::HashSet;
 use anyhow::Result;
-use log::{info, warn, debug};
+use log::{info, warn, debug, error};
 use rusqlite::{Connection, params};
 use directories::ProjectDirs;
 
@@ -3473,6 +3473,50 @@ fn main() -> Result<(), slint::PlatformError> {
         });
     }
 
+    // Set versification system callback
+    {
+        let backend_clone_chirho = Rc::clone(&backend_chirho);
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_set_versification_chirho(move |index_chirho| {
+            let versification_names_chirho = ["KJV", "Catholic", "Orthodox", "LXX", "Vulgate", "Luther"];
+            let name_chirho = versification_names_chirho.get(index_chirho as usize).unwrap_or(&"KJV");
+            info!("Set versification system to: {} (index {})", name_chirho, index_chirho);
+
+            // Save versification setting to database
+            let backend_ref_chirho = backend_clone_chirho.borrow();
+            if let Err(e_chirho) = database_chirho::set_setting_chirho(
+                &backend_ref_chirho.db_conn_chirho,
+                "versification_system",
+                &index_chirho.to_string(),
+            ) {
+                error!("Failed to save versification setting: {}", e_chirho);
+            }
+
+            // Update status message
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                state_chirho.set_status_message_chirho(
+                    format!("Versification set to {}", name_chirho).into()
+                );
+            }
+        });
+    }
+
+    // Load saved versification setting
+    {
+        let backend_ref_chirho = backend_chirho.borrow();
+        if let Some(vers_index_str_chirho) = database_chirho::get_setting_chirho(
+            &backend_ref_chirho.db_conn_chirho,
+            "versification_system",
+        ) {
+            if let Ok(index_chirho) = vers_index_str_chirho.parse::<i32>() {
+                app_state_chirho.set_versification_index_chirho(index_chirho);
+                info!("Loaded versification setting: index {}", index_chirho);
+            }
+        }
+    }
+
     // Check if first run and show onboarding
     {
         let backend_ref_chirho = backend_chirho.borrow();
@@ -5647,5 +5691,35 @@ mod tests_chirho {
         let (title_chirho, content_chirho) = get_sample_lexicon_entry_chirho("unknownword");
         assert_eq!(title_chirho, "unknownword");
         assert!(content_chirho.contains("not found"));
+    }
+
+    #[test]
+    fn test_versification_chirho() {
+        use tempfile::tempdir;
+
+        let temp_dir_chirho = tempdir().unwrap();
+        let db_path_chirho = temp_dir_chirho.path().join("test_versification.db");
+
+        let conn_chirho = database_chirho::init_database_chirho(&db_path_chirho).unwrap();
+
+        // Initially no versification setting
+        let setting_chirho = database_chirho::get_setting_chirho(&conn_chirho, "versification_system");
+        assert!(setting_chirho.is_none());
+
+        // Set versification to Catholic (index 1)
+        database_chirho::set_setting_chirho(&conn_chirho, "versification_system", "1").unwrap();
+        let setting_chirho = database_chirho::get_setting_chirho(&conn_chirho, "versification_system");
+        assert_eq!(setting_chirho, Some("1".to_string()));
+
+        // Change to LXX (index 3)
+        database_chirho::set_setting_chirho(&conn_chirho, "versification_system", "3").unwrap();
+        let setting_chirho = database_chirho::get_setting_chirho(&conn_chirho, "versification_system");
+        assert_eq!(setting_chirho, Some("3".to_string()));
+
+        // Versification names for reference
+        let versification_names_chirho = ["KJV", "Catholic", "Orthodox", "LXX", "Vulgate", "Luther"];
+        assert_eq!(versification_names_chirho.len(), 6);
+        assert_eq!(versification_names_chirho[0], "KJV");
+        assert_eq!(versification_names_chirho[3], "LXX");
     }
 }
