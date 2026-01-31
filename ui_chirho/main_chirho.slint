@@ -6395,6 +6395,17 @@ export component MainWindowChirho inherits Window {
                 }
                 return accept;
             }
+            // Ctrl+Shift+V: Show Verse of the Day dialog (V for Verse)
+            if (event-chirho.text == "V" && event-chirho.modifiers.control && event-chirho.modifiers.shift) {
+                AppStateChirho.load-verse-of-the-day-chirho();
+                AppStateChirho.votd-dialog-visible-chirho = true;
+                return accept;
+            }
+            // Ctrl+,: Toggle settings panel (standard macOS shortcut)
+            if (event-chirho.text == "," && event-chirho.modifiers.control) {
+                AppStateChirho.settings-visible-chirho = !AppStateChirho.settings-visible-chirho;
+                return accept;
+            }
             return reject;
         }
 

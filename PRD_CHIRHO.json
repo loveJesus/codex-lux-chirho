@@ -583,6 +583,8 @@
         "Ctrl+Y for statistics panel toggle",
         "Ctrl+J for study journal toggle",
         "Ctrl+R for prayer list toggle",
+        "Ctrl+Shift+V for Verse of the Day dialog",
+        "Ctrl+, for settings panel toggle",
         "Escape to close dialogs",
         "Goto verse dialog with reference parsing",
         "Support for abbreviated book names (Gen, Jn, Rev, etc.)",
@@ -590,6 +592,7 @@
         "Keyboard shortcut help dialog in settings"
       ],
       "description_chirho": "Keyboard navigation and shortcuts",
+      "implementation_notes_chirho": "20+ keyboard shortcuts implemented for all major features",
       "requirements_chirho": [
         "Navigate with arrow keys",
         "Ctrl+F for search",

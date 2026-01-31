@@ -38,7 +38,7 @@
 - **Study Journal Chirho**: Personal Bible study journal with Ctrl+J (create entries, link to verses, add tags)
 - **Prayer List Chirho**: Prayer request tracking with Ctrl+R (add requests, link to verses, mark answered, categories)
 - **Verse of the Day Chirho**: Daily devotional verse with 🌅 toolbar button (31+ curated verses)
-- **Keyboard Shortcuts Chirho**: Navigate quickly with keyboard (18+ shortcuts)
+- **Keyboard Shortcuts Chirho**: Navigate quickly with keyboard (20+ shortcuts)
 
 ## Keyboard Shortcuts Chirho
 
@@ -60,6 +60,8 @@
 | `Ctrl+Y` | Toggle statistics panel (reading progress) |
 | `Ctrl+J` | Toggle study journal panel |
 | `Ctrl+R` | Toggle prayer list panel |
+| `Ctrl+Shift+V` | Show Verse of the Day dialog |
+| `Ctrl+,` | Toggle settings panel |
 | `Escape` | Close dialogs/panels |
 
 ### Planned Features Chirho
