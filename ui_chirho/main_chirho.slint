@@ -12,22 +12,22 @@ export global LabelsChirho {
     out property <string> note-indicator-chirho: "N";
     out property <string> separator-chirho: "•";
     out property <string> app-name-chirho: "Codex Lux Chirho";
-    out property <string> app-icon-chirho: "✦";
-    out property <string> menu-icon-chirho: "☰";
-    out property <string> search-icon-chirho: "🔍";
-    out property <string> settings-icon-chirho: "⚙";
-    out property <string> close-icon-chirho: "✕";
-    out property <string> nav-prev-chirho: "‹";
-    out property <string> nav-next-chirho: "›";
+    out property <string> app-icon-chirho: "+";
+    out property <string> menu-icon-chirho: "=";
+    out property <string> search-icon-chirho: "?";
+    out property <string> settings-icon-chirho: "*";
+    out property <string> close-icon-chirho: "x";
+    out property <string> nav-prev-chirho: "<";
+    out property <string> nav-next-chirho: ">";
     out property <string> search-placeholder-chirho: "Search the Scriptures...";
     out property <string> search-button-chirho: "Search";
     out property <string> book-count-chirho: "66";
-    out property <string> theme-dark-icon-chirho: "🌙";
-    out property <string> theme-light-icon-chirho: "☀";
-    out property <string> theme-sepia-icon-chirho: "📜";
-    out property <string> copy-icon-chirho: "📋";
-    out property <string> bookmark-icon-chirho: "🔖";
-    out property <string> goto-icon-chirho: "⏩";
+    out property <string> theme-dark-icon-chirho: "D";
+    out property <string> theme-light-icon-chirho: "L";
+    out property <string> theme-sepia-icon-chirho: "S";
+    out property <string> copy-icon-chirho: "Cp";
+    out property <string> bookmark-icon-chirho: "Bk";
+    out property <string> goto-icon-chirho: ">>";
     out property <string> old-testament-label-chirho: "OLD TESTAMENT";
     out property <string> new-testament-label-chirho: "NEW TESTAMENT";
     out property <string> ot-book-count-chirho: "39";
@@ -971,7 +971,7 @@ component ChapterBarChirho inherits Rectangle {
 
         // Previous book button
         NavButtonChirho {
-            label-chirho: "‹‹";
+            label-chirho: "<<";
             clicked-chirho => {
                 AppStateChirho.navigate-prev-book-chirho();
             }
@@ -1046,7 +1046,7 @@ component ChapterBarChirho inherits Rectangle {
 
         // Next book button
         NavButtonChirho {
-            label-chirho: "››";
+            label-chirho: ">>";
             clicked-chirho => {
                 AppStateChirho.navigate-next-book-chirho();
             }
@@ -1171,7 +1171,7 @@ component ContextMenuChirho inherits Rectangle {
                 }
 
                 ContextMenuItemChirho {
-                    icon-chirho: "✦";
+                    icon-chirho: "*";
                     label-chirho: "Highlight";
                     clicked-chirho => {
                         AppStateChirho.toggle-highlight-chirho(verse-ref-chirho);
@@ -2403,7 +2403,7 @@ component ToolbarChirho inherits Rectangle {
 
         // Highlights button
         IconButtonChirho {
-            icon-chirho: "✦";
+            icon-chirho: "*";
             active-chirho: AppStateChirho.highlights-visible-chirho;
             clicked-chirho => {
                 AppStateChirho.load-all-highlights-chirho();
@@ -2450,7 +2450,7 @@ component ToolbarChirho inherits Rectangle {
 
         // Cross-References button
         IconButtonChirho {
-            icon-chirho: "⤴";  // Arrow for cross-refs
+            icon-chirho: "Xr";  // Arrow for cross-refs
             active-chirho: AppStateChirho.cross-refs-visible-chirho;
             clicked-chirho => {
                 AppStateChirho.toggle-cross-refs-display-chirho();
@@ -2459,7 +2459,7 @@ component ToolbarChirho inherits Rectangle {
 
         // Footnotes button
         IconButtonChirho {
-            icon-chirho: "※";  // Reference mark for footnotes
+            icon-chirho: "Fn";  // Reference mark for footnotes
             active-chirho: AppStateChirho.footnotes-visible-chirho;
             clicked-chirho => {
                 AppStateChirho.toggle-footnotes-display-chirho();
@@ -2728,9 +2728,9 @@ component SettingsPanelChirho inherits Rectangle {
                                 spacing: ThemeChirho.spacing-xs-chirho;
 
                                 for theme-opt-chirho in [
-                                    { idx-chirho: 0, name-chirho: "Dark", icon-chirho: "🌙" },
-                                    { idx-chirho: 1, name-chirho: "Light", icon-chirho: "☀" },
-                                    { idx-chirho: 2, name-chirho: "Sepia", icon-chirho: "📜" },
+                                    { idx-chirho: 0, name-chirho: "Dark", icon-chirho: "D" },
+                                    { idx-chirho: 1, name-chirho: "Light", icon-chirho: "L" },
+                                    { idx-chirho: 2, name-chirho: "Sepia", icon-chirho: "S" },
                                     { idx-chirho: 3, name-chirho: "Contrast", icon-chirho: "⬤" }
                                 ]: Rectangle {
                                     horizontal-stretch: 1;
@@ -3208,7 +3208,7 @@ component SettingsPanelChirho inherits Rectangle {
                                 border-color: ThemeChirho.border-subtle-chirho;
 
                                 Text {
-                                    text: "✦ Highlights";
+                                    text: "* Highlights";
                                     font-size: 11px;
                                     color: ThemeChirho.text-secondary-chirho;
                                     horizontal-alignment: center;
@@ -3232,7 +3232,7 @@ component SettingsPanelChirho inherits Rectangle {
                                 border-color: ThemeChirho.border-subtle-chirho;
 
                                 Text {
-                                    text: "🔖 Bookmarks";
+                                    text: "Bk Bookmarks";
                                     font-size: 11px;
                                     color: ThemeChirho.text-secondary-chirho;
                                     horizontal-alignment: center;
@@ -4099,7 +4099,7 @@ component VotdDialogChirho inherits Rectangle {
                     border-color: ThemeChirho.border-chirho;
 
                     Text {
-                        text: "📋 Copy";
+                        text: "Cp Copy";
                         font-size: ThemeChirho.font-size-sm-chirho;
                         color: ThemeChirho.text-secondary-chirho;
                         horizontal-alignment: center;
@@ -4819,7 +4819,7 @@ component InfoPanelChirho inherits Rectangle {
                         height: 28px;
 
                         Text {
-                            text: AppStateChirho.info-has-highlight-chirho ? "✦" : "○";
+                            text: AppStateChirho.info-has-highlight-chirho ? "*" : "o";
                             font-size: 16px;
                             color: AppStateChirho.info-has-highlight-chirho ?
                                 (AppStateChirho.info-highlight-color-chirho == "yellow" ? #fbbf24 :
@@ -4847,7 +4847,7 @@ component InfoPanelChirho inherits Rectangle {
                         height: 28px;
 
                         Text {
-                            text: AppStateChirho.info-has-bookmark-chirho ? "🔖" : "○";
+                            text: AppStateChirho.info-has-bookmark-chirho ? "Bk" : "o";
                             font-size: 16px;
                             color: AppStateChirho.info-has-bookmark-chirho ?
                                 ThemeChirho.accent-chirho : ThemeChirho.text-muted-chirho;
@@ -4867,7 +4867,7 @@ component InfoPanelChirho inherits Rectangle {
                         height: 28px;
 
                         Text {
-                            text: AppStateChirho.info-has-note-chirho ? "📝" : "○";
+                            text: AppStateChirho.info-has-note-chirho ? "📝" : "o";
                             font-size: 16px;
                             color: AppStateChirho.info-has-note-chirho ?
                                 ThemeChirho.accent-chirho : ThemeChirho.text-muted-chirho;
@@ -4972,7 +4972,7 @@ component StatisticsPanelChirho inherits Rectangle {
                 border-radius: ThemeChirho.radius-sm-chirho;
 
                 Text {
-                    text: "✕";
+                    text: "x";
                     font-size: 14px;
                     color: ThemeChirho.text-secondary-chirho;
                     horizontal-alignment: center;
@@ -5234,7 +5234,7 @@ component StatisticsPanelChirho inherits Rectangle {
                         height: 32px;
 
                         Text {
-                            text: "✦";
+                            text: "*";
                             font-size: 16px;
                             color: #fbbf24;
                             vertical-alignment: center;
@@ -5261,7 +5261,7 @@ component StatisticsPanelChirho inherits Rectangle {
                         height: 32px;
 
                         Text {
-                            text: "🔖";
+                            text: "Bk";
                             font-size: 16px;
                             vertical-alignment: center;
                         }
@@ -5705,7 +5705,7 @@ component JournalPanelChirho inherits Rectangle {
                     border-radius: ThemeChirho.radius-sm-chirho;
 
                     Text {
-                        text: "✕";
+                        text: "x";
                         font-size: 14px;
                         color: ThemeChirho.text-secondary-chirho;
                         horizontal-alignment: center;
@@ -5787,7 +5787,7 @@ component JournalPanelChirho inherits Rectangle {
                                 border-radius: 10px;
 
                                 Text {
-                                    text: "✕";
+                                    text: "x";
                                     font-size: 10px;
                                     color: del-touch-chirho.has-hover ? white : ThemeChirho.text-muted-chirho;
                                     horizontal-alignment: center;
@@ -6108,7 +6108,7 @@ component PrayerPanelChirho inherits Rectangle {
                     border-radius: ThemeChirho.radius-sm-chirho;
 
                     Text {
-                        text: "✕";
+                        text: "x";
                         font-size: 14px;
                         color: ThemeChirho.text-secondary-chirho;
                         horizontal-alignment: center;
@@ -6228,7 +6228,7 @@ component PrayerPanelChirho inherits Rectangle {
                                     border-radius: 10px;
 
                                     Text {
-                                        text: "✕";
+                                        text: "x";
                                         font-size: 10px;
                                         color: del-touch-chirho.has-hover ? white : ThemeChirho.text-muted-chirho;
                                         horizontal-alignment: center;
@@ -7570,7 +7570,7 @@ component OnboardingWizardChirho inherits Rectangle {
                 spacing: ThemeChirho.spacing-md-chirho;
 
                 Text {
-                    text: "✦";
+                    text: "*";
                     font-size: 48px;
                     color: ThemeChirho.accent-chirho;
                 }
@@ -7652,7 +7652,7 @@ component OnboardingWizardChirho inherits Rectangle {
                             }
                             HorizontalLayout {
                                 spacing: ThemeChirho.spacing-sm-chirho;
-                                Text { text: "🔍"; font-size: 20px; }
+                                Text { text: "?"; font-size: 20px; }
                                 VerticalLayout {
                                     Text { text: "Full-Text Search"; font-size: 13px; font-weight: 600; color: ThemeChirho.text-primary-chirho; }
                                     Text { text: "Search across all text"; font-size: 11px; color: ThemeChirho.text-muted-chirho; }
@@ -7663,7 +7663,7 @@ component OnboardingWizardChirho inherits Rectangle {
                         Row {
                             HorizontalLayout {
                                 spacing: ThemeChirho.spacing-sm-chirho;
-                                Text { text: "✦"; font-size: 20px; color: #fbbf24; }
+                                Text { text: "*"; font-size: 20px; color: #fbbf24; }
                                 VerticalLayout {
                                     Text { text: "Highlights"; font-size: 13px; font-weight: 600; color: ThemeChirho.text-primary-chirho; }
                                     Text { text: "Mark verses with colors"; font-size: 11px; color: ThemeChirho.text-muted-chirho; }
@@ -7671,7 +7671,7 @@ component OnboardingWizardChirho inherits Rectangle {
                             }
                             HorizontalLayout {
                                 spacing: ThemeChirho.spacing-sm-chirho;
-                                Text { text: "🔖"; font-size: 20px; }
+                                Text { text: "Bk"; font-size: 20px; }
                                 VerticalLayout {
                                     Text { text: "Bookmarks"; font-size: 13px; font-weight: 600; color: ThemeChirho.text-primary-chirho; }
                                     Text { text: "Save favorite verses"; font-size: 11px; color: ThemeChirho.text-muted-chirho; }
@@ -7690,7 +7690,7 @@ component OnboardingWizardChirho inherits Rectangle {
                             }
                             HorizontalLayout {
                                 spacing: ThemeChirho.spacing-sm-chirho;
-                                Text { text: "🌙"; font-size: 20px; }
+                                Text { text: "D"; font-size: 20px; }
                                 VerticalLayout {
                                     Text { text: "Themes"; font-size: 13px; font-weight: 600; color: ThemeChirho.text-primary-chirho; }
                                     Text { text: "Dark, Light, and Sepia"; font-size: 11px; color: ThemeChirho.text-muted-chirho; }
@@ -7805,7 +7805,7 @@ component OnboardingWizardChirho inherits Rectangle {
                     }
 
                     Text {
-                        text: "✦";
+                        text: "*";
                         font-size: 48px;
                         color: ThemeChirho.accent-chirho;
                         horizontal-alignment: center;

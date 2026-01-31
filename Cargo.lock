@@ -971,6 +971,7 @@ dependencies = [
  "directories",
  "env_logger",
  "log",
+ "regex",
  "rsword_chirho",
  "rusqlite",
  "serde",

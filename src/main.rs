@@ -1143,6 +1143,30 @@ mod database_chirho {
 mod bible_engine_chirho {
     use super::*;
     use rsword_chirho::{SwMgrChirho, FilterChirho, OsisToPlainFilterChirho};
+    use regex::Regex;
+    use std::sync::LazyLock;
+
+    // Regex patterns for extracting interlinear data from OSIS
+    static OSIS_WORD_REGEX_CHIRHO: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r#"<w\s+([^>]*)>([^<]*)</w>"#).unwrap()
+    });
+
+    static OSIS_GLOSS_REGEX_CHIRHO: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r#"gloss="([^"]*)""#).unwrap()
+    });
+
+    #[allow(dead_code)]
+    static OSIS_LEMMA_REGEX_CHIRHO: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r#"lemma="([^"]*)""#).unwrap()
+    });
+
+    static OSIS_STRONGS_REGEX_CHIRHO: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r#"strong:([GH]\d+)"#).unwrap()
+    });
+
+    static OSIS_MORPH_REGEX_CHIRHO: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r#"morph="([^"]*)""#).unwrap()
+    });
 
     /// Bible engine wrapping rsword_chirho
     pub struct BibleEngineChirho {
@@ -1236,6 +1260,50 @@ mod bible_engine_chirho {
             get_sample_verses_chirho(book_chirho, chapter_chirho)
         }
 
+        /// Get verses for a chapter from a specific module (for parallel view)
+        pub fn get_chapter_verses_for_module_chirho(
+            &self,
+            module_name_chirho: &str,
+            book_chirho: &str,
+            chapter_chirho: i32,
+        ) -> Vec<(String, String)> {
+            // Try to get from SWORD module
+            if let Some(mgr_chirho) = &self.manager_chirho {
+                if let Ok(loaded_module_chirho) = mgr_chirho.load_module_chirho(module_name_chirho) {
+                    let mut verses_chirho = Vec::new();
+                    let max_verse_chirho = 200;
+
+                    for verse_num_chirho in 1..=max_verse_chirho {
+                        let ref_str_chirho = format!("{} {}:{}", book_chirho, chapter_chirho, verse_num_chirho);
+
+                        match loaded_module_chirho.read_entry_chirho(&ref_str_chirho) {
+                            Ok(text_chirho) if !text_chirho.trim().is_empty() => {
+                                let filtered_text_chirho = self.osis_filter_chirho
+                                    .process_chirho(&text_chirho)
+                                    .unwrap_or_else(|_| text_chirho.clone());
+                                verses_chirho.push((
+                                    verse_num_chirho.to_string(),
+                                    filtered_text_chirho,
+                                ));
+                            }
+                            _ => {
+                                if verse_num_chirho > 1 {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if !verses_chirho.is_empty() {
+                        return verses_chirho;
+                    }
+                }
+            }
+
+            // Fallback to sample verses
+            get_sample_verses_chirho(book_chirho, chapter_chirho)
+        }
+
         /// Set the current module
         pub fn set_module_chirho(&mut self, module_name_chirho: &str) {
             self.current_module_chirho = module_name_chirho.to_string();
@@ -1246,6 +1314,76 @@ mod bible_engine_chirho {
         #[allow(dead_code)]
         pub fn current_module_chirho(&self) -> &str {
             &self.current_module_chirho
+        }
+
+        /// Get raw OSIS text for a verse (for interlinear parsing)
+        pub fn get_raw_verse_chirho(&self, verse_ref_chirho: &str) -> Option<String> {
+            if let Some(mgr_chirho) = &self.manager_chirho {
+                if let Ok(loaded_module_chirho) = mgr_chirho.load_module_chirho(&self.current_module_chirho) {
+                    if let Ok(text_chirho) = loaded_module_chirho.read_entry_chirho(verse_ref_chirho) {
+                        if !text_chirho.trim().is_empty() {
+                            return Some(text_chirho);
+                        }
+                    }
+                }
+            }
+            None
+        }
+
+        /// Extract interlinear word data from OSIS text
+        pub fn extract_interlinear_chirho(&self, verse_ref_chirho: &str) -> Vec<InterlinearWordChirho> {
+            let mut words_chirho = Vec::new();
+
+            // Try to get raw OSIS text
+            if let Some(raw_text_chirho) = self.get_raw_verse_chirho(verse_ref_chirho) {
+                // Parse <w> elements
+                for cap_chirho in OSIS_WORD_REGEX_CHIRHO.captures_iter(&raw_text_chirho) {
+                    let attrs_chirho = &cap_chirho[1];
+                    let word_text_chirho = &cap_chirho[2];
+
+                    // Extract gloss (translation)
+                    let gloss_chirho = OSIS_GLOSS_REGEX_CHIRHO
+                        .captures(attrs_chirho)
+                        .map(|c_chirho| c_chirho[1].to_string())
+                        .unwrap_or_default();
+
+                    // Extract Strong's numbers
+                    let strongs_chirho: Vec<String> = OSIS_STRONGS_REGEX_CHIRHO
+                        .captures_iter(attrs_chirho)
+                        .map(|c_chirho| c_chirho[1].to_string())
+                        .collect();
+
+                    // Extract morphology
+                    let morph_chirho = OSIS_MORPH_REGEX_CHIRHO
+                        .captures(attrs_chirho)
+                        .map(|c_chirho| c_chirho[1].to_string())
+                        .unwrap_or_default();
+
+                    // Determine if Hebrew (H prefix) or Greek (G prefix)
+                    let is_hebrew_chirho = strongs_chirho.first()
+                        .map(|s_chirho: &String| s_chirho.starts_with('H'))
+                        .unwrap_or(false);
+
+                    // Extract part of speech from morphology
+                    let pos_chirho = if !morph_chirho.is_empty() {
+                        morph_chirho.split('|').next().unwrap_or("").trim().to_string()
+                    } else {
+                        String::new()
+                    };
+
+                    words_chirho.push(InterlinearWordChirho {
+                        original_chirho: word_text_chirho.to_string().into(),
+                        transliteration_chirho: "".into(), // Would need transliteration library
+                        morphology_chirho: morph_chirho.into(),
+                        strongs_chirho: strongs_chirho.join(", ").into(),
+                        gloss_chirho: gloss_chirho.into(),
+                        part_of_speech_chirho: pos_chirho.into(),
+                        is_hebrew_chirho,
+                    });
+                }
+            }
+
+            words_chirho
         }
 
         /// Search for verses containing the query
@@ -1627,10 +1765,12 @@ fn main() -> Result<(), slint::PlatformError> {
                 if state_chirho.get_parallel_view_enabled_chirho() {
                     let parallel_module_chirho = state_chirho.get_parallel_module_chirho();
                     if !parallel_module_chirho.is_empty() {
-                        let raw_parallel_verses_chirho = get_sample_verses_chirho(
-                            book_chirho.as_ref(),
-                            chapter_chirho,
-                        );
+                        let raw_parallel_verses_chirho = backend_mut_chirho.bible_engine_chirho
+                            .get_chapter_verses_for_module_chirho(
+                                parallel_module_chirho.as_str(),
+                                book_chirho.as_ref(),
+                                chapter_chirho,
+                            );
                         let parallel_verses_chirho = raw_verses_to_verse_chirho(raw_parallel_verses_chirho);
                         state_chirho.set_parallel_verses_chirho(
                             Rc::new(slint::VecModel::from(parallel_verses_chirho)).into()
@@ -2651,18 +2791,19 @@ fn main() -> Result<(), slint::PlatformError> {
 
             if let Some(window_chirho) = window_weak_chirho.upgrade() {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
-                let _backend_ref_chirho = backend_clone_chirho.borrow();
+                let backend_ref_chirho = backend_clone_chirho.borrow();
 
                 // Get the current book and chapter
                 let current_book_chirho = state_chirho.get_current_book_chirho();
                 let current_chapter_chirho = state_chirho.get_current_chapter_chirho();
 
-                // Load verses for the parallel module using sample verses
-                // In a full implementation, this would query rsword_chirho for the module
-                let raw_parallel_verses_chirho = get_sample_verses_chirho(
-                    current_book_chirho.as_ref(),
-                    current_chapter_chirho,
-                );
+                // Load verses for the parallel module using BibleEngine
+                let raw_parallel_verses_chirho = backend_ref_chirho.bible_engine_chirho
+                    .get_chapter_verses_for_module_chirho(
+                        module_name_chirho.as_str(),
+                        current_book_chirho.as_ref(),
+                        current_chapter_chirho,
+                    );
                 let parallel_verses_chirho = raw_verses_to_verse_chirho(raw_parallel_verses_chirho);
 
                 state_chirho.set_parallel_module_chirho(module_name_chirho.clone());
@@ -3525,6 +3666,7 @@ fn main() -> Result<(), slint::PlatformError> {
 
     // Interlinear display callbacks (CLX-051)
     {
+        let backend_clone_chirho = backend_chirho.clone();
         let window_weak_chirho = main_window_chirho.as_weak();
 
         // Toggle interlinear display
@@ -3541,8 +3683,14 @@ fn main() -> Result<(), slint::PlatformError> {
                     let verse_ref_chirho = format!("{} {}:1", book_chirho, chapter_chirho);
                     state_chirho.set_interlinear_verse_ref_chirho(verse_ref_chirho.clone().into());
 
-                    // Load sample interlinear data
-                    let words_chirho = get_sample_interlinear_chirho(&verse_ref_chirho);
+                    // Try to extract from OSIS, fallback to sample data
+                    let backend_ref_chirho = backend_clone_chirho.borrow();
+                    let words_chirho = backend_ref_chirho.bible_engine_chirho.extract_interlinear_chirho(&verse_ref_chirho);
+                    let words_chirho = if words_chirho.is_empty() {
+                        get_sample_interlinear_chirho(&verse_ref_chirho)
+                    } else {
+                        words_chirho
+                    };
                     let words_model_chirho: Rc<slint::VecModel<InterlinearWordChirho>> =
                         Rc::new(slint::VecModel::from(words_chirho));
                     state_chirho.set_interlinear_words_chirho(slint::ModelRc::from(words_model_chirho));
@@ -3556,6 +3704,7 @@ fn main() -> Result<(), slint::PlatformError> {
     }
 
     {
+        let backend_clone_chirho = backend_chirho.clone();
         let window_weak_chirho = main_window_chirho.as_weak();
 
         // Load interlinear for a specific verse
@@ -3566,8 +3715,14 @@ fn main() -> Result<(), slint::PlatformError> {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
                 state_chirho.set_interlinear_verse_ref_chirho(verse_ref_chirho.clone());
 
-                // Load sample interlinear data
-                let words_chirho = get_sample_interlinear_chirho(verse_ref_chirho.as_str());
+                // Try to extract from OSIS, fallback to sample data
+                let backend_ref_chirho = backend_clone_chirho.borrow();
+                let words_chirho = backend_ref_chirho.bible_engine_chirho.extract_interlinear_chirho(verse_ref_chirho.as_str());
+                let words_chirho = if words_chirho.is_empty() {
+                    get_sample_interlinear_chirho(verse_ref_chirho.as_str())
+                } else {
+                    words_chirho
+                };
                 let words_model_chirho: Rc<slint::VecModel<InterlinearWordChirho>> =
                     Rc::new(slint::VecModel::from(words_chirho));
                 state_chirho.set_interlinear_words_chirho(slint::ModelRc::from(words_model_chirho));

@@ -44,6 +44,9 @@ directories = "5.0"
 # Date/time for journals
 chrono = { version = "0.4", features = ["serde"] }
 
+# Regex for OSIS parsing
+regex = "1.10"
+
 [dev-dependencies]
 tempfile = "3.8"
 

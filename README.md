@@ -37,23 +37,24 @@
 - **Statistics Chirho**: Reading progress tracking with Ctrl+Y (chapters read, reading streaks, study activity counts)
 - **Study Journal Chirho**: Personal Bible study journal with Ctrl+J (create entries, link to verses, add tags)
 - **Prayer List Chirho**: Prayer request tracking with Ctrl+R (add requests, link to verses, mark answered, categories)
-- **Verse of the Day Chirho**: Daily devotional verse with 🌅 toolbar button (31+ curated verses)
+- **Verse of the Day Chirho**: Daily devotional verse with Vd toolbar button (31+ curated verses)
 - **Strong's Numbers Chirho**: Hebrew/Greek Strong's concordance lookup with H button and popup definitions
 - **Morphology Display Chirho**: Greek and Hebrew grammatical analysis with M button (Robinson/OSHM parsing)
-- **Cross-References Chirho**: Scripture cross-reference display with ⤴ button (clickable refs, popup preview)
-- **Footnotes Chirho**: Translator and textual footnotes with ※ button (alternative readings, variant notes)
-- **Reading Plans Chirho**: Pre-built Bible reading plans with 📅 toolbar button (1-year, 90-day NT, Gospels, Psalms/Proverbs, Chronological)
-- **Commentary Chirho**: Commentary integration with 📖 toolbar button (Ctrl+Shift+C) - auto-sync with current verse, module selection
-- **Lexicon Chirho**: Dictionary/lexicon lookup with 📚 toolbar button (Ctrl+Shift+L) - search, A-Z browse, entry history
-- **Interlinear Chirho**: Word-by-word Hebrew/Greek display with ≡ toolbar button (Ctrl+Shift+I) - original text, transliteration, morphology, Strong's, gloss
+- **Cross-References Chirho**: Scripture cross-reference display with Xr button (clickable refs, popup preview)
+- **Footnotes Chirho**: Translator and textual footnotes with Fn button (alternative readings, variant notes)
+- **Reading Plans Chirho**: Pre-built Bible reading plans with Pl toolbar button (1-year, 90-day NT, Gospels, Psalms/Proverbs, Chronological)
+- **Commentary Chirho**: Commentary integration with Cm toolbar button (Ctrl+Shift+C) - auto-sync with current verse, module selection
+- **Lexicon Chirho**: Dictionary/lexicon lookup with Lx toolbar button (Ctrl+Shift+L) - search, A-Z browse, entry history
+- **Interlinear Chirho**: Word-by-word Hebrew/Greek display with interlinear toolbar button (Ctrl+Shift+I) - original text, transliteration, morphology, Strong's, gloss
+- **Versification Systems Chirho**: Support for KJV, Catholic, Orthodox, LXX, Vulgate, Luther versification
 - **Keyboard Shortcuts Chirho**: Navigate quickly with keyboard (28+ shortcuts)
 
 ## Keyboard Shortcuts Chirho
 
 | Shortcut | Action |
 |----------|--------|
-| `←` / `→` | Previous / Next chapter |
-| `‹‹` / `››` | Previous / Next book (toolbar) |
+| `<` / `>` | Previous / Next chapter |
+| `<<` / `>>` | Previous / Next book (toolbar) |
 | `Ctrl+F` | Toggle search panel |
 | `Ctrl+G` | Goto verse dialog |
 | `Ctrl+K` | Quick navigation (command palette) |
@@ -84,14 +85,10 @@
 
 See [PRD_CHIRHO.json](PRD_CHIRHO.json) for the complete product roadmap with 55+ features including:
 
-- Full-text search with Tantivy indexing
-- Strong's numbers and morphology display
-- Cross-references and footnotes
-- Parallel view (multiple translations)
-- Interlinear display with word-by-word gloss
-- Reading plans and devotionals
-- Commentary integration
+- Full-text search with Tantivy indexing (in progress)
 - Module management (install/uninstall from CrossWire)
+- Audio Bible playback
+- Scripture memory tools
 - Mac App Store, iOS, and Android distribution
 
 ## Tech Stack Chirho
