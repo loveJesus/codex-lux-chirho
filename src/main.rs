@@ -4792,7 +4792,7 @@ fn list_backup_files_chirho() -> Result<Vec<String>> {
 /// In production, this would query an interlinear module via rsword_chirho
 fn get_sample_interlinear_chirho(verse_ref_chirho: &str) -> Vec<InterlinearWordChirho> {
     match verse_ref_chirho {
-        ref v if v.contains("Genesis 1:1") || v.contains("Genesis 1") => vec![
+        v if v.contains("Genesis 1:1") || v.contains("Genesis 1") => vec![
             InterlinearWordChirho {
                 original_chirho: "בְּרֵאשִׁ֖ית".into(),
                 transliteration_chirho: "bəreʾšiṯ".into(),
@@ -4857,7 +4857,7 @@ fn get_sample_interlinear_chirho(verse_ref_chirho: &str) -> Vec<InterlinearWordC
                 is_hebrew_chirho: true,
             },
         ],
-        ref v if v.contains("John 3:16") || v.contains("John 3") => vec![
+        v if v.contains("John 3:16") || v.contains("John 3") => vec![
             InterlinearWordChirho {
                 original_chirho: "Οὕτως".into(),
                 transliteration_chirho: "houtōs".into(),
