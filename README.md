@@ -8,17 +8,18 @@
 
 ## Features Chirho
 
-### Current (v0.1.4)
+### Current (v0.1.6)
 
 - **Multi-Module Support Chirho**: Load and display SWORD Bible modules via rsword_chirho (RawText, zText, RawCom, zCom, RawLD, zLD formats)
 - **Navigation Chirho**: Browse all 66 books with Old/New Testament grouping, chapter grid selector, prev/next book buttons
 - **Goto Verse Chirho**: Jump to any verse with Ctrl+G (supports abbreviations like "Jn 3:16", "Gen 1:1", "1Cor 13:4")
-- **Text Display Chirho**: Proper rendering of Hebrew (RTL with vowel points) and Greek (with accents)
-- **Highlights Chirho**: Click verses to highlight them (persisted in SQLite, 5 colors supported)
+- **Text Display Chirho**: Red letter text support, section headings, poetry indentation (0-3 levels), paragraph markers
+- **Text Rendering Chirho**: Proper rendering of Hebrew (RTL with vowel points) and Greek (with accents)
+- **Highlights Chirho**: Click verses to highlight them (persisted in SQLite, 5 colors, filter by color)
 - **Notes Chirho**: Personal notes on verses with save/delete UI, note indicator on verses
-- **Bookmarks Chirho**: Bookmark verses with sidebar panel, quick navigation to bookmarked verses
+- **Bookmarks Chirho**: Bookmark verses with sidebar panel, quick navigation to bookmarked verses, edit labels
 - **Reading History Chirho**: Track and navigate to recently read chapters
-- **Search Chirho**: Case-insensitive text search with results preview and count
+- **Search Chirho**: Case-insensitive text search with scope selection (All, OT, NT, Current Book)
 - **Data Persistence Chirho**: SQLite database for highlights, bookmarks, notes, and settings
 - **State Restoration Chirho**: Remembers your last location between sessions
 - **Theme Toggle Chirho**: Dark, Light, Sepia, and High Contrast themes with Ctrl+T shortcut
@@ -36,7 +37,8 @@
 - **Statistics Chirho**: Reading progress tracking with Ctrl+Y (chapters read, reading streaks, study activity counts)
 - **Study Journal Chirho**: Personal Bible study journal with Ctrl+J (create entries, link to verses, add tags)
 - **Prayer List Chirho**: Prayer request tracking with Ctrl+R (add requests, link to verses, mark answered, categories)
-- **Keyboard Shortcuts Chirho**: Navigate quickly with keyboard (17+ shortcuts)
+- **Verse of the Day Chirho**: Daily devotional verse with 🌅 toolbar button (31+ curated verses)
+- **Keyboard Shortcuts Chirho**: Navigate quickly with keyboard (18+ shortcuts)
 
 ## Keyboard Shortcuts Chirho
 
