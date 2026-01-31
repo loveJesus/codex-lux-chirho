@@ -47,7 +47,9 @@
 - **Lexicon Chirho**: Dictionary/lexicon lookup with Lx toolbar button (Ctrl+Shift+L) - search, A-Z browse, entry history
 - **Interlinear Chirho**: Word-by-word Hebrew/Greek display with interlinear toolbar button (Ctrl+Shift+I) - original text, transliteration, morphology, Strong's, gloss
 - **Versification Systems Chirho**: Support for KJV, Catholic, Orthodox, LXX, Vulgate, Luther versification
+- **Toolbar Tooltips Chirho**: Hover over toolbar buttons to see feature names and keyboard shortcuts
 - **Keyboard Shortcuts Chirho**: Navigate quickly with keyboard (28+ shortcuts)
+- **Verse Comparison Chirho**: Compare verse across multiple translations in a dedicated dialog
 
 ## Keyboard Shortcuts Chirho
 

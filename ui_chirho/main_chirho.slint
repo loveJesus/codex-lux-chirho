@@ -565,6 +565,12 @@ export global AppStateChirho {
     in-out property <[VerseChirho]> parallel-verses-chirho: [];
     callback load-parallel-module-chirho(string);
 
+    // Verse Comparison Dialog (CLX-025)
+    in-out property <bool> comparison-dialog-visible-chirho: false;
+    in-out property <string> comparison-verse-ref-chirho: "";
+    in-out property <[{module-chirho: string, text-chirho: string}]> comparison-texts-chirho: [];
+    callback load-verse-comparison-chirho(string);
+
     // Info Panel (contextual verse details)
     in-out property <bool> info-panel-visible-chirho: false;
     in-out property <string> info-verse-ref-chirho: "";
@@ -721,6 +727,7 @@ component IconButtonChirho inherits Rectangle {
     in property <string> icon-chirho;
     in property <bool> active-chirho: false;
     in property <string> accessible-label-chirho: "";
+    in property <string> tooltip-chirho: "";  // Tooltip text
     in property <bool> has-focus-chirho: false;
     callback clicked-chirho();
 
@@ -747,6 +754,28 @@ component IconButtonChirho inherits Rectangle {
     touch-area-chirho := TouchArea {
         clicked => { root.clicked-chirho(); }
         mouse-cursor: pointer;
+    }
+
+    // Tooltip popup on hover
+    if tooltip-chirho != "" && touch-area-chirho.has-hover: Rectangle {
+        x: root.width + 4px;
+        y: (root.height - self.height) / 2;
+        height: 24px;
+        width: tooltip-text-chirho.preferred-width + 16px;
+        background: ThemeChirho.background-primary-chirho;
+        border-radius: ThemeChirho.radius-sm-chirho;
+        border-width: 1px;
+        border-color: ThemeChirho.border-chirho;
+        drop-shadow-blur: 4px;
+        drop-shadow-color: rgba(0, 0, 0, 0.15);
+
+        tooltip-text-chirho := Text {
+            text: tooltip-chirho;
+            font-size: ThemeChirho.font-size-xs-chirho;
+            color: ThemeChirho.text-primary-chirho;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
     }
 }
 
@@ -1196,11 +1225,13 @@ component ContextMenuChirho inherits Rectangle {
                 }
 
                 ContextMenuItemChirho {
-                    icon-chirho: "⇄";
+                    icon-chirho: "Cmp";
                     label-chirho: "Compare Translations";
                     clicked-chirho => {
-                        // Enable parallel view for translation comparison
-                        AppStateChirho.parallel-view-enabled-chirho = true;
+                        // Open verse comparison dialog
+                        AppStateChirho.comparison-verse-ref-chirho = verse-ref-chirho;
+                        AppStateChirho.load-verse-comparison-chirho(verse-ref-chirho);
+                        AppStateChirho.comparison-dialog-visible-chirho = true;
                         root.visible-chirho = false;
                     }
                 }
@@ -2332,6 +2363,7 @@ component ToolbarChirho inherits Rectangle {
         IconButtonChirho {
             icon-chirho: LabelsChirho.menu-icon-chirho;
             active-chirho: AppStateChirho.sidebar-visible-chirho;
+            tooltip-chirho: "Books (Ctrl+B)";
             clicked-chirho => {
                 AppStateChirho.sidebar-visible-chirho = !AppStateChirho.sidebar-visible-chirho;
             }
@@ -2377,6 +2409,7 @@ component ToolbarChirho inherits Rectangle {
         IconButtonChirho {
             icon-chirho: LabelsChirho.search-icon-chirho;
             active-chirho: AppStateChirho.search-active-chirho;
+            tooltip-chirho: "Search (Ctrl+F)";
             clicked-chirho => {
                 AppStateChirho.search-active-chirho = !AppStateChirho.search-active-chirho;
             }
@@ -2386,6 +2419,7 @@ component ToolbarChirho inherits Rectangle {
         IconButtonChirho {
             icon-chirho: LabelsChirho.bookmark-icon-chirho;
             active-chirho: AppStateChirho.bookmarks-visible-chirho;
+            tooltip-chirho: "Bookmarks (Ctrl+D)";
             clicked-chirho => {
                 AppStateChirho.bookmarks-visible-chirho = !AppStateChirho.bookmarks-visible-chirho;
             }
@@ -2395,6 +2429,7 @@ component ToolbarChirho inherits Rectangle {
         IconButtonChirho {
             icon-chirho: LabelsChirho.history-icon-chirho;
             active-chirho: AppStateChirho.history-visible-chirho;
+            tooltip-chirho: "History";
             clicked-chirho => {
                 AppStateChirho.load-history-chirho();
                 AppStateChirho.history-visible-chirho = !AppStateChirho.history-visible-chirho;
@@ -2405,6 +2440,7 @@ component ToolbarChirho inherits Rectangle {
         IconButtonChirho {
             icon-chirho: "*";
             active-chirho: AppStateChirho.highlights-visible-chirho;
+            tooltip-chirho: "Highlights (Ctrl+H)";
             clicked-chirho => {
                 AppStateChirho.load-all-highlights-chirho();
                 AppStateChirho.highlights-visible-chirho = !AppStateChirho.highlights-visible-chirho;
@@ -2413,8 +2449,9 @@ component ToolbarChirho inherits Rectangle {
 
         // Notes button
         IconButtonChirho {
-            icon-chirho: "📝";
+            icon-chirho: "Nt";
             active-chirho: AppStateChirho.notes-visible-chirho;
+            tooltip-chirho: "Notes (Ctrl+N)";
             clicked-chirho => {
                 AppStateChirho.load-all-notes-chirho();
                 AppStateChirho.notes-visible-chirho = !AppStateChirho.notes-visible-chirho;
@@ -2423,8 +2460,9 @@ component ToolbarChirho inherits Rectangle {
 
         // Parallel View button (side-by-side translations)
         IconButtonChirho {
-            icon-chirho: "⫗";
+            icon-chirho: "||";
             active-chirho: AppStateChirho.parallel-view-enabled-chirho;
+            tooltip-chirho: "Parallel View (Ctrl+P)";
             clicked-chirho => {
                 AppStateChirho.parallel-view-enabled-chirho = !AppStateChirho.parallel-view-enabled-chirho;
             }
@@ -2432,8 +2470,9 @@ component ToolbarChirho inherits Rectangle {
 
         // Strong's Numbers button (study tool)
         IconButtonChirho {
-            icon-chirho: "H";  // H for Hebrew/Greek Strong's
+            icon-chirho: "H";
             active-chirho: AppStateChirho.strongs-visible-chirho;
+            tooltip-chirho: "Strong's Numbers (Ctrl+Shift+S)";
             clicked-chirho => {
                 AppStateChirho.toggle-strongs-display-chirho();
             }
@@ -2441,8 +2480,9 @@ component ToolbarChirho inherits Rectangle {
 
         // Morphology button (grammatical analysis)
         IconButtonChirho {
-            icon-chirho: "M";  // M for Morphology
+            icon-chirho: "M";
             active-chirho: AppStateChirho.morphology-visible-chirho;
+            tooltip-chirho: "Morphology (Ctrl+Shift+M)";
             clicked-chirho => {
                 AppStateChirho.toggle-morphology-display-chirho();
             }
@@ -2450,8 +2490,9 @@ component ToolbarChirho inherits Rectangle {
 
         // Cross-References button
         IconButtonChirho {
-            icon-chirho: "Xr";  // Arrow for cross-refs
+            icon-chirho: "Xr";
             active-chirho: AppStateChirho.cross-refs-visible-chirho;
+            tooltip-chirho: "Cross-References (Ctrl+Shift+X)";
             clicked-chirho => {
                 AppStateChirho.toggle-cross-refs-display-chirho();
             }
@@ -2459,8 +2500,9 @@ component ToolbarChirho inherits Rectangle {
 
         // Footnotes button
         IconButtonChirho {
-            icon-chirho: "Fn";  // Reference mark for footnotes
+            icon-chirho: "Fn";
             active-chirho: AppStateChirho.footnotes-visible-chirho;
+            tooltip-chirho: "Footnotes (Ctrl+Shift+F)";
             clicked-chirho => {
                 AppStateChirho.toggle-footnotes-display-chirho();
             }
@@ -2468,8 +2510,9 @@ component ToolbarChirho inherits Rectangle {
 
         // Interlinear button (word-by-word display)
         IconButtonChirho {
-            icon-chirho: "≡";  // Parallel lines for interlinear
+            icon-chirho: "Il";
             active-chirho: AppStateChirho.interlinear-visible-chirho;
+            tooltip-chirho: "Interlinear (Ctrl+Shift+I)";
             clicked-chirho => {
                 AppStateChirho.toggle-interlinear-display-chirho();
             }
@@ -2477,8 +2520,9 @@ component ToolbarChirho inherits Rectangle {
 
         // Info Panel button (verse details)
         IconButtonChirho {
-            icon-chirho: "ℹ";
+            icon-chirho: "i";
             active-chirho: AppStateChirho.info-panel-visible-chirho;
+            tooltip-chirho: "Info Panel (Ctrl+I)";
             clicked-chirho => {
                 AppStateChirho.info-panel-visible-chirho = !AppStateChirho.info-panel-visible-chirho;
             }
@@ -2486,8 +2530,9 @@ component ToolbarChirho inherits Rectangle {
 
         // Statistics button
         IconButtonChirho {
-            icon-chirho: "St";  // Statistics
+            icon-chirho: "St";
             active-chirho: AppStateChirho.stats-panel-visible-chirho;
+            tooltip-chirho: "Statistics (Ctrl+Y)";
             clicked-chirho => {
                 AppStateChirho.stats-panel-visible-chirho = !AppStateChirho.stats-panel-visible-chirho;
                 if AppStateChirho.stats-panel-visible-chirho {
@@ -2498,8 +2543,9 @@ component ToolbarChirho inherits Rectangle {
 
         // Journal button
         IconButtonChirho {
-            icon-chirho: "Jn";  // Journal
+            icon-chirho: "Jn";
             active-chirho: AppStateChirho.journal-panel-visible-chirho;
+            tooltip-chirho: "Study Journal (Ctrl+J)";
             clicked-chirho => {
                 AppStateChirho.journal-panel-visible-chirho = !AppStateChirho.journal-panel-visible-chirho;
                 if AppStateChirho.journal-panel-visible-chirho {
@@ -2510,8 +2556,9 @@ component ToolbarChirho inherits Rectangle {
 
         // Prayer list button
         IconButtonChirho {
-            icon-chirho: "Pr";  // Prayer
+            icon-chirho: "Pr";
             active-chirho: AppStateChirho.prayer-panel-visible-chirho;
+            tooltip-chirho: "Prayer List (Ctrl+R)";
             clicked-chirho => {
                 AppStateChirho.prayer-panel-visible-chirho = !AppStateChirho.prayer-panel-visible-chirho;
                 if AppStateChirho.prayer-panel-visible-chirho {
@@ -2522,8 +2569,9 @@ component ToolbarChirho inherits Rectangle {
 
         // Reading Plans button
         IconButtonChirho {
-            icon-chirho: "Pl";  // Plans
+            icon-chirho: "Pl";
             active-chirho: AppStateChirho.reading-plan-panel-visible-chirho;
+            tooltip-chirho: "Reading Plans (Ctrl+Shift+P)";
             clicked-chirho => {
                 AppStateChirho.reading-plan-panel-visible-chirho = !AppStateChirho.reading-plan-panel-visible-chirho;
                 if AppStateChirho.reading-plan-panel-visible-chirho {
@@ -2534,8 +2582,9 @@ component ToolbarChirho inherits Rectangle {
 
         // Commentary button
         IconButtonChirho {
-            icon-chirho: "Cm";  // Commentary
+            icon-chirho: "Cm";
             active-chirho: AppStateChirho.commentary-panel-visible-chirho;
+            tooltip-chirho: "Commentary (Ctrl+Shift+C)";
             clicked-chirho => {
                 AppStateChirho.commentary-panel-visible-chirho = !AppStateChirho.commentary-panel-visible-chirho;
                 if AppStateChirho.commentary-panel-visible-chirho {
@@ -2549,8 +2598,9 @@ component ToolbarChirho inherits Rectangle {
 
         // Lexicon button
         IconButtonChirho {
-            icon-chirho: "Lx";  // Lexicon
+            icon-chirho: "Lx";
             active-chirho: AppStateChirho.lexicon-panel-visible-chirho;
+            tooltip-chirho: "Lexicon (Ctrl+Shift+L)";
             clicked-chirho => {
                 AppStateChirho.lexicon-panel-visible-chirho = !AppStateChirho.lexicon-panel-visible-chirho;
             }
@@ -2558,20 +2608,22 @@ component ToolbarChirho inherits Rectangle {
 
         // Verse of the Day button
         IconButtonChirho {
-            icon-chirho: "Vd";  // Verse of Day
+            icon-chirho: "Vd";
             active-chirho: AppStateChirho.votd-dialog-visible-chirho;
+            tooltip-chirho: "Verse of the Day (Ctrl+Shift+V)";
             clicked-chirho => {
                 AppStateChirho.load-verse-of-the-day-chirho();
                 AppStateChirho.votd-dialog-visible-chirho = true;
             }
         }
 
-        // Theme toggle button (cycles: dark → light → sepia → dark)
+        // Theme toggle button (cycles: dark -> light -> sepia -> dark)
         IconButtonChirho {
             icon-chirho:
                 ThemeChirho.theme-index-chirho == 0 ? LabelsChirho.theme-light-icon-chirho :
                 ThemeChirho.theme-index-chirho == 1 ? LabelsChirho.theme-sepia-icon-chirho :
                 LabelsChirho.theme-dark-icon-chirho;
+            tooltip-chirho: "Toggle Theme (Ctrl+T)";
             clicked-chirho => {
                 ThemeChirho.theme-index-chirho = Math.mod(ThemeChirho.theme-index-chirho + 1, 3);
             }
@@ -2579,8 +2631,9 @@ component ToolbarChirho inherits Rectangle {
 
         // Module Manager button
         IconButtonChirho {
-            icon-chirho: "Md";  // Modules
+            icon-chirho: "Md";
             active-chirho: AppStateChirho.module-manager-visible-chirho;
+            tooltip-chirho: "Module Manager (Ctrl+M)";
             clicked-chirho => {
                 AppStateChirho.module-manager-visible-chirho = !AppStateChirho.module-manager-visible-chirho;
             }
@@ -2589,6 +2642,7 @@ component ToolbarChirho inherits Rectangle {
         IconButtonChirho {
             icon-chirho: LabelsChirho.settings-icon-chirho;
             active-chirho: AppStateChirho.settings-visible-chirho;
+            tooltip-chirho: "Settings (Ctrl+,)";
             clicked-chirho => {
                 AppStateChirho.settings-visible-chirho = !AppStateChirho.settings-visible-chirho;
             }
@@ -4146,6 +4200,158 @@ component VotdDialogChirho inherits Rectangle {
         enabled: visible-chirho;
         clicked => {
             AppStateChirho.votd-dialog-visible-chirho = false;
+        }
+    }
+}
+
+// Verse Comparison Dialog (CLX-025)
+component VerseComparisonDialogChirho inherits Rectangle {
+    in-out property <bool> visible-chirho: false;
+
+    width: 100%;
+    height: 100%;
+    background: visible-chirho ? #00000080 : transparent;
+
+    animate background { duration: ThemeChirho.animation-normal-chirho; }
+
+    if visible-chirho: Rectangle {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        width: 600px;
+        height: min(500px, parent.height - 100px);
+        background: ThemeChirho.background-secondary-chirho;
+        border-radius: ThemeChirho.radius-lg-chirho;
+        border-width: 1px;
+        border-color: ThemeChirho.border-chirho;
+
+        VerticalLayout {
+            padding: ThemeChirho.spacing-lg-chirho;
+            spacing: ThemeChirho.spacing-md-chirho;
+
+            // Header
+            HorizontalLayout {
+                alignment: space-between;
+
+                Text {
+                    text: "Compare Translations";
+                    font-size: ThemeChirho.font-size-xl-chirho;
+                    font-weight: 700;
+                    color: ThemeChirho.text-primary-chirho;
+                }
+
+                Rectangle {
+                    width: 28px;
+                    height: 28px;
+                    background: close-touch-chirho.has-hover ? ThemeChirho.background-tertiary-chirho : transparent;
+                    border-radius: ThemeChirho.radius-sm-chirho;
+
+                    Text {
+                        text: "x";
+                        font-size: 14px;
+                        color: ThemeChirho.text-secondary-chirho;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+
+                    close-touch-chirho := TouchArea {
+                        clicked => {
+                            AppStateChirho.comparison-dialog-visible-chirho = false;
+                        }
+                        mouse-cursor: pointer;
+                    }
+                }
+            }
+
+            // Verse reference
+            Text {
+                text: AppStateChirho.comparison-verse-ref-chirho;
+                font-size: ThemeChirho.font-size-md-chirho;
+                font-weight: 600;
+                color: ThemeChirho.accent-chirho;
+            }
+
+            // Comparison list
+            ScrollView {
+                VerticalLayout {
+                    spacing: ThemeChirho.spacing-md-chirho;
+
+                    for comparison-chirho in AppStateChirho.comparison-texts-chirho: Rectangle {
+                        background: ThemeChirho.background-tertiary-chirho;
+                        border-radius: ThemeChirho.radius-md-chirho;
+                        padding: ThemeChirho.spacing-md-chirho;
+
+                        VerticalLayout {
+                            padding: ThemeChirho.spacing-md-chirho;
+                            spacing: ThemeChirho.spacing-sm-chirho;
+
+                            // Module name badge
+                            Rectangle {
+                                background: ThemeChirho.accent-chirho.with-alpha(0.2);
+                                border-radius: ThemeChirho.radius-sm-chirho;
+                                height: 24px;
+                                width: self.preferred-width + 16px;
+
+                                Text {
+                                    text: comparison-chirho.module-chirho;
+                                    font-size: ThemeChirho.font-size-sm-chirho;
+                                    font-weight: 600;
+                                    color: ThemeChirho.accent-chirho;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+
+                            // Verse text
+                            Text {
+                                text: comparison-chirho.text-chirho;
+                                font-size: ThemeChirho.font-size-md-chirho * AppStateChirho.font-scale-chirho;
+                                color: ThemeChirho.text-primary-chirho;
+                                wrap: word-wrap;
+                            }
+                        }
+                    }
+
+                    // Empty state
+                    if AppStateChirho.comparison-texts-chirho.length == 0: Text {
+                        text: "No translations available for comparison.\nInstall additional SWORD modules.";
+                        font-size: ThemeChirho.font-size-md-chirho;
+                        color: ThemeChirho.text-muted-chirho;
+                        horizontal-alignment: center;
+                    }
+                }
+            }
+
+            // Enable parallel view button
+            Rectangle {
+                height: 40px;
+                background: enable-parallel-touch-chirho.has-hover ? ThemeChirho.accent-chirho.darker(0.1) : ThemeChirho.accent-chirho;
+                border-radius: ThemeChirho.radius-md-chirho;
+
+                Text {
+                    text: "Open Parallel View";
+                    font-size: ThemeChirho.font-size-sm-chirho;
+                    font-weight: 600;
+                    color: white;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+
+                enable-parallel-touch-chirho := TouchArea {
+                    clicked => {
+                        AppStateChirho.parallel-view-enabled-chirho = true;
+                        AppStateChirho.comparison-dialog-visible-chirho = false;
+                    }
+                    mouse-cursor: pointer;
+                }
+            }
+        }
+    }
+
+    // Close when clicking outside
+    TouchArea {
+        enabled: visible-chirho;
+        clicked => {
+            AppStateChirho.comparison-dialog-visible-chirho = false;
         }
     }
 }
@@ -8205,6 +8411,11 @@ export component MainWindowChirho inherits Window {
         ImportDialogChirho {}
 
         VotdDialogChirho {}
+
+        // Verse comparison dialog (CLX-025)
+        VerseComparisonDialogChirho {
+            visible-chirho: AppStateChirho.comparison-dialog-visible-chirho;
+        }
 
         // Strong's lookup popup (positioned at the cursor/click location)
         if AppStateChirho.strongs-popup-visible-chirho: Rectangle {
