@@ -1,12 +1,12 @@
 {
   "_comment_chirho": "For God so loved the world that he gave his only begotten Son, that whoever believes in him should not perish but have eternal life. John 3:16",
   "product_name_chirho": "Codex Lux Chirho",
-  "version_chirho": "0.1.4",
+  "version_chirho": "0.1.6",
   "current_milestone_chirho": "M1_partial",
   "implementation_status_chirho": {
     "completed_chirho": 1,
-    "partial_chirho": 23,
-    "not_started_chirho": 31,
+    "partial_chirho": 24,
+    "not_started_chirho": 30,
     "total_chirho": 55
   },
   "description_chirho": "Cross-platform Bible study application - Codex of Light",
