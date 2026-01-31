@@ -5,8 +5,8 @@
   "current_milestone_chirho": "M1_partial",
   "implementation_status_chirho": {
     "completed_chirho": 1,
-    "partial_chirho": 22,
-    "not_started_chirho": 32,
+    "partial_chirho": 23,
+    "not_started_chirho": 31,
     "total_chirho": 55
   },
   "description_chirho": "Cross-platform Bible study application - Codex of Light",
@@ -312,7 +312,9 @@
         "Highlights panel shows reference, color bar, and verse preview",
         "Click highlight to navigate to verse",
         "Export highlights to JSON file with timestamps",
-        "Export callback infrastructure in AppStateChirho"
+        "Export callback infrastructure in AppStateChirho",
+        "Filter highlights by color (All button + color filter buttons)",
+        "Highlights panel filter persists color selection"
       ],
       "description_chirho": "Highlight verses with colors",
       "requirements_chirho": [

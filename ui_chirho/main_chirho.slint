@@ -399,6 +399,8 @@ export global AppStateChirho {
     // Highlights panel
     in-out property <bool> highlights-visible-chirho: false;
     in-out property <[HighlightDisplayChirho]> all-highlights-chirho: [];
+    // Filter: empty = all, otherwise filter by color name (yellow, green, blue, pink, orange)
+    in-out property <string> highlights-filter-color-chirho: "";
     callback load-all-highlights-chirho();
 
     // Notes panel
@@ -3713,6 +3715,48 @@ component HighlightsPanelChirho inherits Rectangle {
             }
         }
 
+        // Color filter buttons
+        HorizontalLayout {
+            spacing: ThemeChirho.spacing-xs-chirho;
+            alignment: center;
+
+            // All button
+            Rectangle {
+                width: 35px;
+                height: 24px;
+                background: AppStateChirho.highlights-filter-color-chirho == "" ? ThemeChirho.accent-chirho : ThemeChirho.background-elevated-chirho;
+                border-radius: 12px;
+
+                Text {
+                    text: "All";
+                    font-size: ThemeChirho.font-size-xs-chirho;
+                    color: AppStateChirho.highlights-filter-color-chirho == "" ? white : ThemeChirho.text-secondary-chirho;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+
+                TouchArea {
+                    clicked => { AppStateChirho.highlights-filter-color-chirho = ""; }
+                    mouse-cursor: pointer;
+                }
+            }
+
+            // Color filter buttons
+            for color-chirho in AppStateChirho.highlight-colors-chirho: Rectangle {
+                width: 24px;
+                height: 24px;
+                background: color-chirho.color-chirho;
+                border-radius: 12px;
+                border-width: AppStateChirho.highlights-filter-color-chirho == color-chirho.name-chirho ? 2px : 0px;
+                border-color: ThemeChirho.text-primary-chirho;
+
+                TouchArea {
+                    clicked => { AppStateChirho.highlights-filter-color-chirho = color-chirho.name-chirho; }
+                    mouse-cursor: pointer;
+                }
+            }
+        }
+
         Rectangle {
             height: 1px;
             background: ThemeChirho.divider-chirho;
@@ -3745,6 +3789,11 @@ component HighlightsPanelChirho inherits Rectangle {
                 spacing: ThemeChirho.spacing-sm-chirho;
 
                 for hl-chirho in AppStateChirho.all-highlights-chirho: Rectangle {
+                    // Check if this highlight matches the filter (empty filter = show all)
+                    property <bool> matches-filter-chirho:
+                        AppStateChirho.highlights-filter-color-chirho == "" ||
+                        AppStateChirho.highlights-filter-color-chirho == hl-chirho.color-chirho;
+
                     property <color> hl-bg-chirho:
                         hl-chirho.color-chirho == "green" ? #34d399 :
                         hl-chirho.color-chirho == "blue" ? #60a5fa :
@@ -3752,7 +3801,9 @@ component HighlightsPanelChirho inherits Rectangle {
                         hl-chirho.color-chirho == "orange" ? #fb923c :
                         #fbbf24;
 
-                    height: 60px;
+                    // Hide if doesn't match filter
+                    height: matches-filter-chirho ? 60px : 0px;
+                    visible: matches-filter-chirho;
                     background: hl-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : ThemeChirho.background-tertiary-chirho;
                     border-radius: ThemeChirho.radius-md-chirho;
 
