@@ -3517,6 +3517,58 @@ fn main() -> Result<(), slint::PlatformError> {
         }
     }
 
+    // Interlinear display callbacks (CLX-051)
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        // Toggle interlinear display
+        app_state_chirho.on_toggle_interlinear_display_chirho(move || {
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                let visible_chirho = !state_chirho.get_interlinear_visible_chirho();
+                state_chirho.set_interlinear_visible_chirho(visible_chirho);
+
+                if visible_chirho {
+                    // Load interlinear for current verse
+                    let book_chirho = state_chirho.get_current_book_chirho();
+                    let chapter_chirho = state_chirho.get_current_chapter_chirho();
+                    let verse_ref_chirho = format!("{} {}:1", book_chirho, chapter_chirho);
+                    state_chirho.set_interlinear_verse_ref_chirho(verse_ref_chirho.clone().into());
+
+                    // Load sample interlinear data
+                    let words_chirho = get_sample_interlinear_chirho(&verse_ref_chirho);
+                    let words_model_chirho: Rc<slint::VecModel<InterlinearWordChirho>> =
+                        Rc::new(slint::VecModel::from(words_chirho));
+                    state_chirho.set_interlinear_words_chirho(slint::ModelRc::from(words_model_chirho));
+
+                    state_chirho.set_status_message_chirho("Interlinear display enabled".into());
+                } else {
+                    state_chirho.set_status_message_chirho("Interlinear display disabled".into());
+                }
+            }
+        });
+    }
+
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        // Load interlinear for a specific verse
+        app_state_chirho.on_load_interlinear_chirho(move |verse_ref_chirho| {
+            info!("Loading interlinear for: {}", verse_ref_chirho);
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                state_chirho.set_interlinear_verse_ref_chirho(verse_ref_chirho.clone());
+
+                // Load sample interlinear data
+                let words_chirho = get_sample_interlinear_chirho(verse_ref_chirho.as_str());
+                let words_model_chirho: Rc<slint::VecModel<InterlinearWordChirho>> =
+                    Rc::new(slint::VecModel::from(words_chirho));
+                state_chirho.set_interlinear_words_chirho(slint::ModelRc::from(words_model_chirho));
+            }
+        });
+    }
+
     // Check if first run and show onboarding
     {
         let backend_ref_chirho = backend_chirho.borrow();
@@ -4736,6 +4788,172 @@ fn list_backup_files_chirho() -> Result<Vec<String>> {
     Ok(backups_chirho)
 }
 
+/// Get sample interlinear word data for a verse (CLX-051)
+/// In production, this would query an interlinear module via rsword_chirho
+fn get_sample_interlinear_chirho(verse_ref_chirho: &str) -> Vec<InterlinearWordChirho> {
+    match verse_ref_chirho {
+        ref v if v.contains("Genesis 1:1") || v.contains("Genesis 1") => vec![
+            InterlinearWordChirho {
+                original_chirho: "בְּרֵאשִׁ֖ית".into(),
+                transliteration_chirho: "bəreʾšiṯ".into(),
+                morphology_chirho: "Prep-b | N-fs".into(),
+                strongs_chirho: "H7225".into(),
+                gloss_chirho: "In [the] beginning".into(),
+                part_of_speech_chirho: "Noun".into(),
+                is_hebrew_chirho: true,
+            },
+            InterlinearWordChirho {
+                original_chirho: "בָּרָ֣א".into(),
+                transliteration_chirho: "bārāʾ".into(),
+                morphology_chirho: "V-Qal-Perf-3ms".into(),
+                strongs_chirho: "H1254".into(),
+                gloss_chirho: "created".into(),
+                part_of_speech_chirho: "Verb".into(),
+                is_hebrew_chirho: true,
+            },
+            InterlinearWordChirho {
+                original_chirho: "אֱלֹהִ֑ים".into(),
+                transliteration_chirho: "ʾĕlōhîm".into(),
+                morphology_chirho: "N-mp".into(),
+                strongs_chirho: "H430".into(),
+                gloss_chirho: "God".into(),
+                part_of_speech_chirho: "Noun".into(),
+                is_hebrew_chirho: true,
+            },
+            InterlinearWordChirho {
+                original_chirho: "אֵ֥ת".into(),
+                transliteration_chirho: "ʾēṯ".into(),
+                morphology_chirho: "DirObjM".into(),
+                strongs_chirho: "H853".into(),
+                gloss_chirho: "[direct object]".into(),
+                part_of_speech_chirho: "Particle".into(),
+                is_hebrew_chirho: true,
+            },
+            InterlinearWordChirho {
+                original_chirho: "הַשָּׁמַ֖יִם".into(),
+                transliteration_chirho: "haššāmayim".into(),
+                morphology_chirho: "Art | N-mp".into(),
+                strongs_chirho: "H8064".into(),
+                gloss_chirho: "the heavens".into(),
+                part_of_speech_chirho: "Noun".into(),
+                is_hebrew_chirho: true,
+            },
+            InterlinearWordChirho {
+                original_chirho: "וְאֵ֥ת".into(),
+                transliteration_chirho: "wəʾēṯ".into(),
+                morphology_chirho: "Conj-w | DirObjM".into(),
+                strongs_chirho: "H853".into(),
+                gloss_chirho: "and [direct object]".into(),
+                part_of_speech_chirho: "Conjunction".into(),
+                is_hebrew_chirho: true,
+            },
+            InterlinearWordChirho {
+                original_chirho: "הָאָֽרֶץ".into(),
+                transliteration_chirho: "hāʾāreṣ".into(),
+                morphology_chirho: "Art | N-fs".into(),
+                strongs_chirho: "H776".into(),
+                gloss_chirho: "the earth".into(),
+                part_of_speech_chirho: "Noun".into(),
+                is_hebrew_chirho: true,
+            },
+        ],
+        ref v if v.contains("John 3:16") || v.contains("John 3") => vec![
+            InterlinearWordChirho {
+                original_chirho: "Οὕτως".into(),
+                transliteration_chirho: "houtōs".into(),
+                morphology_chirho: "Adv".into(),
+                strongs_chirho: "G3779".into(),
+                gloss_chirho: "For so".into(),
+                part_of_speech_chirho: "Adverb".into(),
+                is_hebrew_chirho: false,
+            },
+            InterlinearWordChirho {
+                original_chirho: "γὰρ".into(),
+                transliteration_chirho: "gar".into(),
+                morphology_chirho: "Conj".into(),
+                strongs_chirho: "G1063".into(),
+                gloss_chirho: "for".into(),
+                part_of_speech_chirho: "Conjunction".into(),
+                is_hebrew_chirho: false,
+            },
+            InterlinearWordChirho {
+                original_chirho: "ἠγάπησεν".into(),
+                transliteration_chirho: "ēgapēsen".into(),
+                morphology_chirho: "V-AAI-3S".into(),
+                strongs_chirho: "G25".into(),
+                gloss_chirho: "loved".into(),
+                part_of_speech_chirho: "Verb".into(),
+                is_hebrew_chirho: false,
+            },
+            InterlinearWordChirho {
+                original_chirho: "ὁ θεὸς".into(),
+                transliteration_chirho: "ho theos".into(),
+                morphology_chirho: "Art | N-NMS".into(),
+                strongs_chirho: "G2316".into(),
+                gloss_chirho: "God".into(),
+                part_of_speech_chirho: "Noun".into(),
+                is_hebrew_chirho: false,
+            },
+            InterlinearWordChirho {
+                original_chirho: "τὸν κόσμον".into(),
+                transliteration_chirho: "ton kosmon".into(),
+                morphology_chirho: "Art | N-AMS".into(),
+                strongs_chirho: "G2889".into(),
+                gloss_chirho: "the world".into(),
+                part_of_speech_chirho: "Noun".into(),
+                is_hebrew_chirho: false,
+            },
+            InterlinearWordChirho {
+                original_chirho: "ὥστε".into(),
+                transliteration_chirho: "hōste".into(),
+                morphology_chirho: "Conj".into(),
+                strongs_chirho: "G5620".into(),
+                gloss_chirho: "that".into(),
+                part_of_speech_chirho: "Conjunction".into(),
+                is_hebrew_chirho: false,
+            },
+            InterlinearWordChirho {
+                original_chirho: "τὸν υἱὸν".into(),
+                transliteration_chirho: "ton huion".into(),
+                morphology_chirho: "Art | N-AMS".into(),
+                strongs_chirho: "G5207".into(),
+                gloss_chirho: "the Son".into(),
+                part_of_speech_chirho: "Noun".into(),
+                is_hebrew_chirho: false,
+            },
+            InterlinearWordChirho {
+                original_chirho: "τὸν μονογενῆ".into(),
+                transliteration_chirho: "ton monogenē".into(),
+                morphology_chirho: "Art | Adj-AMS".into(),
+                strongs_chirho: "G3439".into(),
+                gloss_chirho: "the only begotten".into(),
+                part_of_speech_chirho: "Adjective".into(),
+                is_hebrew_chirho: false,
+            },
+            InterlinearWordChirho {
+                original_chirho: "ἔδωκεν".into(),
+                transliteration_chirho: "edōken".into(),
+                morphology_chirho: "V-AAI-3S".into(),
+                strongs_chirho: "G1325".into(),
+                gloss_chirho: "He gave".into(),
+                part_of_speech_chirho: "Verb".into(),
+                is_hebrew_chirho: false,
+            },
+        ],
+        _ => vec![
+            InterlinearWordChirho {
+                original_chirho: "[Sample]".into(),
+                transliteration_chirho: "sample".into(),
+                morphology_chirho: "N/A".into(),
+                strongs_chirho: "".into(),
+                gloss_chirho: "Interlinear data not available".into(),
+                part_of_speech_chirho: "Info".into(),
+                is_hebrew_chirho: false,
+            },
+        ],
+    }
+}
+
 // ============================================================================
 // Tests
 // ============================================================================
@@ -5721,5 +5939,39 @@ mod tests_chirho {
         assert_eq!(versification_names_chirho.len(), 6);
         assert_eq!(versification_names_chirho[0], "KJV");
         assert_eq!(versification_names_chirho[3], "LXX");
+    }
+
+    #[test]
+    fn test_interlinear_chirho() {
+        // Test Genesis 1:1 interlinear data
+        let genesis_words_chirho = get_sample_interlinear_chirho("Genesis 1:1");
+        assert!(!genesis_words_chirho.is_empty());
+        assert_eq!(genesis_words_chirho.len(), 7); // 7 words in Genesis 1:1 Hebrew
+
+        // First word should be "בְּרֵאשִׁ֖ית" (bereshit)
+        assert!(genesis_words_chirho[0].original_chirho.contains("בְּרֵאשִׁ֖ית"));
+        assert!(genesis_words_chirho[0].is_hebrew_chirho);
+        assert_eq!(genesis_words_chirho[0].strongs_chirho.as_str(), "H7225");
+        assert!(genesis_words_chirho[0].gloss_chirho.contains("beginning"));
+
+        // Third word should be Elohim
+        assert!(genesis_words_chirho[2].original_chirho.contains("אֱלֹהִ֑ים"));
+        assert_eq!(genesis_words_chirho[2].strongs_chirho.as_str(), "H430");
+        assert!(genesis_words_chirho[2].gloss_chirho.contains("God"));
+
+        // Test John 3:16 interlinear data
+        let john_words_chirho = get_sample_interlinear_chirho("John 3:16");
+        assert!(!john_words_chirho.is_empty());
+        assert!(!john_words_chirho[0].is_hebrew_chirho); // Greek, not Hebrew
+
+        // Should have "ἠγάπησεν" (loved)
+        let loved_word_chirho = john_words_chirho.iter().find(|w| w.gloss_chirho.contains("loved"));
+        assert!(loved_word_chirho.is_some());
+        assert_eq!(loved_word_chirho.unwrap().strongs_chirho.as_str(), "G25");
+
+        // Test unknown verse
+        let unknown_words_chirho = get_sample_interlinear_chirho("Unknown 99:99");
+        assert_eq!(unknown_words_chirho.len(), 1);
+        assert!(unknown_words_chirho[0].gloss_chirho.contains("not available"));
     }
 }
