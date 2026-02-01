@@ -95,6 +95,17 @@ jobs:
       contents: write
 
     steps:
+      - name: Checkout for tagging
+        uses: actions/checkout@v4
+
+      - name: Create and push tag (manual trigger)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git tag -a "v${{ inputs.version_chirho }}" -m "Release v${{ inputs.version_chirho }}"
+          git push origin "v${{ inputs.version_chirho }}"
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -103,6 +114,7 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', inputs.version_chirho) || github.ref_name }}
           files: artifacts-chirho/**/*
           draft: false
           generate_release_notes: true
