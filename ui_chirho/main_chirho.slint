@@ -304,6 +304,10 @@ export struct VerseChirho {
     strongs-text-chirho: string,
     // Has Strong's data available
     has-strongs-chirho: bool,
+    // Interlinear word data for inline display (CLX-051)
+    interlinear-words-chirho: [InterlinearWordChirho],
+    // Has interlinear data available
+    has-interlinear-chirho: bool,
 }
 
 // Book structure for navigation
@@ -667,6 +671,13 @@ export global AppStateChirho {
     in-out property <length> morphology-popup-y-chirho: 0px;
     callback lookup-morphology-chirho(string); // Look up a morphology code
     callback toggle-morphology-display-chirho();
+
+    // Inline Interlinear Mode (CLX-051)
+    in-out property <bool> interlinear-inline-chirho: false; // Toggle inline interlinear in main reader
+    in-out property <bool> interlinear-transliteration-chirho: true; // Show transliteration in interlinear
+    in-out property <bool> interlinear-morphology-chirho: true; // Show morphology codes in interlinear
+    in-out property <bool> interlinear-strongs-chirho: true; // Show Strong's numbers in interlinear
+    callback toggle-interlinear-inline-chirho(); // Toggle interlinear inline mode
 
     // Cross-References (Study Tools)
     in-out property <bool> cross-refs-visible-chirho: false; // Toggle cross-reference display
@@ -1256,6 +1267,89 @@ component ContextMenuChirho inherits Rectangle {
     }
 }
 
+// Inline interlinear word component (for Logos-style display)
+component InlineInterlinearWordChirho inherits Rectangle {
+    in property <InterlinearWordChirho> word-chirho;
+
+    // Word colors based on part of speech
+    property <color> pos-color-chirho:
+        word-chirho.part-of-speech-chirho == "Verb" ? #ef4444 :
+        word-chirho.part-of-speech-chirho == "Noun" ? #3b82f6 :
+        word-chirho.part-of-speech-chirho == "Adjective" ? #22c55e :
+        word-chirho.part-of-speech-chirho == "Adverb" ? #a855f7 :
+        word-chirho.part-of-speech-chirho == "Pronoun" ? #f97316 :
+        word-chirho.part-of-speech-chirho == "Preposition" ? #06b6d4 :
+        word-chirho.part-of-speech-chirho == "Conjunction" ? #eab308 :
+        word-chirho.part-of-speech-chirho == "Article" ? #64748b :
+        word-chirho.part-of-speech-chirho == "Particle" ? #ec4899 :
+        ThemeChirho.text-secondary-chirho;
+
+    background: word-touch-chirho.has-hover ? ThemeChirho.background-tertiary-chirho : transparent;
+    border-radius: 4px;
+    min-width: 40px;
+    height: self.preferred-height;
+
+    VerticalLayout {
+        alignment: center;
+        padding: 4px;
+        padding-left: 6px;
+        padding-right: 6px;
+        spacing: 1px;
+
+        // Original word (Hebrew/Greek) - largest and primary
+        Text {
+            text: word-chirho.original-chirho;
+            font-size: ThemeChirho.font-size-lg-chirho * AppStateChirho.font-scale-chirho;
+            font-weight: 600;
+            color: word-chirho.is-hebrew-chirho ? #2563eb : #059669;
+            horizontal-alignment: center;
+        }
+
+        // Transliteration (optional, when toggled on)
+        if AppStateChirho.interlinear-transliteration-chirho && word-chirho.transliteration-chirho != "": Text {
+            text: word-chirho.transliteration-chirho;
+            font-size: ThemeChirho.font-size-xs-chirho * AppStateChirho.font-scale-chirho;
+            font-italic: true;
+            color: ThemeChirho.text-muted-chirho;
+            horizontal-alignment: center;
+        }
+
+        // Morphology code (optional)
+        if AppStateChirho.interlinear-morphology-chirho && word-chirho.morphology-chirho != "": Text {
+            text: word-chirho.morphology-chirho;
+            font-size: 9px * AppStateChirho.font-scale-chirho;
+            color: pos-color-chirho;
+            horizontal-alignment: center;
+        }
+
+        // Strong's number (optional)
+        if AppStateChirho.interlinear-strongs-chirho && word-chirho.strongs-chirho != "": Text {
+            text: word-chirho.strongs-chirho;
+            font-size: 9px * AppStateChirho.font-scale-chirho;
+            font-weight: 500;
+            color: word-chirho.is-hebrew-chirho ? #1d4ed8 : #047857;
+            horizontal-alignment: center;
+        }
+
+        // Gloss (English meaning) - always shown
+        Text {
+            text: word-chirho.gloss-chirho;
+            font-size: ThemeChirho.font-size-sm-chirho * AppStateChirho.font-scale-chirho;
+            color: ThemeChirho.text-primary-chirho;
+            horizontal-alignment: center;
+        }
+    }
+
+    word-touch-chirho := TouchArea {
+        clicked => {
+            // Show Strong's popup when word is clicked
+            if word-chirho.strongs-chirho != "" {
+                AppStateChirho.lookup-strongs-chirho(word-chirho.strongs-chirho);
+            }
+        }
+    }
+}
+
 // Individual verse component
 component VerseViewChirho inherits Rectangle {
     in property <VerseChirho> verse-chirho;
@@ -1351,14 +1445,37 @@ component VerseViewChirho inherits Rectangle {
             }
 
             // Verse text - takes remaining space
-            // Shows Strong's annotated text when enabled and available, otherwise plain text
-            // Red letter text uses red color, poetry uses lighter weight
+            // Shows inline interlinear when enabled, otherwise normal text
             VerticalLayout {
                 horizontal-stretch: 1;
                 spacing: 2px;
 
-                // Primary verse text (or Strong's annotated text)
-                Text {
+                // Inline Interlinear Mode (Logos-style word-by-word display)
+                if AppStateChirho.interlinear-inline-chirho && verse-chirho.has-interlinear-chirho: VerticalLayout {
+                    spacing: 4px;
+
+                    // Interlinear words displayed in a horizontal flow
+                    HorizontalLayout {
+                        spacing: 2px;
+                        alignment: start;
+                        padding-bottom: 4px;
+
+                        for word-chirho in verse-chirho.interlinear-words-chirho: InlineInterlinearWordChirho {
+                            word-chirho: word-chirho;
+                        }
+                    }
+
+                    // Plain text below for reference
+                    Text {
+                        text: verse-chirho.text-chirho;
+                        font-size: ThemeChirho.font-size-sm-chirho * AppStateChirho.font-scale-chirho;
+                        color: ThemeChirho.text-muted-chirho;
+                        wrap: word-wrap;
+                    }
+                }
+
+                // Normal text display (when interlinear is off or not available)
+                if !AppStateChirho.interlinear-inline-chirho || !verse-chirho.has-interlinear-chirho: Text {
                     text: AppStateChirho.strongs-visible-chirho && verse-chirho.has-strongs-chirho ?
                           verse-chirho.strongs-text-chirho : verse-chirho.text-chirho;
                     font-size: ThemeChirho.font-size-scripture-chirho * AppStateChirho.font-scale-chirho;
@@ -1375,8 +1492,8 @@ component VerseViewChirho inherits Rectangle {
                     vertical-alignment: top;
                 }
 
-                // Strong's numbers indicator (when showing Strong's text)
-                if AppStateChirho.strongs-visible-chirho && verse-chirho.has-strongs-chirho: Text {
+                // Strong's numbers indicator (when showing Strong's text, not in interlinear mode)
+                if AppStateChirho.strongs-visible-chirho && verse-chirho.has-strongs-chirho && !AppStateChirho.interlinear-inline-chirho: Text {
                     text: "Tap Strong's numbers (H/G) for definitions";
                     font-size: ThemeChirho.font-size-xs-chirho;
                     color: ThemeChirho.text-muted-chirho;
@@ -2514,13 +2631,13 @@ component ToolbarChirho inherits Rectangle {
             }
         }
 
-        // Interlinear button (word-by-word display)
+        // Interlinear button (inline Logos-style display)
         IconButtonChirho {
             icon-chirho: "Il";
-            active-chirho: AppStateChirho.interlinear-visible-chirho;
-            tooltip-chirho: "Interlinear (Ctrl+Shift+I)";
+            active-chirho: AppStateChirho.interlinear-inline-chirho;
+            tooltip-chirho: "Inline Interlinear (Ctrl+Shift+I)";
             clicked-chirho => {
-                AppStateChirho.toggle-interlinear-display-chirho();
+                AppStateChirho.toggle-interlinear-inline-chirho();
             }
         }
 
@@ -4284,7 +4401,6 @@ component VerseComparisonDialogChirho inherits Rectangle {
                     for comparison-chirho in AppStateChirho.comparison-texts-chirho: Rectangle {
                         background: ThemeChirho.background-tertiary-chirho;
                         border-radius: ThemeChirho.radius-md-chirho;
-                        padding: ThemeChirho.spacing-md-chirho;
 
                         VerticalLayout {
                             padding: ThemeChirho.spacing-md-chirho;

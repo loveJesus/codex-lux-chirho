@@ -1408,6 +1408,7 @@ mod bible_engine_chirho {
         }
 
         /// Get list of available commentary modules
+        #[allow(dead_code)]
         pub fn get_commentary_modules_chirho(&self) -> Vec<String> {
             match &self.manager_chirho {
                 Some(mgr_chirho) => mgr_chirho.get_commentaries_chirho()
@@ -1420,6 +1421,7 @@ mod bible_engine_chirho {
 
         /// Get commentary text for a verse reference from a SWORD module
         /// Returns None if module not found or no commentary for verse
+        #[allow(dead_code)]
         pub fn get_commentary_chirho(&self, module_name_chirho: &str, verse_ref_chirho: &str) -> Option<String> {
             if let Some(mgr_chirho) = &self.manager_chirho {
                 if let Ok(loaded_module_chirho) = mgr_chirho.load_module_chirho(module_name_chirho) {
@@ -1428,7 +1430,7 @@ mod bible_engine_chirho {
                             // Filter OSIS markup
                             let filtered_chirho = self.osis_filter_chirho
                                 .process_chirho(&text_chirho)
-                                .unwrap_or_else(|_| text_chirho);
+                                .unwrap_or(text_chirho);
                             return Some(filtered_chirho);
                         }
                     }
@@ -1439,6 +1441,7 @@ mod bible_engine_chirho {
         }
 
         /// Get list of available lexicon modules
+        #[allow(dead_code)]
         pub fn get_lexicon_modules_chirho(&self) -> Vec<String> {
             match &self.manager_chirho {
                 Some(mgr_chirho) => mgr_chirho.get_lexicons_chirho()
@@ -1450,6 +1453,7 @@ mod bible_engine_chirho {
         }
 
         /// Get lexicon entry for a key (e.g., "G26" for Strong's)
+        #[allow(dead_code)]
         pub fn get_lexicon_entry_chirho(&self, module_name_chirho: &str, key_chirho: &str) -> Option<String> {
             if let Some(mgr_chirho) = &self.manager_chirho {
                 if let Ok(loaded_module_chirho) = mgr_chirho.load_module_chirho(module_name_chirho) {
@@ -1457,7 +1461,7 @@ mod bible_engine_chirho {
                         if !text_chirho.trim().is_empty() {
                             let filtered_chirho = self.osis_filter_chirho
                                 .process_chirho(&text_chirho)
-                                .unwrap_or_else(|_| text_chirho);
+                                .unwrap_or(text_chirho);
                             return Some(filtered_chirho);
                         }
                     }
@@ -1488,6 +1492,8 @@ fn raw_verses_to_verse_chirho(raw_verses_chirho: Vec<(String, String)>) -> Vec<V
             is_paragraph_start_chirho: false,
             strongs_text_chirho: "".into(),
             has_strongs_chirho: false,
+            interlinear_words_chirho: Default::default(),
+            has_interlinear_chirho: false,
         })
         .collect()
 }
@@ -1635,6 +1641,78 @@ impl AppBackendChirho {
                     is_paragraph_start_chirho: false,
                     strongs_text_chirho: "".into(),
                     has_strongs_chirho: false,
+                    interlinear_words_chirho: Default::default(),
+                    has_interlinear_chirho: false,
+                }
+            })
+            .collect()
+    }
+
+    /// Get verses with interlinear word data populated (for inline interlinear mode)
+    fn get_verses_with_interlinear_chirho(&self) -> Vec<VerseChirho> {
+        let raw_verses_chirho = self.bible_engine_chirho.get_chapter_verses_chirho(
+            &self.current_book_chirho,
+            self.current_chapter_chirho,
+        );
+
+        // Get highlights with colors for this chapter
+        let highlights_chirho = database_chirho::get_highlights_with_colors_chirho(
+            &self.db_conn_chirho,
+            &self.current_module_chirho,
+            &self.current_book_chirho,
+            self.current_chapter_chirho,
+        ).unwrap_or_default();
+
+        // Build a map of verse -> color
+        let highlight_map_chirho: std::collections::HashMap<i32, String> = highlights_chirho
+            .into_iter()
+            .map(|h_chirho| (h_chirho.verse_chirho, h_chirho.color_chirho))
+            .collect();
+
+        let notes_chirho = database_chirho::get_verses_with_notes_chirho(
+            &self.db_conn_chirho,
+            &self.current_module_chirho,
+            &self.current_book_chirho,
+            self.current_chapter_chirho,
+        ).unwrap_or_default();
+
+        raw_verses_chirho
+            .into_iter()
+            .map(|(ref_chirho, text_chirho)| {
+                let verse_num_chirho: i32 = ref_chirho.parse().unwrap_or(0);
+                let highlight_color_chirho = highlight_map_chirho.get(&verse_num_chirho)
+                    .cloned()
+                    .unwrap_or_default();
+
+                // Build verse reference for interlinear lookup
+                let verse_ref_chirho = format!("{} {}:{}",
+                    self.current_book_chirho,
+                    self.current_chapter_chirho,
+                    ref_chirho
+                );
+
+                // Extract interlinear words for this verse
+                let interlinear_words_chirho = self.bible_engine_chirho.extract_interlinear_chirho(&verse_ref_chirho);
+                let has_interlinear_chirho = !interlinear_words_chirho.is_empty();
+
+                // Convert to Slint model
+                let words_model_chirho: slint::ModelRc<InterlinearWordChirho> =
+                    Rc::new(slint::VecModel::from(interlinear_words_chirho)).into();
+
+                VerseChirho {
+                    reference_chirho: ref_chirho.into(),
+                    text_chirho: text_chirho.into(),
+                    is_highlighted_chirho: highlight_map_chirho.contains_key(&verse_num_chirho),
+                    highlight_color_chirho: highlight_color_chirho.into(),
+                    has_note_chirho: notes_chirho.contains(&verse_num_chirho),
+                    is_red_letter_chirho: false,
+                    section_heading_chirho: "".into(),
+                    poetry_indent_chirho: 0,
+                    is_paragraph_start_chirho: false,
+                    strongs_text_chirho: "".into(),
+                    has_strongs_chirho: false,
+                    interlinear_words_chirho: words_model_chirho,
+                    has_interlinear_chirho,
                 }
             })
             .collect()
@@ -1806,7 +1884,12 @@ fn main() -> Result<(), slint::PlatformError> {
                     .unwrap_or(1);
                 state_chirho.set_current_book_chapter_count_chirho(chapter_count_chirho);
 
-                let verses_chirho = backend_mut_chirho.get_verses_chirho();
+                // Load verses with interlinear data if inline mode is enabled
+                let verses_chirho = if state_chirho.get_interlinear_inline_chirho() {
+                    backend_mut_chirho.get_verses_with_interlinear_chirho()
+                } else {
+                    backend_mut_chirho.get_verses_chirho()
+                };
                 state_chirho.set_verses_chirho(Rc::new(slint::VecModel::from(verses_chirho)).into());
 
                 // Also update parallel verses if parallel view is enabled
@@ -1916,6 +1999,8 @@ fn main() -> Result<(), slint::PlatformError> {
                         is_paragraph_start_chirho: false,
                         strongs_text_chirho: slint::SharedString::default(),
                         has_strongs_chirho: false,
+                        interlinear_words_chirho: Default::default(),
+                        has_interlinear_chirho: false,
                     })
                     .collect();
 
@@ -3784,6 +3869,48 @@ fn main() -> Result<(), slint::PlatformError> {
                 let words_model_chirho: Rc<slint::VecModel<InterlinearWordChirho>> =
                     Rc::new(slint::VecModel::from(words_chirho));
                 state_chirho.set_interlinear_words_chirho(slint::ModelRc::from(words_model_chirho));
+            }
+        });
+    }
+
+    // Inline interlinear toggle callback (CLX-051)
+    {
+        let backend_clone_chirho = backend_chirho.clone();
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_toggle_interlinear_inline_chirho(move || {
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                let inline_enabled_chirho = !state_chirho.get_interlinear_inline_chirho();
+                state_chirho.set_interlinear_inline_chirho(inline_enabled_chirho);
+
+                // Reload verses with or without interlinear data
+                let backend_ref_chirho = backend_clone_chirho.borrow();
+                if inline_enabled_chirho {
+                    // Load verses with interlinear word data
+                    let verses_chirho = backend_ref_chirho.get_verses_with_interlinear_chirho();
+                    state_chirho.set_verses_chirho(Rc::new(slint::VecModel::from(verses_chirho)).into());
+
+                    // Check if any verses have interlinear data
+                    let has_data_chirho = state_chirho.get_verses_chirho()
+                        .iter()
+                        .any(|v_chirho| v_chirho.has_interlinear_chirho);
+
+                    if has_data_chirho {
+                        state_chirho.set_status_message_chirho(
+                            "Inline interlinear enabled".into()
+                        );
+                    } else {
+                        state_chirho.set_status_message_chirho(
+                            "Inline interlinear enabled - load an interlinear module (e.g., OSHB, SBLGNT) for word data".into()
+                        );
+                    }
+                } else {
+                    // Load verses without interlinear data (normal mode)
+                    let verses_chirho = backend_ref_chirho.get_verses_chirho();
+                    state_chirho.set_verses_chirho(Rc::new(slint::VecModel::from(verses_chirho)).into());
+                    state_chirho.set_status_message_chirho("Inline interlinear disabled".into());
+                }
             }
         });
     }

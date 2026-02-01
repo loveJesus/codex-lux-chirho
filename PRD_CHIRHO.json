@@ -1240,7 +1240,13 @@
         "Part of speech badges with color coding",
         "Interlinear extraction via rsword_chirho extract_interlinear_words_chirho()",
         "Parses OSIS <w> elements with gloss, lemma, morph, xlit attributes",
-        "InterlinearWordDataChirho struct in rsword_chirho for word data"
+        "InterlinearWordDataChirho struct in rsword_chirho for word data",
+        "Inline Logos-style interlinear in main reader (Il toolbar button)",
+        "InlineInterlinearWordChirho component for word-by-word inline display",
+        "Color-coded original text by language (Hebrew=blue, Greek=green)",
+        "Click interlinear word to lookup Strong's number",
+        "get_verses_with_interlinear_chirho() loads interlinear for all verses",
+        "Inline mode toggle with automatic verse reload"
       ],
       "description_chirho": "Word-by-word interlinear Bible display with original language, transliteration, and gloss",
       "requirements_chirho": [
@@ -1262,7 +1268,7 @@
         "Export interlinear as formatted text",
         "Print interlinear with proper formatting"
       ],
-      "implementation_notes_chirho": "Core interlinear panel implemented with word cards, toggleable display layers. Uses rsword_chirho extract_interlinear_words_chirho() to parse OSIS <w> elements from SWORD modules. Pending: click-to-expand lexicon, reverse interlinear, LXX support, export/print."
+      "implementation_notes_chirho": "Core interlinear panel implemented with word cards, toggleable display layers. Uses rsword_chirho extract_interlinear_words_chirho() to parse OSIS <w> elements from SWORD modules. NEW: Inline Logos-style interlinear in main reader - each verse shows original words with stacked transliteration/morphology/Strong's/gloss beneath. Pending: reverse interlinear, LXX support, export/print."
     },
 
     "CLX-052": {
