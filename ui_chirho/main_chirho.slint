@@ -2568,7 +2568,8 @@ component ToolbarDropdownChirho inherits Rectangle {
         clicked => {
             menu-open-chirho = !menu-open-chirho;
             if menu-open-chirho {
-                position-changed-chirho(root.x);
+                // Use absolute-position for correct screen coordinates
+                position-changed-chirho(root.absolute-position.x);
             }
         }
         mouse-cursor: pointer;
