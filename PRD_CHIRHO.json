@@ -5,8 +5,8 @@
   "current_milestone_chirho": "M1_partial",
   "implementation_status_chirho": {
     "completed_chirho": 1,
-    "partial_chirho": 34,
-    "not_started_chirho": 20,
+    "partial_chirho": 35,
+    "not_started_chirho": 19,
     "total_chirho": 55
   },
   "description_chirho": "Cross-platform Bible study application - Codex of Light",
@@ -714,14 +714,23 @@
       "name_chirho": "Verse Comparison",
       "category_chirho": "Study Tools",
       "priority_chirho": "P2",
-      "status_chirho": "not_started",
+      "status_chirho": "partial",
       "description_chirho": "Compare verse across translations",
+      "completed_items_chirho": [
+        "Verse comparison dialog UI (click Compare button on verse hover)",
+        "on_load_verse_comparison_chirho callback implemented",
+        "Loads verse from all available SWORD modules via rsword_chirho",
+        "ComparisonTextChirho struct with module name and verse text",
+        "comparison-texts-chirho property bound to dialog",
+        "Parses verse reference (book/chapter/verse) for module lookup"
+      ],
       "requirements_chirho": [
         "Quick comparison popup",
         "Select translations to compare",
         "Side-by-side comparison view",
         "Difference highlighting"
-      ]
+      ],
+      "implementation_notes_chirho": "Comparison dialog implemented with callback to load verse from all available modules via rsword_chirho. Pending: translation selection, difference highlighting."
     },
 
     "CLX-026": {
@@ -1214,14 +1223,16 @@
       "completed_items_chirho": [
         "Interlinear panel (≡ toolbar button, Ctrl+Shift+I)",
         "Word-by-word Hebrew/Greek display with word cards",
-        "Gloss (English meaning) for each word",
+        "Gloss (English meaning) for each word extracted from OSIS <w> elements",
         "Transliteration line (toggle on/off)",
         "Morphology tags per word (toggle on/off)",
         "Strong's numbers per word with color coding (toggle on/off)",
         "Toggle display layers (original, transliteration, morphology, Strong's, gloss)",
         "Support for both Hebrew OT and Greek NT interlinears",
-        "Sample interlinear data for Genesis 1:1 (Hebrew) and John 3:16 (Greek)",
-        "Part of speech badges with color coding"
+        "Part of speech badges with color coding",
+        "Interlinear extraction via rsword_chirho extract_interlinear_words_chirho()",
+        "Parses OSIS <w> elements with gloss, lemma, morph, xlit attributes",
+        "InterlinearWordDataChirho struct in rsword_chirho for word data"
       ],
       "description_chirho": "Word-by-word interlinear Bible display with original language, transliteration, and gloss",
       "requirements_chirho": [
@@ -1243,7 +1254,7 @@
         "Export interlinear as formatted text",
         "Print interlinear with proper formatting"
       ],
-      "implementation_notes_chirho": "Core interlinear panel implemented with word cards, toggleable display layers. Pending: click-to-expand lexicon, reverse interlinear, LXX support, export/print."
+      "implementation_notes_chirho": "Core interlinear panel implemented with word cards, toggleable display layers. Uses rsword_chirho extract_interlinear_words_chirho() to parse OSIS <w> elements from SWORD modules. Pending: click-to-expand lexicon, reverse interlinear, LXX support, export/print."
     },
 
     "CLX-052": {
