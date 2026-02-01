@@ -1142,7 +1142,7 @@ mod database_chirho {
 
 mod bible_engine_chirho {
     use super::*;
-    use rsword_chirho::{SwMgrChirho, FilterChirho, OsisToPlainFilterChirho, extract_interlinear_words_chirho};
+    use rsword_chirho::{SwMgrChirho, FilterChirho, OsisToPlainFilterChirho, extract_interlinear_words_chirho, InstallMgrChirho};
 
     /// Bible engine wrapping rsword_chirho
     pub struct BibleEngineChirho {
@@ -1468,6 +1468,52 @@ mod bible_engine_chirho {
                 }
             }
             None
+        }
+
+        /// Install a SWORD module from CrossWire repository
+        pub fn install_module_chirho(&self, module_name_chirho: &str) -> Result<(), String> {
+            // Get the SWORD modules directory
+            let sword_path_chirho = if let Some(base_dirs_chirho) = directories::BaseDirs::new() {
+                base_dirs_chirho.home_dir().join(".sword")
+            } else {
+                return Err("Could not determine home directory".to_string());
+            };
+
+            // Create InstallMgr
+            let mut install_mgr_chirho = InstallMgrChirho::new_chirho(&sword_path_chirho)
+                .map_err(|e_chirho| format!("Failed to create install manager: {}", e_chirho))?;
+
+            // Initialize if needed (creates mods.d, adds CrossWire source)
+            install_mgr_chirho.init_chirho()
+                .map_err(|e_chirho| format!("Failed to initialize install manager: {}", e_chirho))?;
+
+            // Refresh the source to get module list
+            let sources_chirho = install_mgr_chirho.get_sources_chirho();
+            let source_name_chirho = sources_chirho.first()
+                .map(|s_chirho| s_chirho.caption_chirho.clone())
+                .ok_or_else(|| "No install sources configured".to_string())?;
+
+            // Try to install the module
+            install_mgr_chirho.install_module_chirho(&source_name_chirho, module_name_chirho)
+                .map_err(|e_chirho| format!("Failed to install module: {}", e_chirho))?;
+
+            Ok(())
+        }
+
+        /// Reload modules from disk (after installation)
+        #[allow(dead_code)]
+        pub fn reload_modules_chirho(&mut self) {
+            self.manager_chirho = match SwMgrChirho::with_system_paths_chirho() {
+                Ok(mgr_chirho) => {
+                    let count_chirho = mgr_chirho.get_module_names_chirho().len();
+                    info!("Reloaded {} SWORD modules", count_chirho);
+                    Some(mgr_chirho)
+                }
+                Err(e_chirho) => {
+                    warn!("Could not reload SWORD modules: {}", e_chirho);
+                    None
+                }
+            };
         }
     }
 }
@@ -2581,14 +2627,49 @@ fn main() -> Result<(), slint::PlatformError> {
             if let Some(window_chirho) = window_weak_chirho.upgrade() {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
                 state_chirho.set_module_manager_status_chirho(
-                    format!("Installing {}...", module_name_chirho).into()
+                    format!("Installing {}... (downloading from CrossWire)", module_name_chirho).into()
                 );
+                state_chirho.set_module_manager_loading_chirho(true);
 
-                // TODO: Integrate with rsword_chirho's InstallMgrChirho for actual installation
-                // For now, just update the UI
-                state_chirho.set_status_message_chirho(
-                    "Module installation requires rsword_chirho InstallMgr (coming soon)".to_string().into()
-                );
+                // Run installation in background thread
+                let module_name_clone_chirho = module_name_chirho.to_string();
+                let window_weak_inner_chirho = window_weak_chirho.clone();
+
+                std::thread::spawn(move || {
+                    // Create a temporary engine just for installation
+                    let engine_chirho = bible_engine_chirho::BibleEngineChirho::new_chirho();
+                    let result_chirho = engine_chirho.install_module_chirho(&module_name_clone_chirho);
+
+                    // Convert result to simple types that can be sent across threads
+                    let success_chirho = result_chirho.is_ok();
+                    let error_msg_chirho = result_chirho.err();
+                    let module_name_result_chirho = module_name_clone_chirho.clone();
+
+                    // Post result back to UI thread
+                    let _ = slint::invoke_from_event_loop(move || {
+                        if let Some(window_chirho) = window_weak_inner_chirho.upgrade() {
+                            let state_chirho = window_chirho.global::<AppStateChirho>();
+                            state_chirho.set_module_manager_loading_chirho(false);
+
+                            if success_chirho {
+                                state_chirho.set_module_manager_status_chirho(
+                                    format!("{} installed successfully!", module_name_result_chirho).into()
+                                );
+                                state_chirho.set_status_message_chirho(
+                                    format!("Module {} installed. Click 'Refresh' to update the module list.", module_name_result_chirho).into()
+                                );
+                            } else {
+                                let err_chirho = error_msg_chirho.unwrap_or_else(|| "Unknown error".to_string());
+                                state_chirho.set_module_manager_status_chirho(
+                                    format!("Failed to install {}: {}", module_name_result_chirho, err_chirho).into()
+                                );
+                                state_chirho.set_status_message_chirho(
+                                    format!("Installation failed: {}", err_chirho).into()
+                                );
+                            }
+                        }
+                    });
+                });
             }
         });
     }

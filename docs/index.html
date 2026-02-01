@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<!--
+For God so loved the world that he gave his only begotten Son,
+that whoever believes in him should not perish but have eternal life.
+John 3:16
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codex Lux Chirho - Cross-Platform Bible Study Application</title>
+    <meta name="description" content="Codex Lux Chirho is a cross-platform Bible study application built with Rust and Slint UI, powered by rsword_chirho - a pure Rust SWORD library.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary-chirho: #8B4513;
+            --color-primary-dark-chirho: #654321;
+            --color-accent-chirho: #D4AF37;
+            --color-bg-chirho: #FDF5E6;
+            --color-bg-dark-chirho: #1a1a2e;
+            --color-text-chirho: #2C1810;
+            --color-text-light-chirho: #f5f5f5;
+            --color-card-chirho: #FFFAF0;
+            --color-card-dark-chirho: #16213e;
+            --font-serif-chirho: 'Crimson Pro', Georgia, serif;
+            --font-sans-chirho: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans-chirho);
+            background: var(--color-bg-chirho);
+            color: var(--color-text-chirho);
+            line-height: 1.6;
+        }
+
+        .hero-chirho {
+            background: linear-gradient(135deg, var(--color-bg-dark-chirho) 0%, #0f3460 100%);
+            color: var(--color-text-light-chirho);
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-chirho::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='50' font-size='80' fill='%23D4AF37' opacity='0.05'%3E%E2%9C%9D%3C/text%3E%3C/svg%3E") repeat;
+            opacity: 0.3;
+        }
+
+        .hero-content-chirho {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .logo-chirho {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-family: var(--font-serif-chirho);
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--color-accent-chirho);
+        }
+
+        .subtitle-chirho {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+            font-style: italic;
+        }
+
+        .verse-chirho {
+            font-family: var(--font-serif-chirho);
+            font-size: 1.1rem;
+            font-style: italic;
+            opacity: 0.8;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 1rem;
+            border-left: 3px solid var(--color-accent-chirho);
+            text-align: left;
+        }
+
+        .cta-buttons-chirho {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .btn-chirho {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.75rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary-chirho {
+            background: var(--color-accent-chirho);
+            color: var(--color-bg-dark-chirho);
+        }
+
+        .btn-primary-chirho:hover {
+            background: #e6c547;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+        }
+
+        .btn-secondary-chirho {
+            background: transparent;
+            color: var(--color-text-light-chirho);
+            border: 2px solid var(--color-accent-chirho);
+        }
+
+        .btn-secondary-chirho:hover {
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .section-chirho {
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title-chirho {
+            font-family: var(--font-serif-chirho);
+            font-size: 2rem;
+            color: var(--color-primary-chirho);
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .features-grid-chirho {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card-chirho {
+            background: var(--color-card-chirho);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card-chirho:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon-chirho {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card-chirho h3 {
+            font-size: 1.25rem;
+            color: var(--color-primary-chirho);
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card-chirho p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .tech-stack-chirho {
+            background: var(--color-card-chirho);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+
+        .tech-grid-chirho {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .tech-item-chirho {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .tech-item-chirho span {
+            font-size: 1.5rem;
+        }
+
+        .shortcuts-section-chirho {
+            background: var(--color-bg-dark-chirho);
+            color: var(--color-text-light-chirho);
+        }
+
+        .shortcuts-section-chirho .section-title-chirho {
+            color: var(--color-accent-chirho);
+        }
+
+        .shortcuts-grid-chirho {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .shortcut-chirho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+        }
+
+        .shortcut-chirho kbd {
+            background: var(--color-accent-chirho);
+            color: var(--color-bg-dark-chirho);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: 600;
+        }
+
+        .screenshots-chirho {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .screenshot-chirho {
+            background: var(--color-card-chirho);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .screenshot-placeholder-chirho {
+            aspect-ratio: 16/10;
+            background: linear-gradient(135deg, var(--color-bg-dark-chirho), #0f3460);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-accent-chirho);
+            font-size: 3rem;
+        }
+
+        .screenshot-chirho figcaption {
+            padding: 1rem;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        footer {
+            background: var(--color-bg-dark-chirho);
+            color: var(--color-text-light-chirho);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        footer a {
+            color: var(--color-accent-chirho);
+        }
+
+        .footer-links-chirho {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links-chirho a {
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+
+        .footer-links-chirho a:hover {
+            opacity: 0.8;
+        }
+
+        .soli-deo-gloria-chirho {
+            font-family: var(--font-serif-chirho);
+            font-style: italic;
+            margin-top: 2rem;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .hero-chirho {
+                padding: 3rem 1.5rem;
+            }
+
+            .section-chirho {
+                padding: 3rem 1.5rem;
+            }
+
+            .screenshots-chirho {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="hero-chirho">
+        <div class="hero-content-chirho">
+            <div class="logo-chirho">📖✝️</div>
+            <h1>Codex Lux Chirho</h1>
+            <p class="subtitle-chirho">Latin: "Codex of Light" — A Cross-Platform Bible Study Application</p>
+
+            <div class="verse-chirho">
+                "For God so loved the world that he gave his only begotten Son,
+                that whoever believes in him should not perish but have eternal life."
+                <br><strong>— John 3:16</strong>
+            </div>
+
+            <div class="cta-buttons-chirho">
+                <a href="https://github.com/loveJesus/codex-lux-chirho/releases" class="btn-chirho btn-primary-chirho">
+                    ⬇️ Download
+                </a>
+                <a href="https://github.com/loveJesus/codex-lux-chirho" class="btn-chirho btn-secondary-chirho">
+                    📦 View Source
+                </a>
+                <a href="https://rsword-chirho.bible.systems" class="btn-chirho btn-secondary-chirho">
+                    🦀 rsword_chirho Library
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <section class="section-chirho">
+        <h2 class="section-title-chirho">Features</h2>
+
+        <div class="features-grid-chirho">
+            <div class="feature-card-chirho">
+                <div class="feature-icon-chirho">📚</div>
+                <h3>Multi-Module Support</h3>
+                <p>Load and display SWORD Bible modules including RawText, zText, RawCom, zCom, RawLD, and zLD formats. Access thousands of Bible translations.</p>
+            </div>
+
+            <div class="feature-card-chirho">
+                <div class="feature-icon-chirho">🔍</div>
+                <h3>Powerful Search</h3>
+                <p>Case-insensitive text search with scope selection (All, OT, NT, Current Book). Full-text indexing with Tantivy search engine.</p>
+            </div>
+
+            <div class="feature-card-chirho">
+                <div class="feature-icon-chirho">📝</div>
+                <h3>Notes & Highlights</h3>
+                <p>Personal notes on verses, 5 highlight colors, bookmarks with labels and folders. All persisted in SQLite database.</p>
+            </div>
+
+            <div class="feature-card-chirho">
+                <div class="feature-icon-chirho">🔤</div>
+                <h3>Strong's Numbers</h3>
+                <p>Hebrew and Greek Strong's concordance lookup with popup definitions. Understand the original languages.</p>
+            </div>
+
+            <div class="feature-card-chirho">
+                <div class="feature-icon-chirho">📊</div>
+                <h3>Interlinear Display</h3>
+                <p>Word-by-word Hebrew/Greek with original text, transliteration, morphology, Strong's numbers, and English gloss.</p>
+            </div>
+
+            <div class="feature-card-chirho">
+                <div class="feature-icon-chirho">📖</div>
+                <h3>Commentary & Lexicon</h3>
+                <p>Commentary integration synced with current verse. Dictionary/lexicon lookup with search and A-Z browse.</p>
+            </div>
+
+            <div class="feature-card-chirho">
+                <div class="feature-icon-chirho">🔀</div>
+                <h3>Parallel View</h3>
+                <p>Side-by-side translation comparison. Compare multiple Bible versions to deepen understanding.</p>
+            </div>
+
+            <div class="feature-card-chirho">
+                <div class="feature-icon-chirho">🎨</div>
+                <h3>Beautiful Themes</h3>
+                <p>Dark, Light, Sepia, and High Contrast themes. Adjustable font scaling and line height for comfortable reading.</p>
+            </div>
+
+            <div class="feature-card-chirho">
+                <div class="feature-icon-chirho">✝️</div>
+                <h3>Cross-References</h3>
+                <p>Scripture cross-reference display with clickable references and popup preview. Discover connected passages.</p>
+            </div>
+
+            <div class="feature-card-chirho">
+                <div class="feature-icon-chirho">📅</div>
+                <h3>Reading Plans</h3>
+                <p>Pre-built Bible reading plans: 1-year, 90-day NT, Gospels, Psalms/Proverbs, Chronological. Track your progress.</p>
+            </div>
+
+            <div class="feature-card-chirho">
+                <div class="feature-icon-chirho">🙏</div>
+                <h3>Prayer List</h3>
+                <p>Prayer request tracking linked to verses. Mark requests as answered, organize by categories.</p>
+            </div>
+
+            <div class="feature-card-chirho">
+                <div class="feature-icon-chirho">📓</div>
+                <h3>Study Journal</h3>
+                <p>Personal Bible study journal. Create entries, link to verses, add tags for organization.</p>
+            </div>
+        </div>
+
+        <div class="tech-stack-chirho">
+            <h3 style="text-align: center; color: var(--color-primary-chirho);">Tech Stack</h3>
+            <div class="tech-grid-chirho">
+                <div class="tech-item-chirho">
+                    <span>🦀</span>
+                    <div><strong>Rust</strong><br>Systems language</div>
+                </div>
+                <div class="tech-item-chirho">
+                    <span>🎨</span>
+                    <div><strong>Slint UI</strong><br>Native cross-platform</div>
+                </div>
+                <div class="tech-item-chirho">
+                    <span>📖</span>
+                    <div><strong>rsword_chirho</strong><br>Pure Rust SWORD library</div>
+                </div>
+                <div class="tech-item-chirho">
+                    <span>🗃️</span>
+                    <div><strong>SQLite</strong><br>Local database</div>
+                </div>
+                <div class="tech-item-chirho">
+                    <span>🔎</span>
+                    <div><strong>Tantivy</strong><br>Full-text search</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section-chirho shortcuts-section-chirho">
+        <h2 class="section-title-chirho">Keyboard Shortcuts</h2>
+
+        <div class="shortcuts-grid-chirho">
+            <div class="shortcut-chirho">
+                <span>Previous/Next chapter</span>
+                <div><kbd>&lt;</kbd> / <kbd>&gt;</kbd></div>
+            </div>
+            <div class="shortcut-chirho">
+                <span>Goto verse dialog</span>
+                <kbd>Ctrl+G</kbd>
+            </div>
+            <div class="shortcut-chirho">
+                <span>Quick navigation</span>
+                <kbd>Ctrl+K</kbd>
+            </div>
+            <div class="shortcut-chirho">
+                <span>Toggle search</span>
+                <kbd>Ctrl+F</kbd>
+            </div>
+            <div class="shortcut-chirho">
+                <span>Toggle books sidebar</span>
+                <kbd>Ctrl+B</kbd>
+            </div>
+            <div class="shortcut-chirho">
+                <span>Toggle bookmarks</span>
+                <kbd>Ctrl+D</kbd>
+            </div>
+            <div class="shortcut-chirho">
+                <span>Toggle highlights</span>
+                <kbd>Ctrl+H</kbd>
+            </div>
+            <div class="shortcut-chirho">
+                <span>Toggle notes</span>
+                <kbd>Ctrl+N</kbd>
+            </div>
+            <div class="shortcut-chirho">
+                <span>Parallel view</span>
+                <kbd>Ctrl+P</kbd>
+            </div>
+            <div class="shortcut-chirho">
+                <span>Cycle themes</span>
+                <kbd>Ctrl+T</kbd>
+            </div>
+            <div class="shortcut-chirho">
+                <span>Strong's Numbers</span>
+                <kbd>Ctrl+Shift+S</kbd>
+            </div>
+            <div class="shortcut-chirho">
+                <span>Interlinear</span>
+                <kbd>Ctrl+Shift+I</kbd>
+            </div>
+        </div>
+    </section>
+
+    <section class="section-chirho">
+        <h2 class="section-title-chirho">Screenshots</h2>
+
+        <div class="screenshots-chirho">
+            <figure class="screenshot-chirho">
+                <div class="screenshot-placeholder-chirho">📖</div>
+                <figcaption>Main Reading View with Dark Theme</figcaption>
+            </figure>
+            <figure class="screenshot-chirho">
+                <div class="screenshot-placeholder-chirho">🔍</div>
+                <figcaption>Interlinear Hebrew/Greek Display</figcaption>
+            </figure>
+        </div>
+    </section>
+
+    <section class="section-chirho" style="text-align: center;">
+        <h2 class="section-title-chirho">Get Started</h2>
+
+        <div style="max-width: 600px; margin: 0 auto;">
+            <h3 style="margin-bottom: 1rem;">Build from Source</h3>
+            <pre style="background: var(--color-bg-dark-chirho); color: var(--color-text-light-chirho); padding: 1.5rem; border-radius: 8px; text-align: left; overflow-x: auto;"><code># Clone the repository
+git clone https://github.com/loveJesus/codex-lux-chirho
+cd codex-lux-chirho
+
+# Build and run
+cargo build --release
+cargo run --release</code></pre>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-links-chirho">
+            <a href="https://github.com/loveJesus/codex-lux-chirho">GitHub Repository</a>
+            <a href="https://rsword-chirho.bible.systems">rsword_chirho Library</a>
+            <a href="https://github.com/loveJesus/codex-lux-chirho/issues">Report Issues</a>
+            <a href="https://github.com/loveJesus/codex-lux-chirho/blob/main/LICENSE">GPL-2.0 License</a>
+        </div>
+
+        <p>Built with ❤️ and ✝️ using Rust and Slint</p>
+
+        <p class="soli-deo-gloria-chirho">Soli Deo Gloria</p>
+    </footer>
+</body>
+</html>

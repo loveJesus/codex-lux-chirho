@@ -539,6 +539,11 @@ export global AppStateChirho {
     in-out property <string> context-menu-verse-ref-chirho: "";
     in-out property <string> context-menu-verse-text-chirho: "";
 
+    // Toolbar dropdown menus
+    in-out property <bool> study-menu-visible-chirho: false;
+    in-out property <bool> personal-menu-visible-chirho: false;
+    in-out property <bool> reading-menu-visible-chirho: false;
+
     // Copy format settings
     // 0 = "text - reference" (default), 1 = "reference: text", 2 = "text only", 3 = "reference only"
     in-out property <int> copy-format-index-chirho: 0;
@@ -773,18 +778,18 @@ component IconButtonChirho inherits Rectangle {
         mouse-cursor: pointer;
     }
 
-    // Tooltip popup on hover
+    // Tooltip popup on hover (semi-transparent)
     if tooltip-chirho != "" && touch-area-chirho.has-hover: Rectangle {
         x: root.width + 4px;
         y: (root.height - self.height) / 2;
         height: 24px;
         width: tooltip-text-chirho.preferred-width + 16px;
-        background: ThemeChirho.background-primary-chirho;
+        background: ThemeChirho.background-primary-chirho.with-alpha(0.2);
         border-radius: ThemeChirho.radius-sm-chirho;
         border-width: 1px;
-        border-color: ThemeChirho.border-chirho;
+        border-color: ThemeChirho.border-chirho.with-alpha(0.3);
         drop-shadow-blur: 4px;
-        drop-shadow-color: rgba(0, 0, 0, 0.15);
+        drop-shadow-color: rgba(0, 0, 0, 0.2);
 
         tooltip-text-chirho := Text {
             text: tooltip-chirho;
@@ -895,12 +900,14 @@ component SidebarChirho inherits Rectangle {
 
                 // Old Testament Header
                 Rectangle {
-                    height: 28px;
+                    height: 32px;
                     background: ThemeChirho.background-tertiary-chirho;
 
-                    HorizontalBox {
+                    HorizontalLayout {
                         padding-left: ThemeChirho.spacing-md-chirho;
                         padding-right: ThemeChirho.spacing-md-chirho;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
 
                         Text {
                             text: LabelsChirho.old-testament-label-chirho;
@@ -909,6 +916,7 @@ component SidebarChirho inherits Rectangle {
                             color: ThemeChirho.text-muted-chirho;
                             vertical-alignment: center;
                             horizontal-stretch: 1;
+                            letter-spacing: 1px;
                         }
 
                         Text {
@@ -923,12 +931,14 @@ component SidebarChirho inherits Rectangle {
                 for book-chirho in AppStateChirho.books-chirho: VerticalLayout {
                     // New Testament Header (appears before Matthew)
                     if book-chirho.name-chirho == "Matthew": Rectangle {
-                        height: 28px;
+                        height: 32px;
                         background: ThemeChirho.background-tertiary-chirho;
 
-                        HorizontalBox {
+                        HorizontalLayout {
                             padding-left: ThemeChirho.spacing-md-chirho;
                             padding-right: ThemeChirho.spacing-md-chirho;
+                            padding-top: 6px;
+                            padding-bottom: 6px;
 
                             Text {
                                 text: LabelsChirho.new-testament-label-chirho;
@@ -937,6 +947,7 @@ component SidebarChirho inherits Rectangle {
                                 color: ThemeChirho.text-muted-chirho;
                                 vertical-alignment: center;
                                 horizontal-stretch: 1;
+                                letter-spacing: 1px;
                             }
 
                             Text {
@@ -1040,7 +1051,7 @@ component ChapterBarChirho inherits Rectangle {
 
         Rectangle {
             min-width: 200px;
-            height: 36px;
+            height: 40px;
             background: chapter-display-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : ThemeChirho.background-tertiary-chirho;
             border-radius: ThemeChirho.radius-md-chirho;
             border-width: 1px;
@@ -1048,10 +1059,13 @@ component ChapterBarChirho inherits Rectangle {
 
             animate background { duration: ThemeChirho.animation-fast-chirho; }
 
-            HorizontalBox {
+            HorizontalLayout {
                 padding-left: ThemeChirho.spacing-lg-chirho;
                 padding-right: ThemeChirho.spacing-lg-chirho;
+                padding-top: 4px;
+                padding-bottom: 4px;
                 alignment: center;
+                spacing: ThemeChirho.spacing-xs-chirho;
 
                 Text {
                     text: AppStateChirho.current-book-chirho + " " + AppStateChirho.current-chapter-chirho;
@@ -2468,7 +2482,81 @@ component FootnotePopupChirho inherits Rectangle {
     }
 }
 
-// Top toolbar
+// Toolbar dropdown menu item
+component ToolbarMenuItemChirho inherits Rectangle {
+    in property <string> label-chirho;
+    in property <string> shortcut-chirho: "";
+    in property <bool> active-chirho: false;
+    callback clicked-chirho();
+
+    height: 32px;
+    background: item-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : transparent;
+
+    item-touch-chirho := TouchArea {
+        clicked => { clicked-chirho(); }
+        mouse-cursor: pointer;
+    }
+
+    HorizontalLayout {
+        padding-left: 12px;
+        padding-right: 12px;
+        spacing: 8px;
+
+        Rectangle {
+            width: 16px;
+            Text {
+                text: active-chirho ? "✓" : "";
+                font-size: 12px;
+                color: ThemeChirho.accent-chirho;
+                vertical-alignment: center;
+            }
+        }
+
+        Text {
+            text: label-chirho;
+            font-size: ThemeChirho.font-size-sm-chirho;
+            color: ThemeChirho.text-primary-chirho;
+            vertical-alignment: center;
+            horizontal-stretch: 1;
+        }
+
+        Text {
+            text: shortcut-chirho;
+            font-size: ThemeChirho.font-size-xs-chirho;
+            color: ThemeChirho.text-muted-chirho;
+            vertical-alignment: center;
+        }
+    }
+}
+
+// Toolbar dropdown button with popup menu
+component ToolbarDropdownChirho inherits Rectangle {
+    in property <string> label-chirho;
+    in property <string> tooltip-chirho: "";
+    in-out property <bool> menu-open-chirho: false;
+
+    width: 36px;
+    height: 36px;
+    border-radius: ThemeChirho.radius-sm-chirho;
+    background: menu-open-chirho ? ThemeChirho.accent-chirho.with-alpha(0.2) :
+                (dropdown-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : transparent);
+
+    dropdown-touch-chirho := TouchArea {
+        clicked => { menu-open-chirho = !menu-open-chirho; }
+        mouse-cursor: pointer;
+    }
+
+    Text {
+        text: label-chirho;
+        font-size: ThemeChirho.font-size-sm-chirho;
+        font-weight: 600;
+        color: menu-open-chirho ? ThemeChirho.accent-chirho : ThemeChirho.text-primary-chirho;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+}
+
+// Top toolbar - reorganized with grouped menus
 component ToolbarChirho inherits Rectangle {
     height: 52px;
     background: ThemeChirho.background-secondary-chirho;
@@ -2481,8 +2569,9 @@ component ToolbarChirho inherits Rectangle {
 
     HorizontalLayout {
         padding: ThemeChirho.spacing-md-chirho;
-        spacing: ThemeChirho.spacing-md-chirho;
+        spacing: ThemeChirho.spacing-sm-chirho;
 
+        // Books panel toggle
         IconButtonChirho {
             icon-chirho: LabelsChirho.menu-icon-chirho;
             active-chirho: AppStateChirho.sidebar-visible-chirho;
@@ -2514,7 +2603,6 @@ component ToolbarChirho inherits Rectangle {
         Rectangle {
             width: 80px;
             height: 24px;
-
             Slider {
                 minimum: 0.8;
                 maximum: 1.5;
@@ -2529,6 +2617,7 @@ component ToolbarChirho inherits Rectangle {
             vertical-alignment: center;
         }
 
+        // Search
         IconButtonChirho {
             icon-chirho: LabelsChirho.search-icon-chirho;
             active-chirho: AppStateChirho.search-active-chirho;
@@ -2538,209 +2627,28 @@ component ToolbarChirho inherits Rectangle {
             }
         }
 
-        // Bookmarks button
-        IconButtonChirho {
-            icon-chirho: LabelsChirho.bookmark-icon-chirho;
-            active-chirho: AppStateChirho.bookmarks-visible-chirho;
-            tooltip-chirho: "Bookmarks (Ctrl+D)";
-            clicked-chirho => {
-                AppStateChirho.bookmarks-visible-chirho = !AppStateChirho.bookmarks-visible-chirho;
-            }
+        // Study Tools dropdown
+        study-dropdown-chirho := ToolbarDropdownChirho {
+            label-chirho: "📚";
+            tooltip-chirho: "Study Tools";
+            menu-open-chirho <=> AppStateChirho.study-menu-visible-chirho;
         }
 
-        // History button
-        IconButtonChirho {
-            icon-chirho: LabelsChirho.history-icon-chirho;
-            active-chirho: AppStateChirho.history-visible-chirho;
-            tooltip-chirho: "History";
-            clicked-chirho => {
-                AppStateChirho.load-history-chirho();
-                AppStateChirho.history-visible-chirho = !AppStateChirho.history-visible-chirho;
-            }
+        // Personal dropdown
+        personal-dropdown-chirho := ToolbarDropdownChirho {
+            label-chirho: "📝";
+            tooltip-chirho: "Personal";
+            menu-open-chirho <=> AppStateChirho.personal-menu-visible-chirho;
         }
 
-        // Highlights button
-        IconButtonChirho {
-            icon-chirho: "*";
-            active-chirho: AppStateChirho.highlights-visible-chirho;
-            tooltip-chirho: "Highlights (Ctrl+H)";
-            clicked-chirho => {
-                AppStateChirho.load-all-highlights-chirho();
-                AppStateChirho.highlights-visible-chirho = !AppStateChirho.highlights-visible-chirho;
-            }
+        // Reading dropdown
+        reading-dropdown-chirho := ToolbarDropdownChirho {
+            label-chirho: "📖";
+            tooltip-chirho: "Reading";
+            menu-open-chirho <=> AppStateChirho.reading-menu-visible-chirho;
         }
 
-        // Notes button
-        IconButtonChirho {
-            icon-chirho: "Nt";
-            active-chirho: AppStateChirho.notes-visible-chirho;
-            tooltip-chirho: "Notes (Ctrl+N)";
-            clicked-chirho => {
-                AppStateChirho.load-all-notes-chirho();
-                AppStateChirho.notes-visible-chirho = !AppStateChirho.notes-visible-chirho;
-            }
-        }
-
-        // Parallel View button (side-by-side translations)
-        IconButtonChirho {
-            icon-chirho: "||";
-            active-chirho: AppStateChirho.parallel-view-enabled-chirho;
-            tooltip-chirho: "Parallel View (Ctrl+P)";
-            clicked-chirho => {
-                AppStateChirho.parallel-view-enabled-chirho = !AppStateChirho.parallel-view-enabled-chirho;
-            }
-        }
-
-        // Strong's Numbers button (study tool)
-        IconButtonChirho {
-            icon-chirho: "H";
-            active-chirho: AppStateChirho.strongs-visible-chirho;
-            tooltip-chirho: "Strong's Numbers (Ctrl+Shift+S)";
-            clicked-chirho => {
-                AppStateChirho.toggle-strongs-display-chirho();
-            }
-        }
-
-        // Morphology button (grammatical analysis)
-        IconButtonChirho {
-            icon-chirho: "M";
-            active-chirho: AppStateChirho.morphology-visible-chirho;
-            tooltip-chirho: "Morphology (Ctrl+Shift+M)";
-            clicked-chirho => {
-                AppStateChirho.toggle-morphology-display-chirho();
-            }
-        }
-
-        // Cross-References button
-        IconButtonChirho {
-            icon-chirho: "Xr";
-            active-chirho: AppStateChirho.cross-refs-visible-chirho;
-            tooltip-chirho: "Cross-References (Ctrl+Shift+X)";
-            clicked-chirho => {
-                AppStateChirho.toggle-cross-refs-display-chirho();
-            }
-        }
-
-        // Footnotes button
-        IconButtonChirho {
-            icon-chirho: "Fn";
-            active-chirho: AppStateChirho.footnotes-visible-chirho;
-            tooltip-chirho: "Footnotes (Ctrl+Shift+F)";
-            clicked-chirho => {
-                AppStateChirho.toggle-footnotes-display-chirho();
-            }
-        }
-
-        // Interlinear button (inline Logos-style display)
-        IconButtonChirho {
-            icon-chirho: "Il";
-            active-chirho: AppStateChirho.interlinear-inline-chirho;
-            tooltip-chirho: "Inline Interlinear (Ctrl+Shift+I)";
-            clicked-chirho => {
-                AppStateChirho.toggle-interlinear-inline-chirho();
-            }
-        }
-
-        // Info Panel button (verse details)
-        IconButtonChirho {
-            icon-chirho: "i";
-            active-chirho: AppStateChirho.info-panel-visible-chirho;
-            tooltip-chirho: "Info Panel (Ctrl+I)";
-            clicked-chirho => {
-                AppStateChirho.info-panel-visible-chirho = !AppStateChirho.info-panel-visible-chirho;
-            }
-        }
-
-        // Statistics button
-        IconButtonChirho {
-            icon-chirho: "St";
-            active-chirho: AppStateChirho.stats-panel-visible-chirho;
-            tooltip-chirho: "Statistics (Ctrl+Y)";
-            clicked-chirho => {
-                AppStateChirho.stats-panel-visible-chirho = !AppStateChirho.stats-panel-visible-chirho;
-                if AppStateChirho.stats-panel-visible-chirho {
-                    AppStateChirho.load-statistics-chirho();
-                }
-            }
-        }
-
-        // Journal button
-        IconButtonChirho {
-            icon-chirho: "Jn";
-            active-chirho: AppStateChirho.journal-panel-visible-chirho;
-            tooltip-chirho: "Study Journal (Ctrl+J)";
-            clicked-chirho => {
-                AppStateChirho.journal-panel-visible-chirho = !AppStateChirho.journal-panel-visible-chirho;
-                if AppStateChirho.journal-panel-visible-chirho {
-                    AppStateChirho.load-journal-entries-chirho();
-                }
-            }
-        }
-
-        // Prayer list button
-        IconButtonChirho {
-            icon-chirho: "Pr";
-            active-chirho: AppStateChirho.prayer-panel-visible-chirho;
-            tooltip-chirho: "Prayer List (Ctrl+R)";
-            clicked-chirho => {
-                AppStateChirho.prayer-panel-visible-chirho = !AppStateChirho.prayer-panel-visible-chirho;
-                if AppStateChirho.prayer-panel-visible-chirho {
-                    AppStateChirho.load-prayer-requests-chirho();
-                }
-            }
-        }
-
-        // Reading Plans button
-        IconButtonChirho {
-            icon-chirho: "Pl";
-            active-chirho: AppStateChirho.reading-plan-panel-visible-chirho;
-            tooltip-chirho: "Reading Plans (Ctrl+Shift+P)";
-            clicked-chirho => {
-                AppStateChirho.reading-plan-panel-visible-chirho = !AppStateChirho.reading-plan-panel-visible-chirho;
-                if AppStateChirho.reading-plan-panel-visible-chirho {
-                    AppStateChirho.load-reading-plans-chirho();
-                }
-            }
-        }
-
-        // Commentary button
-        IconButtonChirho {
-            icon-chirho: "Cm";
-            active-chirho: AppStateChirho.commentary-panel-visible-chirho;
-            tooltip-chirho: "Commentary (Ctrl+Shift+C)";
-            clicked-chirho => {
-                AppStateChirho.commentary-panel-visible-chirho = !AppStateChirho.commentary-panel-visible-chirho;
-                if AppStateChirho.commentary-panel-visible-chirho {
-                    // Load commentary for current verse
-                    AppStateChirho.load-commentary-chirho(
-                        AppStateChirho.current-book-chirho + " " + AppStateChirho.current-chapter-chirho + ":1"
-                    );
-                }
-            }
-        }
-
-        // Lexicon button
-        IconButtonChirho {
-            icon-chirho: "Lx";
-            active-chirho: AppStateChirho.lexicon-panel-visible-chirho;
-            tooltip-chirho: "Lexicon (Ctrl+Shift+L)";
-            clicked-chirho => {
-                AppStateChirho.lexicon-panel-visible-chirho = !AppStateChirho.lexicon-panel-visible-chirho;
-            }
-        }
-
-        // Verse of the Day button
-        IconButtonChirho {
-            icon-chirho: "Vd";
-            active-chirho: AppStateChirho.votd-dialog-visible-chirho;
-            tooltip-chirho: "Verse of the Day (Ctrl+Shift+V)";
-            clicked-chirho => {
-                AppStateChirho.load-verse-of-the-day-chirho();
-                AppStateChirho.votd-dialog-visible-chirho = true;
-            }
-        }
-
-        // Theme toggle button (cycles: dark -> light -> sepia -> dark)
+        // Theme toggle
         IconButtonChirho {
             icon-chirho:
                 ThemeChirho.theme-index-chirho == 0 ? LabelsChirho.theme-light-icon-chirho :
@@ -2752,9 +2660,9 @@ component ToolbarChirho inherits Rectangle {
             }
         }
 
-        // Module Manager button
+        // Module Manager
         IconButtonChirho {
-            icon-chirho: "Md";
+            icon-chirho: "Mod";
             active-chirho: AppStateChirho.module-manager-visible-chirho;
             tooltip-chirho: "Module Manager (Ctrl+M)";
             clicked-chirho => {
@@ -2762,12 +2670,254 @@ component ToolbarChirho inherits Rectangle {
             }
         }
 
+        // Settings
         IconButtonChirho {
             icon-chirho: LabelsChirho.settings-icon-chirho;
             active-chirho: AppStateChirho.settings-visible-chirho;
             tooltip-chirho: "Settings (Ctrl+,)";
             clicked-chirho => {
                 AppStateChirho.settings-visible-chirho = !AppStateChirho.settings-visible-chirho;
+            }
+        }
+    }
+
+    // Study Tools popup menu
+    if AppStateChirho.study-menu-visible-chirho: Rectangle {
+        x: study-dropdown-chirho.x;
+        y: parent.height;
+        width: 220px;
+        height: study-menu-layout-chirho.preferred-height + 8px;
+        background: ThemeChirho.background-secondary-chirho;
+        border-radius: ThemeChirho.radius-md-chirho;
+        border-width: 1px;
+        border-color: ThemeChirho.border-chirho;
+        drop-shadow-blur: 8px;
+        drop-shadow-color: rgba(0, 0, 0, 0.3);
+
+        study-menu-layout-chirho := VerticalLayout {
+            padding: 4px;
+
+            ToolbarMenuItemChirho {
+                label-chirho: "Strong's Numbers";
+                shortcut-chirho: "⇧⌘S";
+                active-chirho: AppStateChirho.strongs-visible-chirho;
+                clicked-chirho => {
+                    AppStateChirho.toggle-strongs-display-chirho();
+                    AppStateChirho.study-menu-visible-chirho = false;
+                }
+            }
+            ToolbarMenuItemChirho {
+                label-chirho: "Morphology";
+                shortcut-chirho: "⇧⌘M";
+                active-chirho: AppStateChirho.morphology-visible-chirho;
+                clicked-chirho => {
+                    AppStateChirho.toggle-morphology-display-chirho();
+                    AppStateChirho.study-menu-visible-chirho = false;
+                }
+            }
+            ToolbarMenuItemChirho {
+                label-chirho: "Interlinear";
+                shortcut-chirho: "⇧⌘I";
+                active-chirho: AppStateChirho.interlinear-inline-chirho;
+                clicked-chirho => {
+                    AppStateChirho.toggle-interlinear-inline-chirho();
+                    AppStateChirho.study-menu-visible-chirho = false;
+                }
+            }
+            ToolbarMenuItemChirho {
+                label-chirho: "Cross-References";
+                shortcut-chirho: "⇧⌘X";
+                active-chirho: AppStateChirho.cross-refs-visible-chirho;
+                clicked-chirho => {
+                    AppStateChirho.toggle-cross-refs-display-chirho();
+                    AppStateChirho.study-menu-visible-chirho = false;
+                }
+            }
+            ToolbarMenuItemChirho {
+                label-chirho: "Footnotes";
+                shortcut-chirho: "⇧⌘F";
+                active-chirho: AppStateChirho.footnotes-visible-chirho;
+                clicked-chirho => {
+                    AppStateChirho.toggle-footnotes-display-chirho();
+                    AppStateChirho.study-menu-visible-chirho = false;
+                }
+            }
+            Rectangle { height: 1px; background: ThemeChirho.border-subtle-chirho; }
+            ToolbarMenuItemChirho {
+                label-chirho: "Commentary Panel";
+                shortcut-chirho: "⇧⌘C";
+                active-chirho: AppStateChirho.commentary-panel-visible-chirho;
+                clicked-chirho => {
+                    AppStateChirho.commentary-panel-visible-chirho = !AppStateChirho.commentary-panel-visible-chirho;
+                    if AppStateChirho.commentary-panel-visible-chirho {
+                        AppStateChirho.load-commentary-chirho(
+                            AppStateChirho.current-book-chirho + " " + AppStateChirho.current-chapter-chirho + ":1"
+                        );
+                    }
+                    AppStateChirho.study-menu-visible-chirho = false;
+                }
+            }
+            ToolbarMenuItemChirho {
+                label-chirho: "Lexicon Panel";
+                shortcut-chirho: "⇧⌘L";
+                active-chirho: AppStateChirho.lexicon-panel-visible-chirho;
+                clicked-chirho => {
+                    AppStateChirho.lexicon-panel-visible-chirho = !AppStateChirho.lexicon-panel-visible-chirho;
+                    AppStateChirho.study-menu-visible-chirho = false;
+                }
+            }
+            ToolbarMenuItemChirho {
+                label-chirho: "Info Panel";
+                shortcut-chirho: "⌘I";
+                active-chirho: AppStateChirho.info-panel-visible-chirho;
+                clicked-chirho => {
+                    AppStateChirho.info-panel-visible-chirho = !AppStateChirho.info-panel-visible-chirho;
+                    AppStateChirho.study-menu-visible-chirho = false;
+                }
+            }
+        }
+    }
+
+    // Personal popup menu
+    if AppStateChirho.personal-menu-visible-chirho: Rectangle {
+        x: personal-dropdown-chirho.x;
+        y: parent.height;
+        width: 200px;
+        height: personal-menu-layout-chirho.preferred-height + 8px;
+        background: ThemeChirho.background-secondary-chirho;
+        border-radius: ThemeChirho.radius-md-chirho;
+        border-width: 1px;
+        border-color: ThemeChirho.border-chirho;
+        drop-shadow-blur: 8px;
+        drop-shadow-color: rgba(0, 0, 0, 0.3);
+
+        personal-menu-layout-chirho := VerticalLayout {
+            padding: 4px;
+
+            ToolbarMenuItemChirho {
+                label-chirho: "Bookmarks";
+                shortcut-chirho: "⌘D";
+                active-chirho: AppStateChirho.bookmarks-visible-chirho;
+                clicked-chirho => {
+                    AppStateChirho.bookmarks-visible-chirho = !AppStateChirho.bookmarks-visible-chirho;
+                    AppStateChirho.personal-menu-visible-chirho = false;
+                }
+            }
+            ToolbarMenuItemChirho {
+                label-chirho: "Highlights";
+                shortcut-chirho: "⌘H";
+                active-chirho: AppStateChirho.highlights-visible-chirho;
+                clicked-chirho => {
+                    AppStateChirho.load-all-highlights-chirho();
+                    AppStateChirho.highlights-visible-chirho = !AppStateChirho.highlights-visible-chirho;
+                    AppStateChirho.personal-menu-visible-chirho = false;
+                }
+            }
+            ToolbarMenuItemChirho {
+                label-chirho: "Notes";
+                shortcut-chirho: "⌘N";
+                active-chirho: AppStateChirho.notes-visible-chirho;
+                clicked-chirho => {
+                    AppStateChirho.load-all-notes-chirho();
+                    AppStateChirho.notes-visible-chirho = !AppStateChirho.notes-visible-chirho;
+                    AppStateChirho.personal-menu-visible-chirho = false;
+                }
+            }
+            Rectangle { height: 1px; background: ThemeChirho.border-subtle-chirho; }
+            ToolbarMenuItemChirho {
+                label-chirho: "History";
+                active-chirho: AppStateChirho.history-visible-chirho;
+                clicked-chirho => {
+                    AppStateChirho.load-history-chirho();
+                    AppStateChirho.history-visible-chirho = !AppStateChirho.history-visible-chirho;
+                    AppStateChirho.personal-menu-visible-chirho = false;
+                }
+            }
+            ToolbarMenuItemChirho {
+                label-chirho: "Journal";
+                shortcut-chirho: "⌘J";
+                active-chirho: AppStateChirho.journal-panel-visible-chirho;
+                clicked-chirho => {
+                    AppStateChirho.journal-panel-visible-chirho = !AppStateChirho.journal-panel-visible-chirho;
+                    if AppStateChirho.journal-panel-visible-chirho {
+                        AppStateChirho.load-journal-entries-chirho();
+                    }
+                    AppStateChirho.personal-menu-visible-chirho = false;
+                }
+            }
+            ToolbarMenuItemChirho {
+                label-chirho: "Prayer List";
+                shortcut-chirho: "⌘R";
+                active-chirho: AppStateChirho.prayer-panel-visible-chirho;
+                clicked-chirho => {
+                    AppStateChirho.prayer-panel-visible-chirho = !AppStateChirho.prayer-panel-visible-chirho;
+                    if AppStateChirho.prayer-panel-visible-chirho {
+                        AppStateChirho.load-prayer-requests-chirho();
+                    }
+                    AppStateChirho.personal-menu-visible-chirho = false;
+                }
+            }
+            ToolbarMenuItemChirho {
+                label-chirho: "Statistics";
+                shortcut-chirho: "⌘Y";
+                active-chirho: AppStateChirho.stats-panel-visible-chirho;
+                clicked-chirho => {
+                    AppStateChirho.stats-panel-visible-chirho = !AppStateChirho.stats-panel-visible-chirho;
+                    if AppStateChirho.stats-panel-visible-chirho {
+                        AppStateChirho.load-statistics-chirho();
+                    }
+                    AppStateChirho.personal-menu-visible-chirho = false;
+                }
+            }
+        }
+    }
+
+    // Reading popup menu
+    if AppStateChirho.reading-menu-visible-chirho: Rectangle {
+        x: reading-dropdown-chirho.x;
+        y: parent.height;
+        width: 200px;
+        height: reading-menu-layout-chirho.preferred-height + 8px;
+        background: ThemeChirho.background-secondary-chirho;
+        border-radius: ThemeChirho.radius-md-chirho;
+        border-width: 1px;
+        border-color: ThemeChirho.border-chirho;
+        drop-shadow-blur: 8px;
+        drop-shadow-color: rgba(0, 0, 0, 0.3);
+
+        reading-menu-layout-chirho := VerticalLayout {
+            padding: 4px;
+
+            ToolbarMenuItemChirho {
+                label-chirho: "Parallel View";
+                shortcut-chirho: "⌘P";
+                active-chirho: AppStateChirho.parallel-view-enabled-chirho;
+                clicked-chirho => {
+                    AppStateChirho.parallel-view-enabled-chirho = !AppStateChirho.parallel-view-enabled-chirho;
+                    AppStateChirho.reading-menu-visible-chirho = false;
+                }
+            }
+            ToolbarMenuItemChirho {
+                label-chirho: "Verse of the Day";
+                shortcut-chirho: "⇧⌘V";
+                active-chirho: AppStateChirho.votd-dialog-visible-chirho;
+                clicked-chirho => {
+                    AppStateChirho.load-verse-of-the-day-chirho();
+                    AppStateChirho.votd-dialog-visible-chirho = true;
+                    AppStateChirho.reading-menu-visible-chirho = false;
+                }
+            }
+            ToolbarMenuItemChirho {
+                label-chirho: "Reading Plans";
+                shortcut-chirho: "⇧⌘P";
+                active-chirho: AppStateChirho.reading-plan-panel-visible-chirho;
+                clicked-chirho => {
+                    AppStateChirho.reading-plan-panel-visible-chirho = !AppStateChirho.reading-plan-panel-visible-chirho;
+                    if AppStateChirho.reading-plan-panel-visible-chirho {
+                        AppStateChirho.load-reading-plans-chirho();
+                    }
+                    AppStateChirho.reading-menu-visible-chirho = false;
+                }
             }
         }
     }

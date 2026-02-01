@@ -53,6 +53,28 @@ tempfile = "3.8"
 [build-dependencies]
 slint-build = "1.9"
 
+# Fast release: no LTO, incremental compilation for quick iteration
+# Usage: cargo build --profile release-fast-chirho
+# First build takes ~2min, subsequent builds ~30s
+[profile.release-fast-chirho]
+inherits = "release"
+opt-level = 2
+lto = false
+strip = true
+incremental = true
+codegen-units = 16
+
+# Thin LTO release: balanced speed/size
+# Usage: cargo build --profile release-thin-chirho
+[profile.release-thin-chirho]
+inherits = "release"
+opt-level = 3
+lto = "thin"
+strip = true
+codegen-units = 8
+
+# Full release: fat LTO, smallest/fastest binary (5-10 min compile)
+# Usage: cargo build --release (for App Store builds)
 [profile.release]
 opt-level = 3
 lto = true
