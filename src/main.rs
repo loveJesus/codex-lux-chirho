@@ -1142,7 +1142,7 @@ mod database_chirho {
 
 mod bible_engine_chirho {
     use super::*;
-    use rsword_chirho::{SwMgrChirho, FilterChirho, OsisToPlainFilterChirho, extract_interlinear_words_chirho, InstallMgrChirho};
+    use rsword_chirho::{SwMgrChirho, FilterChirho, OsisToPlainFilterChirho, extract_interlinear_words_chirho, InstallMgrChirho, InstallSourceChirho};
 
     /// Bible engine wrapping rsword_chirho
     pub struct BibleEngineChirho {
@@ -1514,6 +1514,118 @@ mod bible_engine_chirho {
                     None
                 }
             };
+        }
+
+        /// Get the SWORD path for InstallMgr operations
+        fn get_sword_path_chirho() -> Result<std::path::PathBuf, String> {
+            if let Some(base_dirs_chirho) = directories::BaseDirs::new() {
+                Ok(base_dirs_chirho.home_dir().join(".sword"))
+            } else {
+                Err("Could not determine home directory".to_string())
+            }
+        }
+
+        /// List all configured install sources
+        pub fn list_sources_chirho(&self) -> Result<Vec<(String, String, String)>, String> {
+            let sword_path_chirho = Self::get_sword_path_chirho()?;
+
+            let install_mgr_chirho = InstallMgrChirho::new_chirho(&sword_path_chirho)
+                .map_err(|e_chirho| format!("Failed to create install manager: {}", e_chirho))?;
+
+            let sources_chirho = install_mgr_chirho.get_sources_chirho();
+            Ok(sources_chirho
+                .iter()
+                .map(|s_chirho| (
+                    s_chirho.caption_chirho.clone(),
+                    s_chirho.source_type_chirho.clone(),
+                    s_chirho.url_chirho(),
+                ))
+                .collect())
+        }
+
+        /// Add a new install source
+        pub fn add_source_chirho(
+            &self,
+            caption_chirho: &str,
+            source_type_chirho: &str,
+            host_chirho: &str,
+            directory_chirho: &str,
+        ) -> Result<(), String> {
+            let sword_path_chirho = Self::get_sword_path_chirho()?;
+
+            let mut install_mgr_chirho = InstallMgrChirho::new_chirho(&sword_path_chirho)
+                .map_err(|e_chirho| format!("Failed to create install manager: {}", e_chirho))?;
+
+            install_mgr_chirho.init_chirho()
+                .map_err(|e_chirho| format!("Failed to initialize install manager: {}", e_chirho))?;
+
+            let source_chirho = InstallSourceChirho {
+                source_type_chirho: source_type_chirho.to_string(),
+                caption_chirho: caption_chirho.to_string(),
+                source_chirho: host_chirho.to_string(),
+                directory_chirho: directory_chirho.to_string(),
+            };
+
+            install_mgr_chirho.add_source_chirho(source_chirho);
+            install_mgr_chirho.save_sources_chirho()
+                .map_err(|e_chirho| format!("Failed to save sources: {}", e_chirho))?;
+
+            info!("Added install source: {}", caption_chirho);
+            Ok(())
+        }
+
+        /// Remove an install source by caption
+        pub fn remove_source_chirho(&self, caption_chirho: &str) -> Result<bool, String> {
+            let sword_path_chirho = Self::get_sword_path_chirho()?;
+
+            let mut install_mgr_chirho = InstallMgrChirho::new_chirho(&sword_path_chirho)
+                .map_err(|e_chirho| format!("Failed to create install manager: {}", e_chirho))?;
+
+            let removed_chirho = install_mgr_chirho.remove_source_chirho(caption_chirho);
+
+            if removed_chirho {
+                install_mgr_chirho.save_sources_chirho()
+                    .map_err(|e_chirho| format!("Failed to save sources: {}", e_chirho))?;
+                info!("Removed install source: {}", caption_chirho);
+            }
+
+            Ok(removed_chirho)
+        }
+
+        /// Refresh a source to get available modules
+        pub fn refresh_source_chirho(&self, source_name_chirho: &str) -> Result<Vec<String>, String> {
+            let sword_path_chirho = Self::get_sword_path_chirho()?;
+
+            let mut install_mgr_chirho = InstallMgrChirho::new_chirho(&sword_path_chirho)
+                .map_err(|e_chirho| format!("Failed to create install manager: {}", e_chirho))?;
+
+            install_mgr_chirho.init_chirho()
+                .map_err(|e_chirho| format!("Failed to initialize install manager: {}", e_chirho))?;
+
+            install_mgr_chirho.refresh_source_chirho(source_name_chirho)
+                .map_err(|e_chirho| format!("Failed to refresh source: {}", e_chirho))
+        }
+
+        /// List available modules from a source (must call refresh_source_chirho first)
+        pub fn list_remote_modules_chirho(&self, source_name_chirho: &str) -> Result<Vec<String>, String> {
+            let sword_path_chirho = Self::get_sword_path_chirho()?;
+
+            let install_mgr_chirho = InstallMgrChirho::new_chirho(&sword_path_chirho)
+                .map_err(|e_chirho| format!("Failed to create install manager: {}", e_chirho))?;
+
+            install_mgr_chirho.list_remote_modules_chirho(source_name_chirho)
+                .map_err(|e_chirho| format!("Failed to list modules: {}", e_chirho))
+        }
+
+        /// Uninstall a module
+        pub fn uninstall_module_chirho(&self, module_name_chirho: &str) -> Result<(), String> {
+            let sword_path_chirho = Self::get_sword_path_chirho()?;
+
+            let install_mgr_chirho = InstallMgrChirho::new_chirho(&sword_path_chirho)
+                .map_err(|e_chirho| format!("Failed to create install manager: {}", e_chirho))?;
+
+            install_mgr_chirho.uninstall_module_chirho(module_name_chirho)
+                .map_err(|e_chirho| format!("Failed to uninstall module: {}", e_chirho))
         }
     }
 }
@@ -2681,17 +2793,180 @@ fn main() -> Result<(), slint::PlatformError> {
         app_state_chirho.on_uninstall_module_chirho(move |module_name_chirho| {
             info!("Request to uninstall module: {}", module_name_chirho);
 
+            let module_name_clone_chirho = module_name_chirho.to_string();
+            let window_weak_clone_chirho = window_weak_chirho.clone();
+
             if let Some(window_chirho) = window_weak_chirho.upgrade() {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
                 state_chirho.set_module_manager_status_chirho(
                     format!("Uninstalling {}...", module_name_chirho).into()
                 );
-
-                // TODO: Integrate with rsword_chirho's InstallMgrChirho for actual uninstallation
-                state_chirho.set_status_message_chirho(
-                    "Module uninstallation requires rsword_chirho InstallMgr (coming soon)".to_string().into()
-                );
             }
+
+            // Run uninstall in background thread
+            std::thread::spawn(move || {
+                let engine_chirho = bible_engine_chirho::BibleEngineChirho::new_chirho();
+                let result_chirho = engine_chirho.uninstall_module_chirho(&module_name_clone_chirho);
+
+                let _ = slint::invoke_from_event_loop(move || {
+                    if let Some(window_chirho) = window_weak_clone_chirho.upgrade() {
+                        let state_chirho = window_chirho.global::<AppStateChirho>();
+                        match result_chirho {
+                            Ok(()) => {
+                                state_chirho.set_module_manager_status_chirho(
+                                    format!("Uninstalled {}", module_name_clone_chirho).into()
+                                );
+                                state_chirho.set_status_message_chirho(
+                                    format!("Module {} uninstalled successfully", module_name_clone_chirho).into()
+                                );
+                                // Refresh the module list
+                                state_chirho.invoke_refresh_remote_modules_chirho();
+                            }
+                            Err(e_chirho) => {
+                                state_chirho.set_module_manager_status_chirho(
+                                    format!("Error: {}", e_chirho).into()
+                                );
+                                state_chirho.set_status_message_chirho(
+                                    format!("Failed to uninstall module: {}", e_chirho).into()
+                                );
+                            }
+                        }
+                    }
+                });
+            });
+        });
+    }
+
+    // Set up repository management callbacks
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_load_install_sources_chirho(move || {
+            let window_weak_clone_chirho = window_weak_chirho.clone();
+
+            std::thread::spawn(move || {
+                let engine_chirho = bible_engine_chirho::BibleEngineChirho::new_chirho();
+                let result_chirho = engine_chirho.list_sources_chirho();
+
+                let _ = slint::invoke_from_event_loop(move || {
+                    if let Some(window_chirho) = window_weak_clone_chirho.upgrade() {
+                        let state_chirho = window_chirho.global::<AppStateChirho>();
+                        match result_chirho {
+                            Ok(sources_chirho) => {
+                                let sources_display_chirho: Vec<InstallSourceDisplayChirho> = sources_chirho
+                                    .into_iter()
+                                    .map(|(caption_chirho, source_type_chirho, url_chirho)| {
+                                        InstallSourceDisplayChirho {
+                                            caption_chirho: caption_chirho.into(),
+                                            source_type_chirho: source_type_chirho.into(),
+                                            url_chirho: url_chirho.into(),
+                                        }
+                                    })
+                                    .collect();
+                                state_chirho.set_install_sources_chirho(
+                                    Rc::new(slint::VecModel::from(sources_display_chirho)).into()
+                                );
+                            }
+                            Err(e_chirho) => {
+                                state_chirho.set_status_message_chirho(
+                                    format!("Failed to load sources: {}", e_chirho).into()
+                                );
+                            }
+                        }
+                    }
+                });
+            });
+        });
+    }
+
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_add_install_source_chirho(move |caption_chirho, host_chirho, path_chirho, source_type_chirho| {
+            let caption_clone_chirho = caption_chirho.to_string();
+            let host_clone_chirho = host_chirho.to_string();
+            let path_clone_chirho = path_chirho.to_string();
+            let type_str_chirho = match source_type_chirho {
+                0 => "HTTPSSource",
+                1 => "HTTPSource",
+                2 => "FTPSource",
+                _ => "HTTPSSource",
+            };
+            let window_weak_clone_chirho = window_weak_chirho.clone();
+
+            info!("Adding install source: {} ({}) at {}{}", caption_clone_chirho, type_str_chirho, host_clone_chirho, path_clone_chirho);
+
+            std::thread::spawn(move || {
+                let engine_chirho = bible_engine_chirho::BibleEngineChirho::new_chirho();
+                let result_chirho = engine_chirho.add_source_chirho(
+                    &caption_clone_chirho,
+                    type_str_chirho,
+                    &host_clone_chirho,
+                    &path_clone_chirho,
+                );
+
+                let _ = slint::invoke_from_event_loop(move || {
+                    if let Some(window_chirho) = window_weak_clone_chirho.upgrade() {
+                        let state_chirho = window_chirho.global::<AppStateChirho>();
+                        match result_chirho {
+                            Ok(()) => {
+                                state_chirho.set_status_message_chirho(
+                                    format!("Added repository: {}", caption_clone_chirho).into()
+                                );
+                                // Reload sources list
+                                state_chirho.invoke_load_install_sources_chirho();
+                            }
+                            Err(e_chirho) => {
+                                state_chirho.set_status_message_chirho(
+                                    format!("Failed to add source: {}", e_chirho).into()
+                                );
+                            }
+                        }
+                    }
+                });
+            });
+        });
+    }
+
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_remove_install_source_chirho(move |caption_chirho| {
+            let caption_clone_chirho = caption_chirho.to_string();
+            let window_weak_clone_chirho = window_weak_chirho.clone();
+
+            info!("Removing install source: {}", caption_clone_chirho);
+
+            std::thread::spawn(move || {
+                let engine_chirho = bible_engine_chirho::BibleEngineChirho::new_chirho();
+                let result_chirho = engine_chirho.remove_source_chirho(&caption_clone_chirho);
+
+                let _ = slint::invoke_from_event_loop(move || {
+                    if let Some(window_chirho) = window_weak_clone_chirho.upgrade() {
+                        let state_chirho = window_chirho.global::<AppStateChirho>();
+                        match result_chirho {
+                            Ok(removed_chirho) => {
+                                if removed_chirho {
+                                    state_chirho.set_status_message_chirho(
+                                        format!("Removed repository: {}", caption_clone_chirho).into()
+                                    );
+                                } else {
+                                    state_chirho.set_status_message_chirho(
+                                        format!("Repository not found: {}", caption_clone_chirho).into()
+                                    );
+                                }
+                                // Reload sources list
+                                state_chirho.invoke_load_install_sources_chirho();
+                            }
+                            Err(e_chirho) => {
+                                state_chirho.set_status_message_chirho(
+                                    format!("Failed to remove source: {}", e_chirho).into()
+                                );
+                            }
+                        }
+                    }
+                });
+            });
         });
     }
 
