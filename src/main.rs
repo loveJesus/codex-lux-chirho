@@ -1189,6 +1189,49 @@ mod bible_engine_chirho {
             }
         }
 
+        /// Get detailed module information for all installed modules
+        /// Returns (name, description, language_code, module_type)
+        pub fn get_modules_info_chirho(&self) -> Vec<(String, String, String, String)> {
+            match &self.manager_chirho {
+                Some(mgr_chirho) => {
+                    let mut modules_chirho = Vec::new();
+                    for (name_chirho, config_chirho) in mgr_chirho.get_modules_chirho() {
+                        let module_type_chirho = if config_chirho.is_bible_chirho() {
+                            "Bible"
+                        } else if config_chirho.is_commentary_chirho() {
+                            "Commentary"
+                        } else if config_chirho.is_lexicon_chirho() {
+                            "Lexicon"
+                        } else if config_chirho.is_genbook_chirho() {
+                            "General Book"
+                        } else {
+                            "Other"
+                        };
+
+                        modules_chirho.push((
+                            name_chirho.clone(),
+                            config_chirho.description_chirho()
+                                .unwrap_or(name_chirho.as_str())
+                                .to_string(),
+                            config_chirho.language_chirho()
+                                .unwrap_or("en")
+                                .to_string(),
+                            module_type_chirho.to_string(),
+                        ));
+                    }
+                    modules_chirho
+                }
+                None => {
+                    // Sample modules when no SWORD modules are available
+                    vec![
+                        ("KJV".to_string(), "King James Version".to_string(), "en".to_string(), "Bible".to_string()),
+                        ("SBLGNT".to_string(), "SBL Greek New Testament".to_string(), "grc".to_string(), "Bible".to_string()),
+                        ("WLC".to_string(), "Westminster Leningrad Codex".to_string(), "he".to_string(), "Bible".to_string()),
+                    ]
+                }
+            }
+        }
+
         /// Get verses for a chapter
         pub fn get_chapter_verses_chirho(
             &self,
@@ -1362,6 +1405,65 @@ mod bible_engine_chirho {
             }
 
             results_chirho
+        }
+
+        /// Get list of available commentary modules
+        pub fn get_commentary_modules_chirho(&self) -> Vec<String> {
+            match &self.manager_chirho {
+                Some(mgr_chirho) => mgr_chirho.get_commentaries_chirho()
+                    .into_iter()
+                    .map(|c_chirho| c_chirho.name_chirho.clone())
+                    .collect(),
+                None => vec!["MHCC".to_string()],
+            }
+        }
+
+        /// Get commentary text for a verse reference from a SWORD module
+        /// Returns None if module not found or no commentary for verse
+        pub fn get_commentary_chirho(&self, module_name_chirho: &str, verse_ref_chirho: &str) -> Option<String> {
+            if let Some(mgr_chirho) = &self.manager_chirho {
+                if let Ok(loaded_module_chirho) = mgr_chirho.load_module_chirho(module_name_chirho) {
+                    if let Ok(text_chirho) = loaded_module_chirho.read_entry_chirho(verse_ref_chirho) {
+                        if !text_chirho.trim().is_empty() {
+                            // Filter OSIS markup
+                            let filtered_chirho = self.osis_filter_chirho
+                                .process_chirho(&text_chirho)
+                                .unwrap_or_else(|_| text_chirho);
+                            return Some(filtered_chirho);
+                        }
+                    }
+                }
+            }
+            // No module available - caller should use sample data
+            None
+        }
+
+        /// Get list of available lexicon modules
+        pub fn get_lexicon_modules_chirho(&self) -> Vec<String> {
+            match &self.manager_chirho {
+                Some(mgr_chirho) => mgr_chirho.get_lexicons_chirho()
+                    .into_iter()
+                    .map(|l_chirho| l_chirho.name_chirho.clone())
+                    .collect(),
+                None => vec!["StrongsGreek".to_string(), "StrongsHebrew".to_string()],
+            }
+        }
+
+        /// Get lexicon entry for a key (e.g., "G26" for Strong's)
+        pub fn get_lexicon_entry_chirho(&self, module_name_chirho: &str, key_chirho: &str) -> Option<String> {
+            if let Some(mgr_chirho) = &self.manager_chirho {
+                if let Ok(loaded_module_chirho) = mgr_chirho.load_module_chirho(module_name_chirho) {
+                    if let Ok(text_chirho) = loaded_module_chirho.read_entry_chirho(key_chirho) {
+                        if !text_chirho.trim().is_empty() {
+                            let filtered_chirho = self.osis_filter_chirho
+                                .process_chirho(&text_chirho)
+                                .unwrap_or_else(|_| text_chirho);
+                            return Some(filtered_chirho);
+                        }
+                    }
+                }
+            }
+            None
         }
     }
 }
@@ -2301,71 +2403,85 @@ fn main() -> Result<(), slint::PlatformError> {
 
     // Set up refresh remote modules callback
     {
+        let backend_clone_chirho = backend_chirho.clone();
         let window_weak_chirho = main_window_chirho.as_weak();
 
         app_state_chirho.on_refresh_remote_modules_chirho(move || {
             if let Some(window_chirho) = window_weak_chirho.upgrade() {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
                 state_chirho.set_module_manager_loading_chirho(true);
-                state_chirho.set_module_manager_status_chirho("Connecting to CrossWire...".into());
+                state_chirho.set_module_manager_status_chirho("Loading installed modules...".into());
 
-                // For now, show a sample list of popular modules
-                // Full integration with rsword_chirho's install_mgr would require async
-                let sample_modules_chirho: Vec<RemoteModuleChirho> = vec![
-                    RemoteModuleChirho {
-                        name_chirho: "KJV".into(),
-                        description_chirho: "King James Version".into(),
-                        language_chirho: "English".into(),
-                        type_chirho: "Bible".into(),
+                // Get actual installed modules from rsword_chirho
+                let backend_ref_chirho = backend_clone_chirho.borrow();
+                let installed_modules_chirho = backend_ref_chirho.bible_engine_chirho.get_modules_info_chirho();
+                let installed_names_chirho: HashSet<String> = installed_modules_chirho
+                    .iter()
+                    .map(|(name_chirho, _, _, _)| name_chirho.clone())
+                    .collect();
+
+                let mut modules_chirho: Vec<RemoteModuleChirho> = Vec::new();
+
+                // Add installed modules first (marked as installed)
+                for (name_chirho, desc_chirho, lang_code_chirho, mod_type_chirho) in &installed_modules_chirho {
+                    // Convert language code to display name
+                    let lang_display_chirho = match lang_code_chirho.as_str() {
+                        "en" => "English",
+                        "grc" => "Greek",
+                        "he" => "Hebrew",
+                        "la" => "Latin",
+                        "de" => "German",
+                        "es" => "Spanish",
+                        "fr" => "French",
+                        "pt" => "Portuguese",
+                        "ru" => "Russian",
+                        "zh" => "Chinese",
+                        other_chirho => other_chirho,
+                    };
+
+                    modules_chirho.push(RemoteModuleChirho {
+                        name_chirho: name_chirho.clone().into(),
+                        description_chirho: desc_chirho.clone().into(),
+                        language_chirho: lang_display_chirho.into(),
+                        type_chirho: mod_type_chirho.clone().into(),
                         is_installed_chirho: true,
-                    },
-                    RemoteModuleChirho {
-                        name_chirho: "ESV".into(),
-                        description_chirho: "English Standard Version".into(),
-                        language_chirho: "English".into(),
-                        type_chirho: "Bible".into(),
-                        is_installed_chirho: false,
-                    },
-                    RemoteModuleChirho {
-                        name_chirho: "SBLGNT".into(),
-                        description_chirho: "SBL Greek New Testament".into(),
-                        language_chirho: "Greek".into(),
-                        type_chirho: "Bible".into(),
-                        is_installed_chirho: false,
-                    },
-                    RemoteModuleChirho {
-                        name_chirho: "WLC".into(),
-                        description_chirho: "Westminster Leningrad Codex".into(),
-                        language_chirho: "Hebrew".into(),
-                        type_chirho: "Bible".into(),
-                        is_installed_chirho: false,
-                    },
-                    RemoteModuleChirho {
-                        name_chirho: "StrongsGreek".into(),
-                        description_chirho: "Strong's Greek Dictionary".into(),
-                        language_chirho: "Greek".into(),
-                        type_chirho: "Lexicon".into(),
-                        is_installed_chirho: false,
-                    },
-                    RemoteModuleChirho {
-                        name_chirho: "StrongsHebrew".into(),
-                        description_chirho: "Strong's Hebrew Dictionary".into(),
-                        language_chirho: "Hebrew".into(),
-                        type_chirho: "Lexicon".into(),
-                        is_installed_chirho: false,
-                    },
-                    RemoteModuleChirho {
-                        name_chirho: "MHCC".into(),
-                        description_chirho: "Matthew Henry Concise Commentary".into(),
-                        language_chirho: "English".into(),
-                        type_chirho: "Commentary".into(),
-                        is_installed_chirho: false,
-                    },
+                    });
+                }
+
+                // Add popular remote modules (not installed)
+                // These are examples of what could be downloaded from CrossWire
+                let popular_remote_chirho = [
+                    ("ESV", "English Standard Version", "English", "Bible"),
+                    ("NASB", "New American Standard Bible", "English", "Bible"),
+                    ("NIV", "New International Version", "English", "Bible"),
+                    ("SBLGNT", "SBL Greek New Testament", "Greek", "Bible"),
+                    ("WLC", "Westminster Leningrad Codex", "Hebrew", "Bible"),
+                    ("LXX", "Rahlfs' Septuagint", "Greek", "Bible"),
+                    ("Vulgate", "Latin Vulgate", "Latin", "Bible"),
+                    ("StrongsGreek", "Strong's Greek Dictionary", "Greek", "Lexicon"),
+                    ("StrongsHebrew", "Strong's Hebrew Dictionary", "Hebrew", "Lexicon"),
+                    ("MHCC", "Matthew Henry Concise Commentary", "English", "Commentary"),
+                    ("TSK", "Treasury of Scripture Knowledge", "English", "Cross-References"),
+                    ("Josephus", "Works of Josephus", "English", "General Book"),
                 ];
 
-                state_chirho.set_remote_modules_chirho(Rc::new(slint::VecModel::from(sample_modules_chirho)).into());
+                for (name_chirho, desc_chirho, lang_chirho, type_chirho) in popular_remote_chirho {
+                    // Only add if not already installed
+                    if !installed_names_chirho.contains(name_chirho) {
+                        modules_chirho.push(RemoteModuleChirho {
+                            name_chirho: name_chirho.into(),
+                            description_chirho: desc_chirho.into(),
+                            language_chirho: lang_chirho.into(),
+                            type_chirho: type_chirho.into(),
+                            is_installed_chirho: false,
+                        });
+                    }
+                }
+
+                let status_msg_chirho = format!("Found {} installed modules", installed_modules_chirho.len());
+                state_chirho.set_remote_modules_chirho(Rc::new(slint::VecModel::from(modules_chirho)).into());
                 state_chirho.set_module_manager_loading_chirho(false);
-                state_chirho.set_module_manager_status_chirho("Ready".into());
+                state_chirho.set_module_manager_status_chirho(status_msg_chirho.into());
             }
         });
     }
