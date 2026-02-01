@@ -1,0 +1,104 @@
+# For God so loved the world that he gave his only begotten Son,
+# that whoever believes in him should not perish but have eternal life.
+# John 3:16
+
+name: Release Codex Lux Chirho
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version_chirho:
+        description: 'Version to release (e.g., 0.1.9)'
+        required: true
+        type: string
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-chirho:
+    name: Build ${{ matrix.os_chirho }}
+    runs-on: ${{ matrix.os_chirho }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_chirho: ubuntu-latest
+            target_chirho: x86_64-unknown-linux-gnu
+            artifact_name_chirho: codex_lux_chirho
+            asset_name_chirho: codex-lux-chirho-linux-x86_64
+          - os_chirho: macos-latest
+            target_chirho: x86_64-apple-darwin
+            artifact_name_chirho: codex_lux_chirho
+            asset_name_chirho: codex-lux-chirho-macos-x86_64
+          - os_chirho: macos-latest
+            target_chirho: aarch64-apple-darwin
+            artifact_name_chirho: codex_lux_chirho
+            asset_name_chirho: codex-lux-chirho-macos-arm64
+          - os_chirho: windows-latest
+            target_chirho: x86_64-pc-windows-msvc
+            artifact_name_chirho: codex_lux_chirho.exe
+            asset_name_chirho: codex-lux-chirho-windows-x86_64.exe
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-action@stable
+        with:
+          targets: ${{ matrix.target_chirho }}
+
+      - name: Install Linux dependencies
+        if: matrix.os_chirho == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
+            libxkbcommon-dev libssl-dev libfontconfig1-dev
+
+      - name: Build release binary
+        run: cargo build --release --target ${{ matrix.target_chirho }}
+
+      - name: Prepare artifact (Unix)
+        if: matrix.os_chirho != 'windows-latest'
+        run: |
+          mkdir -p dist-chirho
+          cp target/${{ matrix.target_chirho }}/release/${{ matrix.artifact_name_chirho }} dist-chirho/${{ matrix.asset_name_chirho }}
+          chmod +x dist-chirho/${{ matrix.asset_name_chirho }}
+
+      - name: Prepare artifact (Windows)
+        if: matrix.os_chirho == 'windows-latest'
+        run: |
+          mkdir dist-chirho
+          copy target\${{ matrix.target_chirho }}\release\${{ matrix.artifact_name_chirho }} dist-chirho\${{ matrix.asset_name_chirho }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name_chirho }}
+          path: dist-chirho/${{ matrix.asset_name_chirho }}
+
+  release-chirho:
+    name: Create Release
+    needs: build-chirho
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts-chirho
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts-chirho/**/*
+          draft: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
