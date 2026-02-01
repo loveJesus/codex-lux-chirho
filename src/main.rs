@@ -2765,11 +2765,13 @@ fn main() -> Result<(), slint::PlatformError> {
 
                             if success_chirho {
                                 state_chirho.set_module_manager_status_chirho(
-                                    format!("{} installed successfully!", module_name_result_chirho).into()
+                                    format!("{} installed!", module_name_result_chirho).into()
                                 );
                                 state_chirho.set_status_message_chirho(
-                                    format!("Module {} installed. Click 'Refresh' to update the module list.", module_name_result_chirho).into()
+                                    format!("Module {} installed successfully!", module_name_result_chirho).into()
                                 );
+                                // Auto-refresh the module list to show updated install status
+                                state_chirho.invoke_refresh_remote_modules_chirho();
                             } else {
                                 let err_chirho = error_msg_chirho.unwrap_or_else(|| "Unknown error".to_string());
                                 state_chirho.set_module_manager_status_chirho(
@@ -5267,12 +5269,12 @@ fn export_highlights_to_json_chirho(conn_chirho: &Connection) -> Result<PathBuf>
         .iter()
         .map(|hl_chirho| {
             serde_json::json!({
-                "reference": format!("{} {}:{}", hl_chirho.book_chirho, hl_chirho.chapter_chirho, hl_chirho.verse_chirho),
-                "book": hl_chirho.book_chirho,
-                "chapter": hl_chirho.chapter_chirho,
-                "verse": hl_chirho.verse_chirho,
-                "color": hl_chirho.color_chirho,
-                "module": hl_chirho.module_chirho,
+                "reference_chirho": format!("{} {}:{}", hl_chirho.book_chirho, hl_chirho.chapter_chirho, hl_chirho.verse_chirho),
+                "book_chirho": hl_chirho.book_chirho,
+                "chapter_chirho": hl_chirho.chapter_chirho,
+                "verse_chirho": hl_chirho.verse_chirho,
+                "color_chirho": hl_chirho.color_chirho,
+                "module_chirho": hl_chirho.module_chirho,
             })
         })
         .collect();
@@ -5300,12 +5302,12 @@ fn export_bookmarks_to_json_chirho(conn_chirho: &Connection) -> Result<PathBuf> 
         .iter()
         .map(|bm_chirho| {
             serde_json::json!({
-                "reference": format!("{} {}:{}", bm_chirho.book_chirho, bm_chirho.chapter_chirho, bm_chirho.verse_chirho),
-                "book": bm_chirho.book_chirho,
-                "chapter": bm_chirho.chapter_chirho,
-                "verse": bm_chirho.verse_chirho,
-                "label": bm_chirho.label_chirho,
-                "module": bm_chirho.module_chirho,
+                "reference_chirho": format!("{} {}:{}", bm_chirho.book_chirho, bm_chirho.chapter_chirho, bm_chirho.verse_chirho),
+                "book_chirho": bm_chirho.book_chirho,
+                "chapter_chirho": bm_chirho.chapter_chirho,
+                "verse_chirho": bm_chirho.verse_chirho,
+                "label_chirho": bm_chirho.label_chirho,
+                "module_chirho": bm_chirho.module_chirho,
             })
         })
         .collect();
@@ -5333,14 +5335,14 @@ fn export_notes_to_json_chirho(conn_chirho: &Connection) -> Result<PathBuf> {
         .iter()
         .map(|note_chirho| {
             serde_json::json!({
-                "reference": format!("{} {}:{}", note_chirho.book_chirho, note_chirho.chapter_chirho, note_chirho.verse_chirho),
-                "book": note_chirho.book_chirho,
-                "chapter": note_chirho.chapter_chirho,
-                "verse": note_chirho.verse_chirho,
-                "content": note_chirho.content_chirho,
-                "module": note_chirho.module_chirho,
-                "created_at": note_chirho.created_at_chirho,
-                "updated_at": note_chirho.updated_at_chirho,
+                "reference_chirho": format!("{} {}:{}", note_chirho.book_chirho, note_chirho.chapter_chirho, note_chirho.verse_chirho),
+                "book_chirho": note_chirho.book_chirho,
+                "chapter_chirho": note_chirho.chapter_chirho,
+                "verse_chirho": note_chirho.verse_chirho,
+                "content_chirho": note_chirho.content_chirho,
+                "module_chirho": note_chirho.module_chirho,
+                "created_at_chirho": note_chirho.created_at_chirho,
+                "updated_at_chirho": note_chirho.updated_at_chirho,
             })
         })
         .collect();
@@ -5367,41 +5369,41 @@ fn export_all_data_to_json_chirho(conn_chirho: &Connection) -> Result<PathBuf> {
     let path_chirho = export_dir_chirho.join(&filename_chirho);
 
     let json_data_chirho = serde_json::json!({
-        "export_info": {
-            "app": "Codex Lux Chirho",
-            "version": env!("CARGO_PKG_VERSION"),
-            "exported_at": chrono::Local::now().to_rfc3339(),
+        "export_info_chirho": {
+            "app_chirho": "Codex Lux Chirho",
+            "version_chirho": env!("CARGO_PKG_VERSION"),
+            "exported_at_chirho": chrono::Local::now().to_rfc3339(),
         },
-        "highlights": highlights_chirho.iter().map(|hl_chirho| {
+        "highlights_chirho": highlights_chirho.iter().map(|hl_chirho| {
             serde_json::json!({
-                "reference": format!("{} {}:{}", hl_chirho.book_chirho, hl_chirho.chapter_chirho, hl_chirho.verse_chirho),
-                "book": hl_chirho.book_chirho,
-                "chapter": hl_chirho.chapter_chirho,
-                "verse": hl_chirho.verse_chirho,
-                "color": hl_chirho.color_chirho,
-                "module": hl_chirho.module_chirho,
+                "reference_chirho": format!("{} {}:{}", hl_chirho.book_chirho, hl_chirho.chapter_chirho, hl_chirho.verse_chirho),
+                "book_chirho": hl_chirho.book_chirho,
+                "chapter_chirho": hl_chirho.chapter_chirho,
+                "verse_chirho": hl_chirho.verse_chirho,
+                "color_chirho": hl_chirho.color_chirho,
+                "module_chirho": hl_chirho.module_chirho,
             })
         }).collect::<Vec<_>>(),
-        "bookmarks": bookmarks_chirho.iter().map(|bm_chirho| {
+        "bookmarks_chirho": bookmarks_chirho.iter().map(|bm_chirho| {
             serde_json::json!({
-                "reference": format!("{} {}:{}", bm_chirho.book_chirho, bm_chirho.chapter_chirho, bm_chirho.verse_chirho),
-                "book": bm_chirho.book_chirho,
-                "chapter": bm_chirho.chapter_chirho,
-                "verse": bm_chirho.verse_chirho,
-                "label": bm_chirho.label_chirho,
-                "module": bm_chirho.module_chirho,
+                "reference_chirho": format!("{} {}:{}", bm_chirho.book_chirho, bm_chirho.chapter_chirho, bm_chirho.verse_chirho),
+                "book_chirho": bm_chirho.book_chirho,
+                "chapter_chirho": bm_chirho.chapter_chirho,
+                "verse_chirho": bm_chirho.verse_chirho,
+                "label_chirho": bm_chirho.label_chirho,
+                "module_chirho": bm_chirho.module_chirho,
             })
         }).collect::<Vec<_>>(),
-        "notes": notes_chirho.iter().map(|note_chirho| {
+        "notes_chirho": notes_chirho.iter().map(|note_chirho| {
             serde_json::json!({
-                "reference": format!("{} {}:{}", note_chirho.book_chirho, note_chirho.chapter_chirho, note_chirho.verse_chirho),
-                "book": note_chirho.book_chirho,
-                "chapter": note_chirho.chapter_chirho,
-                "verse": note_chirho.verse_chirho,
-                "content": note_chirho.content_chirho,
-                "module": note_chirho.module_chirho,
-                "created_at": note_chirho.created_at_chirho,
-                "updated_at": note_chirho.updated_at_chirho,
+                "reference_chirho": format!("{} {}:{}", note_chirho.book_chirho, note_chirho.chapter_chirho, note_chirho.verse_chirho),
+                "book_chirho": note_chirho.book_chirho,
+                "chapter_chirho": note_chirho.chapter_chirho,
+                "verse_chirho": note_chirho.verse_chirho,
+                "content_chirho": note_chirho.content_chirho,
+                "module_chirho": note_chirho.module_chirho,
+                "created_at_chirho": note_chirho.created_at_chirho,
+                "updated_at_chirho": note_chirho.updated_at_chirho,
             })
         }).collect::<Vec<_>>(),
     });
@@ -5435,16 +5437,18 @@ fn import_data_from_json_chirho(conn_chirho: &Connection, file_path_chirho: &str
     let mut bookmarks_imported_chirho = 0;
     let mut notes_imported_chirho = 0;
 
-    // Import highlights
-    if let Some(highlights_chirho) = json_data_chirho.get("highlights").and_then(|v_chirho| v_chirho.as_array()) {
+    // Import highlights (supports both old and new key formats for backward compatibility)
+    let highlights_key_chirho = if json_data_chirho.get("highlights_chirho").is_some() { "highlights_chirho" } else { "highlights" };
+    if let Some(highlights_chirho) = json_data_chirho.get(highlights_key_chirho).and_then(|v_chirho| v_chirho.as_array()) {
         for hl_chirho in highlights_chirho {
-            if let (Some(book_chirho), Some(chapter_chirho), Some(verse_chirho)) = (
-                hl_chirho.get("book").and_then(|v_chirho| v_chirho.as_str()),
-                hl_chirho.get("chapter").and_then(|v_chirho| v_chirho.as_i64()),
-                hl_chirho.get("verse").and_then(|v_chirho| v_chirho.as_i64()),
-            ) {
-                let color_chirho = hl_chirho.get("color").and_then(|v_chirho| v_chirho.as_str()).unwrap_or("yellow");
-                let module_chirho = hl_chirho.get("module").and_then(|v_chirho| v_chirho.as_str()).unwrap_or("KJV");
+            // Support both old and new key formats
+            let book_chirho = hl_chirho.get("book_chirho").or_else(|| hl_chirho.get("book")).and_then(|v_chirho| v_chirho.as_str());
+            let chapter_chirho = hl_chirho.get("chapter_chirho").or_else(|| hl_chirho.get("chapter")).and_then(|v_chirho| v_chirho.as_i64());
+            let verse_chirho = hl_chirho.get("verse_chirho").or_else(|| hl_chirho.get("verse")).and_then(|v_chirho| v_chirho.as_i64());
+
+            if let (Some(book_chirho), Some(chapter_chirho), Some(verse_chirho)) = (book_chirho, chapter_chirho, verse_chirho) {
+                let color_chirho = hl_chirho.get("color_chirho").or_else(|| hl_chirho.get("color")).and_then(|v_chirho| v_chirho.as_str()).unwrap_or("yellow");
+                let module_chirho = hl_chirho.get("module_chirho").or_else(|| hl_chirho.get("module")).and_then(|v_chirho| v_chirho.as_str()).unwrap_or("KJV");
 
                 // Use upsert to avoid duplicates
                 if database_chirho::add_highlight_with_color_chirho(
@@ -5461,16 +5465,18 @@ fn import_data_from_json_chirho(conn_chirho: &Connection, file_path_chirho: &str
         }
     }
 
-    // Import bookmarks
-    if let Some(bookmarks_chirho) = json_data_chirho.get("bookmarks").and_then(|v_chirho| v_chirho.as_array()) {
+    // Import bookmarks (supports both old and new key formats for backward compatibility)
+    let bookmarks_key_chirho = if json_data_chirho.get("bookmarks_chirho").is_some() { "bookmarks_chirho" } else { "bookmarks" };
+    if let Some(bookmarks_chirho) = json_data_chirho.get(bookmarks_key_chirho).and_then(|v_chirho| v_chirho.as_array()) {
         for bm_chirho in bookmarks_chirho {
-            if let (Some(book_chirho), Some(chapter_chirho), Some(verse_chirho)) = (
-                bm_chirho.get("book").and_then(|v_chirho| v_chirho.as_str()),
-                bm_chirho.get("chapter").and_then(|v_chirho| v_chirho.as_i64()),
-                bm_chirho.get("verse").and_then(|v_chirho| v_chirho.as_i64()),
-            ) {
-                let label_chirho = bm_chirho.get("label").and_then(|v_chirho| v_chirho.as_str());
-                let module_chirho = bm_chirho.get("module").and_then(|v_chirho| v_chirho.as_str()).unwrap_or("KJV");
+            // Support both old and new key formats
+            let book_chirho = bm_chirho.get("book_chirho").or_else(|| bm_chirho.get("book")).and_then(|v_chirho| v_chirho.as_str());
+            let chapter_chirho = bm_chirho.get("chapter_chirho").or_else(|| bm_chirho.get("chapter")).and_then(|v_chirho| v_chirho.as_i64());
+            let verse_chirho = bm_chirho.get("verse_chirho").or_else(|| bm_chirho.get("verse")).and_then(|v_chirho| v_chirho.as_i64());
+
+            if let (Some(book_chirho), Some(chapter_chirho), Some(verse_chirho)) = (book_chirho, chapter_chirho, verse_chirho) {
+                let label_chirho = bm_chirho.get("label_chirho").or_else(|| bm_chirho.get("label")).and_then(|v_chirho| v_chirho.as_str());
+                let module_chirho = bm_chirho.get("module_chirho").or_else(|| bm_chirho.get("module")).and_then(|v_chirho| v_chirho.as_str()).unwrap_or("KJV");
 
                 // Add bookmark (may fail if duplicate exists)
                 if database_chirho::add_bookmark_chirho(
@@ -5487,16 +5493,18 @@ fn import_data_from_json_chirho(conn_chirho: &Connection, file_path_chirho: &str
         }
     }
 
-    // Import notes
-    if let Some(notes_chirho) = json_data_chirho.get("notes").and_then(|v_chirho| v_chirho.as_array()) {
+    // Import notes (supports both old and new key formats for backward compatibility)
+    let notes_key_chirho = if json_data_chirho.get("notes_chirho").is_some() { "notes_chirho" } else { "notes" };
+    if let Some(notes_chirho) = json_data_chirho.get(notes_key_chirho).and_then(|v_chirho| v_chirho.as_array()) {
         for note_chirho in notes_chirho {
-            if let (Some(book_chirho), Some(chapter_chirho), Some(verse_chirho), Some(content_chirho)) = (
-                note_chirho.get("book").and_then(|v_chirho| v_chirho.as_str()),
-                note_chirho.get("chapter").and_then(|v_chirho| v_chirho.as_i64()),
-                note_chirho.get("verse").and_then(|v_chirho| v_chirho.as_i64()),
-                note_chirho.get("content").and_then(|v_chirho| v_chirho.as_str()),
-            ) {
-                let module_chirho = note_chirho.get("module").and_then(|v_chirho| v_chirho.as_str()).unwrap_or("KJV");
+            // Support both old and new key formats
+            let book_chirho = note_chirho.get("book_chirho").or_else(|| note_chirho.get("book")).and_then(|v_chirho| v_chirho.as_str());
+            let chapter_chirho = note_chirho.get("chapter_chirho").or_else(|| note_chirho.get("chapter")).and_then(|v_chirho| v_chirho.as_i64());
+            let verse_chirho = note_chirho.get("verse_chirho").or_else(|| note_chirho.get("verse")).and_then(|v_chirho| v_chirho.as_i64());
+            let content_chirho = note_chirho.get("content_chirho").or_else(|| note_chirho.get("content")).and_then(|v_chirho| v_chirho.as_str());
+
+            if let (Some(book_chirho), Some(chapter_chirho), Some(verse_chirho), Some(content_chirho)) = (book_chirho, chapter_chirho, verse_chirho, content_chirho) {
+                let module_chirho = note_chirho.get("module_chirho").or_else(|| note_chirho.get("module")).and_then(|v_chirho| v_chirho.as_str()).unwrap_or("KJV");
 
                 // Upsert note
                 if database_chirho::save_note_chirho(

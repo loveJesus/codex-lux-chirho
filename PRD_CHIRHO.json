@@ -1,7 +1,7 @@
 {
   "_comment_chirho": "For God so loved the world that he gave his only begotten Son, that whoever believes in him should not perish but have eternal life. John 3:16",
   "product_name_chirho": "Codex Lux Chirho",
-  "version_chirho": "0.1.9",
+  "version_chirho": "0.1.10",
   "current_milestone_chirho": "M1_partial",
   "implementation_status_chirho": {
     "completed_chirho": 1,
@@ -44,7 +44,8 @@
       "status_chirho": "partial",
       "completed_items_chirho": [
         "Load and display Bible modules (RawText, zText) via rsword_chirho",
-        "Module selector in sidebar"
+        "Module selector in sidebar",
+        "Module type detection (Bible, Commentary, Lexicon, General Book)"
       ],
       "description_chirho": "Support for multiple SWORD module types",
       "requirements_chirho": [
@@ -54,7 +55,11 @@
         "Load and display General Book modules",
         "Module metadata display (language, version, description)",
         "Module icons based on type and language"
-      ]
+      ],
+      "known_bugs_chirho": [
+        "General Books (e.g., Josephus) show Genesis sample data instead of actual content - need TreeKey navigation instead of VerseKey"
+      ],
+      "implementation_notes_chirho": "General Books require different navigation model: TreeKey with hierarchical paths (/Book/Chapter/Section) instead of VerseKey (John 3:16). Need tree browser UI component and separate content loading path for is_genbook_chirho modules."
     },
 
     "CLX-002": {
@@ -78,7 +83,8 @@
         "Chapter grid selector dialog (click chapter display to open)",
         "Visual highlight for current chapter in grid selector",
         "Previous/Next book navigation buttons (‹‹ ››) with wrap-around",
-        "Support for verse ranges (Gen 1:1-10) - navigates to start verse"
+        "Support for verse ranges (Gen 1:1-10) - navigates to start verse",
+        "Chapter selector click handling fixed (TouchArea z-order corrected)"
       ],
       "description_chirho": "Bible navigation with book/chapter/verse selection",
       "requirements_chirho": [
@@ -475,7 +481,14 @@
         "Refresh button loads real installed modules via get_modules_info_chirho()",
         "Loading state and status messages",
         "Language code to display name conversion (en->English, grc->Greek, he->Hebrew)",
-        "Module type detection (Bible, Commentary, Lexicon, General Book) via rsword_chirho"
+        "Module type detection (Bible, Commentary, Lexicon, General Book) via rsword_chirho",
+        "Repository panel UI with source list",
+        "InstallMgrChirho integration for remote source management",
+        "Add/remove repository sources",
+        "Refresh individual sources",
+        "List available modules from sources",
+        "Popular modules quick-access list (KJV, ESV, NIV, ASV, etc.)",
+        "Dropdown menu z-order fix (Study, Personal, Reading menus render on top)"
       ],
       "description_chirho": "Install and manage SWORD modules",
       "requirements_chirho": [
@@ -1246,7 +1259,8 @@
         "Color-coded original text by language (Hebrew=blue, Greek=green)",
         "Click interlinear word to lookup Strong's number",
         "get_verses_with_interlinear_chirho() loads interlinear for all verses",
-        "Inline mode toggle with automatic verse reload"
+        "Inline mode toggle with automatic verse reload",
+        "Word width expands to fit gloss/morphology content (max(40px, preferred-width))"
       ],
       "description_chirho": "Word-by-word interlinear Bible display with original language, transliteration, and gloss",
       "requirements_chirho": [
