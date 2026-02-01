@@ -44,8 +44,14 @@ jobs:
             asset_name_chirho: codex-lux-chirho-windows-x86_64.exe
 
     steps:
-      - name: Checkout
+      - name: Checkout codex_lux_chirho
         uses: actions/checkout@v4
+
+      - name: Checkout rsword-chirho
+        uses: actions/checkout@v4
+        with:
+          repository: loveJesus/rsword-chirho
+          path: ../rsword-chirho
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
