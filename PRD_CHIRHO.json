@@ -418,7 +418,9 @@
         "Auto-sync commentary with current verse",
         "Module selector dropdown for commentaries",
         "Sample commentary content (Genesis 1, John 3, Psalm 23, Romans 8)",
-        "Keyboard shortcut Ctrl+Shift+C"
+        "Keyboard shortcut Ctrl+Shift+C",
+        "BibleEngineChirho.get_commentary_modules_chirho() via rsword_chirho",
+        "BibleEngineChirho.get_commentary_chirho() reads from SWORD commentary modules"
       ],
       "description_chirho": "Display commentaries alongside scripture",
       "requirements_chirho": [
@@ -427,7 +429,8 @@
         "Multiple commentary tabs",
         "Commentary search",
         "Commentary bookmarks"
-      ]
+      ],
+      "implementation_notes_chirho": "Commentary methods added to BibleEngineChirho using rsword_chirho SwMgrChirho.get_commentaries_chirho(). Falls back to sample data when no commentary modules installed."
     },
 
     "CLX-014": {
@@ -442,7 +445,9 @@
         "Sample lexicon entries (love/agape, god/theos, word/logos, faith/pistis)",
         "Entry history tracking (recent lookups)",
         "Module selector dropdown for lexicons",
-        "Keyboard shortcut Ctrl+Shift+L"
+        "Keyboard shortcut Ctrl+Shift+L",
+        "BibleEngineChirho.get_lexicon_modules_chirho() via rsword_chirho",
+        "BibleEngineChirho.get_lexicon_entry_chirho() reads from SWORD lexicon modules"
       ],
       "description_chirho": "Dictionary and lexicon lookup",
       "requirements_chirho": [
@@ -452,7 +457,8 @@
         "Link from Strong's numbers",
         "Multiple lexicon support",
         "Entry history"
-      ]
+      ],
+      "implementation_notes_chirho": "Lexicon methods added to BibleEngineChirho using rsword_chirho SwMgrChirho.get_lexicons_chirho(). Can read entries from installed lexicon modules like Strong's."
     },
 
     "CLX-015": {
@@ -463,12 +469,13 @@
       "completed_items_chirho": [
         "Module manager panel UI (Ctrl+M or toolbar button)",
         "Module manager panel with list view",
-        "Module info display (name, description, language, type)",
-        "Installed status indicator on modules",
+        "Module info display (name, description, language, type) from rsword_chirho",
+        "Installed status indicator from actual SWORD modules",
         "Install/Remove button per module",
-        "Refresh button to load module list",
+        "Refresh button loads real installed modules via get_modules_info_chirho()",
         "Loading state and status messages",
-        "Sample module list (KJV, ESV, SBLGNT, WLC, Strong's, MHCC)"
+        "Language code to display name conversion (en->English, grc->Greek, he->Hebrew)",
+        "Module type detection (Bible, Commentary, Lexicon, General Book) via rsword_chirho"
       ],
       "description_chirho": "Install and manage SWORD modules",
       "requirements_chirho": [
@@ -484,7 +491,8 @@
         "Repository management (add/remove sources)",
         "Download progress indicator",
         "Module disk space usage"
-      ]
+      ],
+      "implementation_notes_chirho": "Module manager now uses rsword_chirho SwMgrChirho.get_modules_chirho() for real installed module info. Pending: actual install/uninstall via InstallMgrChirho, remote repository browsing."
     },
 
     "CLX-016": {
