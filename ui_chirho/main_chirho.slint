@@ -409,6 +409,12 @@ export struct PrayerRequestDisplayChirho {
     date-chirho: string,
 }
 
+// Verse comparison text for CLX-025
+export struct ComparisonTextChirho {
+    module-chirho: string,
+    text-chirho: string,
+}
+
 // Application state shared with Rust
 export global AppStateChirho {
     in-out property <string> current-module-chirho: "KJV";
@@ -568,7 +574,7 @@ export global AppStateChirho {
     // Verse Comparison Dialog (CLX-025)
     in-out property <bool> comparison-dialog-visible-chirho: false;
     in-out property <string> comparison-verse-ref-chirho: "";
-    in-out property <[{module-chirho: string, text-chirho: string}]> comparison-texts-chirho: [];
+    in-out property <[ComparisonTextChirho]> comparison-texts-chirho: [];
     callback load-verse-comparison-chirho(string);
 
     // Info Panel (contextual verse details)

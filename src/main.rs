@@ -1142,31 +1142,7 @@ mod database_chirho {
 
 mod bible_engine_chirho {
     use super::*;
-    use rsword_chirho::{SwMgrChirho, FilterChirho, OsisToPlainFilterChirho};
-    use regex::Regex;
-    use std::sync::LazyLock;
-
-    // Regex patterns for extracting interlinear data from OSIS
-    static OSIS_WORD_REGEX_CHIRHO: LazyLock<Regex> = LazyLock::new(|| {
-        Regex::new(r#"<w\s+([^>]*)>([^<]*)</w>"#).unwrap()
-    });
-
-    static OSIS_GLOSS_REGEX_CHIRHO: LazyLock<Regex> = LazyLock::new(|| {
-        Regex::new(r#"gloss="([^"]*)""#).unwrap()
-    });
-
-    #[allow(dead_code)]
-    static OSIS_LEMMA_REGEX_CHIRHO: LazyLock<Regex> = LazyLock::new(|| {
-        Regex::new(r#"lemma="([^"]*)""#).unwrap()
-    });
-
-    static OSIS_STRONGS_REGEX_CHIRHO: LazyLock<Regex> = LazyLock::new(|| {
-        Regex::new(r#"strong:([GH]\d+)"#).unwrap()
-    });
-
-    static OSIS_MORPH_REGEX_CHIRHO: LazyLock<Regex> = LazyLock::new(|| {
-        Regex::new(r#"morph="([^"]*)""#).unwrap()
-    });
+    use rsword_chirho::{SwMgrChirho, FilterChirho, OsisToPlainFilterChirho, extract_interlinear_words_chirho};
 
     /// Bible engine wrapping rsword_chirho
     pub struct BibleEngineChirho {
@@ -1330,60 +1306,30 @@ mod bible_engine_chirho {
             None
         }
 
-        /// Extract interlinear word data from OSIS text
+        /// Extract interlinear word data from OSIS text using rsword_chirho
         pub fn extract_interlinear_chirho(&self, verse_ref_chirho: &str) -> Vec<InterlinearWordChirho> {
-            let mut words_chirho = Vec::new();
-
-            // Try to get raw OSIS text
+            // Try to get raw OSIS text from SWORD module
             if let Some(raw_text_chirho) = self.get_raw_verse_chirho(verse_ref_chirho) {
-                // Parse <w> elements
-                for cap_chirho in OSIS_WORD_REGEX_CHIRHO.captures_iter(&raw_text_chirho) {
-                    let attrs_chirho = &cap_chirho[1];
-                    let word_text_chirho = &cap_chirho[2];
+                // Use rsword_chirho's interlinear extraction
+                let words_data_chirho = extract_interlinear_words_chirho(&raw_text_chirho);
 
-                    // Extract gloss (translation)
-                    let gloss_chirho = OSIS_GLOSS_REGEX_CHIRHO
-                        .captures(attrs_chirho)
-                        .map(|c_chirho| c_chirho[1].to_string())
-                        .unwrap_or_default();
-
-                    // Extract Strong's numbers
-                    let strongs_chirho: Vec<String> = OSIS_STRONGS_REGEX_CHIRHO
-                        .captures_iter(attrs_chirho)
-                        .map(|c_chirho| c_chirho[1].to_string())
-                        .collect();
-
-                    // Extract morphology
-                    let morph_chirho = OSIS_MORPH_REGEX_CHIRHO
-                        .captures(attrs_chirho)
-                        .map(|c_chirho| c_chirho[1].to_string())
-                        .unwrap_or_default();
-
-                    // Determine if Hebrew (H prefix) or Greek (G prefix)
-                    let is_hebrew_chirho = strongs_chirho.first()
-                        .map(|s_chirho: &String| s_chirho.starts_with('H'))
-                        .unwrap_or(false);
-
-                    // Extract part of speech from morphology
-                    let pos_chirho = if !morph_chirho.is_empty() {
-                        morph_chirho.split('|').next().unwrap_or("").trim().to_string()
-                    } else {
-                        String::new()
-                    };
-
-                    words_chirho.push(InterlinearWordChirho {
-                        original_chirho: word_text_chirho.to_string().into(),
-                        transliteration_chirho: "".into(), // Would need transliteration library
-                        morphology_chirho: morph_chirho.into(),
-                        strongs_chirho: strongs_chirho.join(", ").into(),
-                        gloss_chirho: gloss_chirho.into(),
-                        part_of_speech_chirho: pos_chirho.into(),
-                        is_hebrew_chirho,
-                    });
+                if !words_data_chirho.is_empty() {
+                    return words_data_chirho.into_iter().map(|w_chirho| {
+                        InterlinearWordChirho {
+                            original_chirho: w_chirho.original_chirho.into(),
+                            transliteration_chirho: w_chirho.transliteration_chirho.into(),
+                            morphology_chirho: w_chirho.morphology_chirho.into(),
+                            strongs_chirho: w_chirho.strongs_chirho.into(),
+                            gloss_chirho: w_chirho.gloss_chirho.into(),
+                            part_of_speech_chirho: w_chirho.part_of_speech_chirho.into(),
+                            is_hebrew_chirho: w_chirho.is_hebrew_chirho,
+                        }
+                    }).collect();
                 }
             }
 
-            words_chirho
+            // Return empty - no sample data fallback since interlinear comes from modules
+            Vec::new()
         }
 
         /// Search for verses containing the query
@@ -3683,19 +3629,20 @@ fn main() -> Result<(), slint::PlatformError> {
                     let verse_ref_chirho = format!("{} {}:1", book_chirho, chapter_chirho);
                     state_chirho.set_interlinear_verse_ref_chirho(verse_ref_chirho.clone().into());
 
-                    // Try to extract from OSIS, fallback to sample data
+                    // Extract interlinear data from SWORD module
                     let backend_ref_chirho = backend_clone_chirho.borrow();
                     let words_chirho = backend_ref_chirho.bible_engine_chirho.extract_interlinear_chirho(&verse_ref_chirho);
-                    let words_chirho = if words_chirho.is_empty() {
-                        get_sample_interlinear_chirho(&verse_ref_chirho)
-                    } else {
-                        words_chirho
-                    };
                     let words_model_chirho: Rc<slint::VecModel<InterlinearWordChirho>> =
-                        Rc::new(slint::VecModel::from(words_chirho));
+                        Rc::new(slint::VecModel::from(words_chirho.clone()));
                     state_chirho.set_interlinear_words_chirho(slint::ModelRc::from(words_model_chirho));
 
-                    state_chirho.set_status_message_chirho("Interlinear display enabled".into());
+                    if words_chirho.is_empty() {
+                        state_chirho.set_status_message_chirho(
+                            "Interlinear enabled - load an interlinear module (e.g., OSHB, SBLGNT) for word data".into()
+                        );
+                    } else {
+                        state_chirho.set_status_message_chirho("Interlinear display enabled".into());
+                    }
                 } else {
                     state_chirho.set_status_message_chirho("Interlinear display disabled".into());
                 }
@@ -3715,17 +3662,74 @@ fn main() -> Result<(), slint::PlatformError> {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
                 state_chirho.set_interlinear_verse_ref_chirho(verse_ref_chirho.clone());
 
-                // Try to extract from OSIS, fallback to sample data
+                // Extract interlinear data from SWORD module
                 let backend_ref_chirho = backend_clone_chirho.borrow();
                 let words_chirho = backend_ref_chirho.bible_engine_chirho.extract_interlinear_chirho(verse_ref_chirho.as_str());
-                let words_chirho = if words_chirho.is_empty() {
-                    get_sample_interlinear_chirho(verse_ref_chirho.as_str())
-                } else {
-                    words_chirho
-                };
                 let words_model_chirho: Rc<slint::VecModel<InterlinearWordChirho>> =
                     Rc::new(slint::VecModel::from(words_chirho));
                 state_chirho.set_interlinear_words_chirho(slint::ModelRc::from(words_model_chirho));
+            }
+        });
+    }
+
+    // Verse comparison callback (CLX-025)
+    {
+        let backend_clone_chirho = backend_chirho.clone();
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_load_verse_comparison_chirho(move |verse_ref_chirho| {
+            info!("Loading verse comparison for: {}", verse_ref_chirho);
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                state_chirho.set_comparison_verse_ref_chirho(verse_ref_chirho.clone());
+
+                // Get all available modules and load the verse from each
+                let backend_ref_chirho = backend_clone_chirho.borrow();
+                let module_names_chirho = backend_ref_chirho.bible_engine_chirho.get_module_names_chirho();
+
+                let mut comparisons_chirho: Vec<ComparisonTextChirho> = Vec::new();
+
+                for module_name_chirho in module_names_chirho {
+                    // Parse verse reference to get book, chapter, verse
+                    let parts_chirho: Vec<&str> = verse_ref_chirho.split(':').collect();
+                    if parts_chirho.len() >= 2 {
+                        let book_chapter_chirho = parts_chirho[0];
+                        let book_parts_chirho: Vec<&str> = book_chapter_chirho.split_whitespace().collect();
+                        if book_parts_chirho.len() >= 2 {
+                            let chapter_str_chirho = book_parts_chirho.last().unwrap_or(&"1");
+                            let book_chirho = book_parts_chirho[..book_parts_chirho.len()-1].join(" ");
+                            let chapter_chirho: i32 = chapter_str_chirho.parse().unwrap_or(1);
+
+                            let verses_chirho = backend_ref_chirho.bible_engine_chirho
+                                .get_chapter_verses_for_module_chirho(&module_name_chirho, &book_chirho, chapter_chirho);
+
+                            // Find the specific verse
+                            let verse_num_chirho = parts_chirho[1].parse::<i32>().unwrap_or(1);
+                            if let Some((_, text_chirho)) = verses_chirho.iter()
+                                .find(|(num_chirho, _)| num_chirho.parse::<i32>().unwrap_or(0) == verse_num_chirho)
+                            {
+                                comparisons_chirho.push(ComparisonTextChirho {
+                                    module_chirho: module_name_chirho.clone().into(),
+                                    text_chirho: text_chirho.clone().into(),
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // If no comparisons found, add a message
+                if comparisons_chirho.is_empty() {
+                    comparisons_chirho.push(ComparisonTextChirho {
+                        module_chirho: "No modules".into(),
+                        text_chirho: "Install Bible modules to compare translations".into(),
+                    });
+                }
+
+                let comparisons_model_chirho: Rc<slint::VecModel<ComparisonTextChirho>> =
+                    Rc::new(slint::VecModel::from(comparisons_chirho));
+                state_chirho.set_comparison_texts_chirho(slint::ModelRc::from(comparisons_model_chirho));
+                state_chirho.set_comparison_dialog_visible_chirho(true);
             }
         });
     }
@@ -4949,171 +4953,6 @@ fn list_backup_files_chirho() -> Result<Vec<String>> {
     Ok(backups_chirho)
 }
 
-/// Get sample interlinear word data for a verse (CLX-051)
-/// In production, this would query an interlinear module via rsword_chirho
-fn get_sample_interlinear_chirho(verse_ref_chirho: &str) -> Vec<InterlinearWordChirho> {
-    match verse_ref_chirho {
-        v if v.contains("Genesis 1:1") || v.contains("Genesis 1") => vec![
-            InterlinearWordChirho {
-                original_chirho: "בְּרֵאשִׁ֖ית".into(),
-                transliteration_chirho: "bəreʾšiṯ".into(),
-                morphology_chirho: "Prep-b | N-fs".into(),
-                strongs_chirho: "H7225".into(),
-                gloss_chirho: "In [the] beginning".into(),
-                part_of_speech_chirho: "Noun".into(),
-                is_hebrew_chirho: true,
-            },
-            InterlinearWordChirho {
-                original_chirho: "בָּרָ֣א".into(),
-                transliteration_chirho: "bārāʾ".into(),
-                morphology_chirho: "V-Qal-Perf-3ms".into(),
-                strongs_chirho: "H1254".into(),
-                gloss_chirho: "created".into(),
-                part_of_speech_chirho: "Verb".into(),
-                is_hebrew_chirho: true,
-            },
-            InterlinearWordChirho {
-                original_chirho: "אֱלֹהִ֑ים".into(),
-                transliteration_chirho: "ʾĕlōhîm".into(),
-                morphology_chirho: "N-mp".into(),
-                strongs_chirho: "H430".into(),
-                gloss_chirho: "God".into(),
-                part_of_speech_chirho: "Noun".into(),
-                is_hebrew_chirho: true,
-            },
-            InterlinearWordChirho {
-                original_chirho: "אֵ֥ת".into(),
-                transliteration_chirho: "ʾēṯ".into(),
-                morphology_chirho: "DirObjM".into(),
-                strongs_chirho: "H853".into(),
-                gloss_chirho: "[direct object]".into(),
-                part_of_speech_chirho: "Particle".into(),
-                is_hebrew_chirho: true,
-            },
-            InterlinearWordChirho {
-                original_chirho: "הַשָּׁמַ֖יִם".into(),
-                transliteration_chirho: "haššāmayim".into(),
-                morphology_chirho: "Art | N-mp".into(),
-                strongs_chirho: "H8064".into(),
-                gloss_chirho: "the heavens".into(),
-                part_of_speech_chirho: "Noun".into(),
-                is_hebrew_chirho: true,
-            },
-            InterlinearWordChirho {
-                original_chirho: "וְאֵ֥ת".into(),
-                transliteration_chirho: "wəʾēṯ".into(),
-                morphology_chirho: "Conj-w | DirObjM".into(),
-                strongs_chirho: "H853".into(),
-                gloss_chirho: "and [direct object]".into(),
-                part_of_speech_chirho: "Conjunction".into(),
-                is_hebrew_chirho: true,
-            },
-            InterlinearWordChirho {
-                original_chirho: "הָאָֽרֶץ".into(),
-                transliteration_chirho: "hāʾāreṣ".into(),
-                morphology_chirho: "Art | N-fs".into(),
-                strongs_chirho: "H776".into(),
-                gloss_chirho: "the earth".into(),
-                part_of_speech_chirho: "Noun".into(),
-                is_hebrew_chirho: true,
-            },
-        ],
-        v if v.contains("John 3:16") || v.contains("John 3") => vec![
-            InterlinearWordChirho {
-                original_chirho: "Οὕτως".into(),
-                transliteration_chirho: "houtōs".into(),
-                morphology_chirho: "Adv".into(),
-                strongs_chirho: "G3779".into(),
-                gloss_chirho: "For so".into(),
-                part_of_speech_chirho: "Adverb".into(),
-                is_hebrew_chirho: false,
-            },
-            InterlinearWordChirho {
-                original_chirho: "γὰρ".into(),
-                transliteration_chirho: "gar".into(),
-                morphology_chirho: "Conj".into(),
-                strongs_chirho: "G1063".into(),
-                gloss_chirho: "for".into(),
-                part_of_speech_chirho: "Conjunction".into(),
-                is_hebrew_chirho: false,
-            },
-            InterlinearWordChirho {
-                original_chirho: "ἠγάπησεν".into(),
-                transliteration_chirho: "ēgapēsen".into(),
-                morphology_chirho: "V-AAI-3S".into(),
-                strongs_chirho: "G25".into(),
-                gloss_chirho: "loved".into(),
-                part_of_speech_chirho: "Verb".into(),
-                is_hebrew_chirho: false,
-            },
-            InterlinearWordChirho {
-                original_chirho: "ὁ θεὸς".into(),
-                transliteration_chirho: "ho theos".into(),
-                morphology_chirho: "Art | N-NMS".into(),
-                strongs_chirho: "G2316".into(),
-                gloss_chirho: "God".into(),
-                part_of_speech_chirho: "Noun".into(),
-                is_hebrew_chirho: false,
-            },
-            InterlinearWordChirho {
-                original_chirho: "τὸν κόσμον".into(),
-                transliteration_chirho: "ton kosmon".into(),
-                morphology_chirho: "Art | N-AMS".into(),
-                strongs_chirho: "G2889".into(),
-                gloss_chirho: "the world".into(),
-                part_of_speech_chirho: "Noun".into(),
-                is_hebrew_chirho: false,
-            },
-            InterlinearWordChirho {
-                original_chirho: "ὥστε".into(),
-                transliteration_chirho: "hōste".into(),
-                morphology_chirho: "Conj".into(),
-                strongs_chirho: "G5620".into(),
-                gloss_chirho: "that".into(),
-                part_of_speech_chirho: "Conjunction".into(),
-                is_hebrew_chirho: false,
-            },
-            InterlinearWordChirho {
-                original_chirho: "τὸν υἱὸν".into(),
-                transliteration_chirho: "ton huion".into(),
-                morphology_chirho: "Art | N-AMS".into(),
-                strongs_chirho: "G5207".into(),
-                gloss_chirho: "the Son".into(),
-                part_of_speech_chirho: "Noun".into(),
-                is_hebrew_chirho: false,
-            },
-            InterlinearWordChirho {
-                original_chirho: "τὸν μονογενῆ".into(),
-                transliteration_chirho: "ton monogenē".into(),
-                morphology_chirho: "Art | Adj-AMS".into(),
-                strongs_chirho: "G3439".into(),
-                gloss_chirho: "the only begotten".into(),
-                part_of_speech_chirho: "Adjective".into(),
-                is_hebrew_chirho: false,
-            },
-            InterlinearWordChirho {
-                original_chirho: "ἔδωκεν".into(),
-                transliteration_chirho: "edōken".into(),
-                morphology_chirho: "V-AAI-3S".into(),
-                strongs_chirho: "G1325".into(),
-                gloss_chirho: "He gave".into(),
-                part_of_speech_chirho: "Verb".into(),
-                is_hebrew_chirho: false,
-            },
-        ],
-        _ => vec![
-            InterlinearWordChirho {
-                original_chirho: "[Sample]".into(),
-                transliteration_chirho: "sample".into(),
-                morphology_chirho: "N/A".into(),
-                strongs_chirho: "".into(),
-                gloss_chirho: "Interlinear data not available".into(),
-                part_of_speech_chirho: "Info".into(),
-                is_hebrew_chirho: false,
-            },
-        ],
-    }
-}
 
 // ============================================================================
 // Tests
@@ -6103,36 +5942,44 @@ mod tests_chirho {
     }
 
     #[test]
-    fn test_interlinear_chirho() {
-        // Test Genesis 1:1 interlinear data
-        let genesis_words_chirho = get_sample_interlinear_chirho("Genesis 1:1");
-        assert!(!genesis_words_chirho.is_empty());
-        assert_eq!(genesis_words_chirho.len(), 7); // 7 words in Genesis 1:1 Hebrew
+    fn test_interlinear_extraction_chirho() {
+        // Test rsword_chirho interlinear extraction from OSIS markup
+        use rsword_chirho::extract_interlinear_words_chirho;
 
-        // First word should be "בְּרֵאשִׁ֖ית" (bereshit)
-        assert!(genesis_words_chirho[0].original_chirho.contains("בְּרֵאשִׁ֖ית"));
-        assert!(genesis_words_chirho[0].is_hebrew_chirho);
-        assert_eq!(genesis_words_chirho[0].strongs_chirho.as_str(), "H7225");
-        assert!(genesis_words_chirho[0].gloss_chirho.contains("beginning"));
+        // Test OSIS text with interlinear markup (Genesis 1:1 style)
+        let osis_text_chirho = r#"<w lemma="strong:H7225" morph="oshm:HNcfsa" gloss="In [the] beginning">בְּרֵאשִׁית</w> <w lemma="strong:H1254" morph="oshm:HVqp3ms" gloss="created">בָּרָא</w> <w lemma="strong:H430" morph="oshm:HNcmpa" gloss="God">אֱלֹהִים</w>"#;
+        let words_chirho = extract_interlinear_words_chirho(osis_text_chirho);
 
-        // Third word should be Elohim
-        assert!(genesis_words_chirho[2].original_chirho.contains("אֱלֹהִ֑ים"));
-        assert_eq!(genesis_words_chirho[2].strongs_chirho.as_str(), "H430");
-        assert!(genesis_words_chirho[2].gloss_chirho.contains("God"));
+        assert_eq!(words_chirho.len(), 3);
 
-        // Test John 3:16 interlinear data
-        let john_words_chirho = get_sample_interlinear_chirho("John 3:16");
-        assert!(!john_words_chirho.is_empty());
-        assert!(!john_words_chirho[0].is_hebrew_chirho); // Greek, not Hebrew
+        // First word
+        assert!(words_chirho[0].original_chirho.contains("בְּרֵאשִׁית"));
+        assert_eq!(words_chirho[0].strongs_chirho, "H7225");
+        assert!(words_chirho[0].gloss_chirho.contains("beginning"));
+        assert!(words_chirho[0].is_hebrew_chirho);
 
-        // Should have "ἠγάπησεν" (loved)
-        let loved_word_chirho = john_words_chirho.iter().find(|w| w.gloss_chirho.contains("loved"));
-        assert!(loved_word_chirho.is_some());
-        assert_eq!(loved_word_chirho.unwrap().strongs_chirho.as_str(), "G25");
+        // Second word
+        assert!(words_chirho[1].original_chirho.contains("בָּרָא"));
+        assert_eq!(words_chirho[1].strongs_chirho, "H1254");
+        assert!(words_chirho[1].gloss_chirho.contains("created"));
 
-        // Test unknown verse
-        let unknown_words_chirho = get_sample_interlinear_chirho("Unknown 99:99");
-        assert_eq!(unknown_words_chirho.len(), 1);
-        assert!(unknown_words_chirho[0].gloss_chirho.contains("not available"));
+        // Third word (Elohim/God)
+        assert!(words_chirho[2].original_chirho.contains("אֱלֹהִים"));
+        assert_eq!(words_chirho[2].strongs_chirho, "H430");
+        assert!(words_chirho[2].gloss_chirho.contains("God"));
+
+        // Test Greek OSIS (John 3:16 style)
+        let greek_osis_chirho = r#"<w lemma="strong:G2316" morph="robinson:N-NMS" gloss="God">θεὸς</w> <w lemma="strong:G25" morph="robinson:V-AAI-3S" gloss="loved">ἠγάπησεν</w>"#;
+        let greek_words_chirho = extract_interlinear_words_chirho(greek_osis_chirho);
+
+        assert_eq!(greek_words_chirho.len(), 2);
+        assert!(!greek_words_chirho[0].is_hebrew_chirho); // Greek, not Hebrew
+        assert_eq!(greek_words_chirho[0].strongs_chirho, "G2316");
+        assert!(greek_words_chirho[1].gloss_chirho.contains("loved"));
+
+        // Test empty/no markup
+        let plain_text_chirho = "In the beginning God created the heavens and the earth.";
+        let empty_words_chirho = extract_interlinear_words_chirho(plain_text_chirho);
+        assert!(empty_words_chirho.is_empty());
     }
 }
