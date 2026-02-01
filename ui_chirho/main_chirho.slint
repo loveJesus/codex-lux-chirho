@@ -1322,7 +1322,7 @@ component InlineInterlinearWordChirho inherits Rectangle {
 
     background: word-touch-chirho.has-hover ? ThemeChirho.background-tertiary-chirho : transparent;
     border-radius: 4px;
-    min-width: 40px;
+    width: max(40px, self.preferred-width);
     height: self.preferred-height;
 
     VerticalLayout {
@@ -3725,6 +3725,14 @@ component ChapterSelectorChirho inherits Rectangle {
 
     animate background { duration: ThemeChirho.animation-normal-chirho; }
 
+    // Close when clicking outside (must be BEFORE dialog content to be behind it)
+    TouchArea {
+        enabled: visible-chirho;
+        clicked => {
+            AppStateChirho.chapter-selector-visible-chirho = false;
+        }
+    }
+
     if visible-chirho: Rectangle {
         x: (parent.width - self.width) / 2;
         y: (parent.height - self.height) / 2;
@@ -3812,14 +3820,6 @@ component ChapterSelectorChirho inherits Rectangle {
                     }
                 }
             }
-        }
-    }
-
-    // Close when clicking outside
-    TouchArea {
-        enabled: visible-chirho;
-        clicked => {
-            root.visible-chirho = false;
         }
     }
 }
