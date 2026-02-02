@@ -5,7 +5,7 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::path::PathBuf;
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 use anyhow::Result;
 use log::{info, warn, debug, error};
 use rusqlite::{Connection, params};
@@ -1145,10 +1145,18 @@ mod bible_engine_chirho {
     use rsword_chirho::{SwMgrChirho, FilterChirho, OsisToPlainFilterChirho, extract_interlinear_words_chirho, InstallMgrChirho, InstallSourceChirho};
 
     /// Bible engine wrapping rsword_chirho
+    /// Cache key for chapter content
+    type ChapterCacheKeyChirho = (String, String, i32); // (module, book, chapter)
+
     pub struct BibleEngineChirho {
         manager_chirho: Option<SwMgrChirho>,
         current_module_chirho: String,
         osis_filter_chirho: OsisToPlainFilterChirho,
+        /// Cache for chapter verses: (module, book, chapter) -> Vec<(verse_num, text)>
+        /// Uses RefCell for interior mutability so cache can be updated through &self
+        chapter_cache_chirho: RefCell<HashMap<ChapterCacheKeyChirho, Vec<(String, String)>>>,
+        /// Maximum number of cached chapters
+        max_cache_size_chirho: usize,
     }
 
     impl BibleEngineChirho {
@@ -1171,6 +1179,8 @@ mod bible_engine_chirho {
                 manager_chirho,
                 current_module_chirho: DEFAULT_MODULE_CHIRHO.to_string(),
                 osis_filter_chirho: OsisToPlainFilterChirho::new_chirho(),
+                chapter_cache_chirho: RefCell::new(HashMap::new()),
+                max_cache_size_chirho: 50, // Cache up to 50 chapters
             }
         }
 
@@ -1232,8 +1242,43 @@ mod bible_engine_chirho {
             }
         }
 
-        /// Get verses for a chapter
+        /// Get verses for a chapter (with caching)
         pub fn get_chapter_verses_chirho(
+            &self,
+            book_chirho: &str,
+            chapter_chirho: i32,
+        ) -> Vec<(String, String)> {
+            let cache_key_chirho = (
+                self.current_module_chirho.clone(),
+                book_chirho.to_string(),
+                chapter_chirho,
+            );
+
+            // Check cache first
+            if let Some(cached_chirho) = self.chapter_cache_chirho.borrow().get(&cache_key_chirho) {
+                return cached_chirho.clone();
+            }
+
+            // Load from module
+            let verses_chirho = self.load_chapter_from_module_chirho(book_chirho, chapter_chirho);
+
+            // Cache the result (with size limit)
+            {
+                let mut cache_chirho = self.chapter_cache_chirho.borrow_mut();
+                if cache_chirho.len() >= self.max_cache_size_chirho {
+                    // Remove oldest entry (simple FIFO - could use LRU for better performance)
+                    if let Some(key_chirho) = cache_chirho.keys().next().cloned() {
+                        cache_chirho.remove(&key_chirho);
+                    }
+                }
+                cache_chirho.insert(cache_key_chirho, verses_chirho.clone());
+            }
+
+            verses_chirho
+        }
+
+        /// Load chapter verses directly from module (no caching)
+        fn load_chapter_from_module_chirho(
             &self,
             book_chirho: &str,
             chapter_chirho: i32,
