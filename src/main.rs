@@ -1593,6 +1593,7 @@ mod bible_engine_chirho {
         }
 
         /// Refresh a source to get available modules
+        #[allow(dead_code)]
         pub fn refresh_source_chirho(&self, source_name_chirho: &str) -> Result<Vec<String>, String> {
             let sword_path_chirho = Self::get_sword_path_chirho()?;
 
@@ -1607,6 +1608,7 @@ mod bible_engine_chirho {
         }
 
         /// List available modules from a source (must call refresh_source_chirho first)
+        #[allow(dead_code)]
         pub fn list_remote_modules_chirho(&self, source_name_chirho: &str) -> Result<Vec<String>, String> {
             let sword_path_chirho = Self::get_sword_path_chirho()?;
 
