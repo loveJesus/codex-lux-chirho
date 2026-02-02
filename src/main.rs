@@ -1245,12 +1245,28 @@ mod bible_engine_chirho {
 
                     // Safety limit for verse iteration
                     let max_verse_chirho = 200;
+                    let mut last_text_chirho: Option<String> = None;
+                    let mut consecutive_empty_or_dup_chirho = 0;
 
                     for verse_num_chirho in 1..=max_verse_chirho {
                         let ref_str_chirho = format!("{} {}:{}", book_chirho, chapter_chirho, verse_num_chirho);
 
                         match loaded_module_chirho.read_entry_chirho(&ref_str_chirho) {
                             Ok(text_chirho) if !text_chirho.trim().is_empty() => {
+                                // Check for duplicate content (indicates we've gone past valid verses)
+                                if let Some(ref last_chirho) = last_text_chirho {
+                                    if text_chirho.trim() == last_chirho.trim() {
+                                        consecutive_empty_or_dup_chirho += 1;
+                                        // After 2 consecutive duplicates, we're likely past the chapter end
+                                        if consecutive_empty_or_dup_chirho >= 2 {
+                                            break;
+                                        }
+                                        continue;
+                                    }
+                                }
+                                consecutive_empty_or_dup_chirho = 0;
+                                last_text_chirho = Some(text_chirho.clone());
+
                                 // Apply OSIS filter to strip markup
                                 let filtered_text_chirho = self.osis_filter_chirho
                                     .process_chirho(&text_chirho)
@@ -1262,7 +1278,8 @@ mod bible_engine_chirho {
                             }
                             _ => {
                                 // No more verses in this chapter
-                                if verse_num_chirho > 1 {
+                                consecutive_empty_or_dup_chirho += 1;
+                                if consecutive_empty_or_dup_chirho >= 2 || verse_num_chirho > 1 {
                                     break;
                                 }
                             }
@@ -1291,12 +1308,27 @@ mod bible_engine_chirho {
                 if let Ok(loaded_module_chirho) = mgr_chirho.load_module_chirho(module_name_chirho) {
                     let mut verses_chirho = Vec::new();
                     let max_verse_chirho = 200;
+                    let mut last_text_chirho: Option<String> = None;
+                    let mut consecutive_empty_or_dup_chirho = 0;
 
                     for verse_num_chirho in 1..=max_verse_chirho {
                         let ref_str_chirho = format!("{} {}:{}", book_chirho, chapter_chirho, verse_num_chirho);
 
                         match loaded_module_chirho.read_entry_chirho(&ref_str_chirho) {
                             Ok(text_chirho) if !text_chirho.trim().is_empty() => {
+                                // Check for duplicate content (indicates we've gone past valid verses)
+                                if let Some(ref last_chirho) = last_text_chirho {
+                                    if text_chirho.trim() == last_chirho.trim() {
+                                        consecutive_empty_or_dup_chirho += 1;
+                                        if consecutive_empty_or_dup_chirho >= 2 {
+                                            break;
+                                        }
+                                        continue;
+                                    }
+                                }
+                                consecutive_empty_or_dup_chirho = 0;
+                                last_text_chirho = Some(text_chirho.clone());
+
                                 let filtered_text_chirho = self.osis_filter_chirho
                                     .process_chirho(&text_chirho)
                                     .unwrap_or_else(|_| text_chirho.clone());
@@ -1306,7 +1338,8 @@ mod bible_engine_chirho {
                                 ));
                             }
                             _ => {
-                                if verse_num_chirho > 1 {
+                                consecutive_empty_or_dup_chirho += 1;
+                                if consecutive_empty_or_dup_chirho >= 2 || verse_num_chirho > 1 {
                                     break;
                                 }
                             }
