@@ -1304,7 +1304,7 @@ mod bible_engine_chirho {
         pub fn read_genbook_entry_chirho(&self, key_chirho: &str) -> Option<String> {
             if let Some(mgr_chirho) = &self.manager_chirho {
                 if let Ok(loaded_chirho) = mgr_chirho.load_module_chirho(&self.current_module_chirho) {
-                    if let Some(genbook_chirho) = loaded_chirho.as_genbook_chirho() {
+                    if let Some(mut genbook_chirho) = loaded_chirho.as_genbook_chirho() {
                         if let Ok(Some(content_chirho)) = genbook_chirho.read_entry_chirho(key_chirho) {
                             // Filter through OSIS if needed
                             return Some(
