@@ -1497,8 +1497,15 @@ component InlineInterlinearWordChirho inherits Rectangle {
 component VerseViewChirho inherits Rectangle {
     in property <VerseChirho> verse-chirho;
 
-    // Track if any part of the verse is hovered (verse text OR action buttons area)
-    property <bool> is-hovered-chirho: verse-touch-chirho.has-hover || actions-area-hover-chirho.has-hover;
+    // Track if any part of the verse is hovered (verse text OR any button in action area)
+    // Include all named TouchAreas so buttons don't disappear when hovering over them
+    property <bool> is-hovered-chirho: verse-touch-chirho.has-hover ||
+        actions-area-hover-chirho.has-hover ||
+        copy-touch-chirho.has-hover ||
+        colors-area-touch-chirho.has-hover ||
+        bookmark-touch-chirho.has-hover ||
+        note-touch-chirho.has-hover ||
+        info-touch-chirho.has-hover;
 
     // Compute highlight color from name
     property <color> active-highlight-color-chirho:
@@ -1572,8 +1579,9 @@ component VerseViewChirho inherits Rectangle {
         }
 
         HorizontalLayout {
-            padding-top: ThemeChirho.spacing-md-chirho;
-            padding-bottom: ThemeChirho.spacing-md-chirho;
+            // Apply line-height setting to verse spacing (base 12px * line-height factor)
+            padding-top: 12px * AppStateChirho.line-height-chirho / 1.5;
+            padding-bottom: 12px * AppStateChirho.line-height-chirho / 1.5;
             padding-left: verse-chirho.is-highlighted-chirho ? ThemeChirho.spacing-lg-chirho : ThemeChirho.spacing-md-chirho;
             padding-right: ThemeChirho.spacing-md-chirho;
             spacing: ThemeChirho.spacing-sm-chirho;
@@ -1718,22 +1726,39 @@ component VerseViewChirho inherits Rectangle {
                 }
             }
 
-            // Highlight color buttons (show available colors)
-            for color-chirho in AppStateChirho.highlight-colors-chirho: Rectangle {
-                width: 20px;
-                height: 20px;
-                background: color-touch-chirho.has-hover ? color-chirho.color-chirho.with-alpha(1.0) : color-chirho.color-chirho.with-alpha(0.7);
-                border-radius: 10px;
-                border-width: verse-chirho.highlight-color-chirho == color-chirho.name-chirho ? 2px : 0px;
-                border-color: ThemeChirho.text-primary-chirho;
+            // Highlight color buttons container (with hover tracking for parent)
+            Rectangle {
+                // Container for color buttons - tracks hover for the entire color area
+                colors-area-touch-chirho := TouchArea {
+                    // This TouchArea captures hover for all color buttons
+                }
 
-                animate background { duration: 100ms; }
+                HorizontalLayout {
+                    spacing: 4px;
 
-                color-touch-chirho := TouchArea {
-                    clicked => {
-                        AppStateChirho.set-highlight-color-chirho(verse-chirho.reference-chirho, color-chirho.name-chirho);
+                    // Highlight color buttons (show available colors)
+                    for color-chirho in AppStateChirho.highlight-colors-chirho: Rectangle {
+                        width: 20px;
+                        height: 20px;
+                        background: color-touch-chirho.has-hover ? color-chirho.color-chirho.with-alpha(1.0) : color-chirho.color-chirho.with-alpha(0.7);
+                        border-radius: 10px;
+                        border-width: verse-chirho.highlight-color-chirho == color-chirho.name-chirho ? 2px : 0px;
+                        border-color: ThemeChirho.text-primary-chirho;
+
+                        animate background { duration: 100ms; }
+
+                        color-touch-chirho := TouchArea {
+                            clicked => {
+                                // If clicking same color as current highlight, remove the highlight
+                                if verse-chirho.highlight-color-chirho == color-chirho.name-chirho {
+                                    AppStateChirho.set-highlight-color-chirho(verse-chirho.reference-chirho, "");
+                                } else {
+                                    AppStateChirho.set-highlight-color-chirho(verse-chirho.reference-chirho, color-chirho.name-chirho);
+                                }
+                            }
+                            mouse-cursor: pointer;
+                        }
                     }
-                    mouse-cursor: pointer;
                 }
             }
 
@@ -2796,38 +2821,42 @@ component ToolbarChirho inherits Rectangle {
         padding-top: 8px;
         padding-bottom: 8px;
         spacing: ThemeChirho.spacing-sm-chirho;
-        alignment: center;
 
-        // Books panel toggle
-        IconButtonChirho {
-            icon-chirho: LabelsChirho.menu-icon-chirho;
-            active-chirho: AppStateChirho.sidebar-visible-chirho;
-            tooltip-chirho: "Books (Ctrl+B)";
-            clicked-chirho => {
-                AppStateChirho.sidebar-visible-chirho = !AppStateChirho.sidebar-visible-chirho;
-            }
-        }
-
-        // App branding
+        // LEFT SECTION: Menu + Branding
         HorizontalLayout {
-            spacing: 6px;
-            alignment: center;
+            spacing: ThemeChirho.spacing-sm-chirho;
 
-            Text {
-                text: LabelsChirho.app-icon-chirho;
-                font-size: 18px;
-                color: ThemeChirho.accent-chirho;
-                vertical-alignment: center;
+            // Books panel toggle
+            IconButtonChirho {
+                icon-chirho: LabelsChirho.menu-icon-chirho;
+                active-chirho: AppStateChirho.sidebar-visible-chirho;
+                tooltip-chirho: "Books (Ctrl+B)";
+                clicked-chirho => {
+                    AppStateChirho.sidebar-visible-chirho = !AppStateChirho.sidebar-visible-chirho;
+                }
             }
-            Text {
-                text: LabelsChirho.app-name-chirho;
-                font-size: ThemeChirho.font-size-md-chirho;
-                font-weight: 600;
-                color: ThemeChirho.text-primary-chirho;
-                vertical-alignment: center;
+
+            // App branding
+            HorizontalLayout {
+                spacing: 6px;
+
+                Text {
+                    text: LabelsChirho.app-icon-chirho;
+                    font-size: 18px;
+                    color: ThemeChirho.accent-chirho;
+                    vertical-alignment: center;
+                }
+                Text {
+                    text: LabelsChirho.app-name-chirho;
+                    font-size: ThemeChirho.font-size-md-chirho;
+                    font-weight: 600;
+                    color: ThemeChirho.text-primary-chirho;
+                    vertical-alignment: center;
+                }
             }
         }
 
+        // SPACER - pushes right section to the right
         Rectangle { horizontal-stretch: 1; }
 
         // Font size controls
