@@ -15,7 +15,7 @@ use directories::ProjectDirs;
 #[cfg(target_os = "macos")]
 use std::process::Command as StdCommand;
 
-use slint::Model;
+use slint::{Model, SharedString};
 
 slint::include_modules!();
 
@@ -1242,6 +1242,83 @@ mod bible_engine_chirho {
             }
         }
 
+        /// Get the module type for the current module
+        /// Returns: "Bible", "Commentary", "Lexicon", "General Book", or "Other"
+        pub fn get_current_module_type_chirho(&self) -> String {
+            match &self.manager_chirho {
+                Some(mgr_chirho) => {
+                    if let Some(config_chirho) = mgr_chirho.get_module_chirho(&self.current_module_chirho) {
+                        if config_chirho.is_bible_chirho() {
+                            "Bible".to_string()
+                        } else if config_chirho.is_commentary_chirho() {
+                            "Commentary".to_string()
+                        } else if config_chirho.is_lexicon_chirho() {
+                            "Lexicon".to_string()
+                        } else if config_chirho.is_genbook_chirho() {
+                            "General Book".to_string()
+                        } else {
+                            "Other".to_string()
+                        }
+                    } else {
+                        "Bible".to_string() // Default
+                    }
+                }
+                None => "Bible".to_string(),
+            }
+        }
+
+        /// Check if the current module is a general book
+        pub fn is_genbook_chirho(&self) -> bool {
+            self.get_current_module_type_chirho() == "General Book"
+        }
+
+        /// Get the root-level entries for a general book module
+        /// Returns a list of (key_path, display_name) pairs
+        pub fn get_genbook_entries_chirho(&self, parent_key_chirho: Option<&str>) -> Vec<(String, String)> {
+            if let Some(mgr_chirho) = &self.manager_chirho {
+                if let Ok(loaded_chirho) = mgr_chirho.load_module_chirho(&self.current_module_chirho) {
+                    if let Some(genbook_chirho) = loaded_chirho.as_genbook_chirho() {
+                        let entries_chirho = match parent_key_chirho {
+                            Some(key_chirho) => genbook_chirho.get_children_chirho(key_chirho),
+                            None => genbook_chirho.get_root_keys_chirho(),
+                        };
+                        return entries_chirho
+                            .into_iter()
+                            .map(|path_chirho| {
+                                // Extract display name from path (last component)
+                                let display_name_chirho = path_chirho
+                                    .rsplit('/')
+                                    .next()
+                                    .unwrap_or(&path_chirho)
+                                    .to_string();
+                                (path_chirho, display_name_chirho)
+                            })
+                            .collect();
+                    }
+                }
+            }
+            Vec::new()
+        }
+
+        /// Read content from a general book entry
+        pub fn read_genbook_entry_chirho(&self, key_chirho: &str) -> Option<String> {
+            if let Some(mgr_chirho) = &self.manager_chirho {
+                if let Ok(loaded_chirho) = mgr_chirho.load_module_chirho(&self.current_module_chirho) {
+                    if let Some(genbook_chirho) = loaded_chirho.as_genbook_chirho() {
+                        if let Ok(Some(content_chirho)) = genbook_chirho.read_entry_chirho(key_chirho) {
+                            // Filter through OSIS if needed
+                            return Some(
+                                self.osis_filter_chirho
+                                    .process_chirho(&content_chirho)
+                                    .unwrap_or(content_chirho)
+                            );
+                        }
+                    }
+                }
+            }
+            None
+        }
+
         /// Get verses for a chapter (with caching)
         pub fn get_chapter_verses_chirho(
             &self,
@@ -1277,7 +1354,94 @@ mod bible_engine_chirho {
             verses_chirho
         }
 
+        /// Check if a chapter is already cached.
+        pub fn is_chapter_cached_chirho(
+            &self,
+            book_chirho: &str,
+            chapter_chirho: i32,
+        ) -> bool {
+            let cache_key_chirho = (
+                self.current_module_chirho.clone(),
+                book_chirho.to_string(),
+                chapter_chirho,
+            );
+            self.chapter_cache_chirho.borrow().contains_key(&cache_key_chirho)
+        }
+
+        /// Preload a chapter into cache (used for background loading).
+        ///
+        /// This method loads a chapter and caches it without returning the result.
+        /// Useful for preloading adjacent chapters in the background.
+        pub fn preload_chapter_chirho(
+            &self,
+            book_chirho: &str,
+            chapter_chirho: i32,
+        ) {
+            // Skip if already cached
+            if self.is_chapter_cached_chirho(book_chirho, chapter_chirho) {
+                return;
+            }
+
+            // Load and cache
+            let _ = self.get_chapter_verses_chirho(book_chirho, chapter_chirho);
+        }
+
+        /// Get the adjacent chapters for preloading.
+        ///
+        /// Returns (prev_book, prev_chapter, next_book, next_chapter) if available.
+        pub fn get_adjacent_chapters_chirho(
+            &self,
+            book_chirho: &str,
+            chapter_chirho: i32,
+        ) -> (Option<(String, i32)>, Option<(String, i32)>) {
+            // Find book in list
+            let book_index_chirho = BIBLE_BOOKS_CHIRHO
+                .iter()
+                .position(|(name_chirho, _)| *name_chirho == book_chirho);
+
+            let prev_chirho = if chapter_chirho > 1 {
+                // Previous chapter in same book
+                Some((book_chirho.to_string(), chapter_chirho - 1))
+            } else if let Some(idx_chirho) = book_index_chirho {
+                if idx_chirho > 0 {
+                    // Last chapter of previous book
+                    let (prev_book_chirho, prev_chapters_chirho) = BIBLE_BOOKS_CHIRHO[idx_chirho - 1];
+                    Some((prev_book_chirho.to_string(), prev_chapters_chirho))
+                } else {
+                    None
+                }
+            } else {
+                None
+            };
+
+            let max_chapter_chirho = BIBLE_BOOKS_CHIRHO
+                .iter()
+                .find(|(name_chirho, _)| *name_chirho == book_chirho)
+                .map(|(_, ch_chirho)| *ch_chirho)
+                .unwrap_or(1);
+
+            let next_chirho = if chapter_chirho < max_chapter_chirho {
+                // Next chapter in same book
+                Some((book_chirho.to_string(), chapter_chirho + 1))
+            } else if let Some(idx_chirho) = book_index_chirho {
+                if idx_chirho + 1 < BIBLE_BOOKS_CHIRHO.len() {
+                    // First chapter of next book
+                    let (next_book_chirho, _) = BIBLE_BOOKS_CHIRHO[idx_chirho + 1];
+                    Some((next_book_chirho.to_string(), 1))
+                } else {
+                    None
+                }
+            } else {
+                None
+            };
+
+            (prev_chirho, next_chirho)
+        }
+
         /// Load chapter verses directly from module (no caching)
+        ///
+        /// Uses batch reading for efficiency - creates only ONE module driver
+        /// instance per chapter instead of one per verse.
         fn load_chapter_from_module_chirho(
             &self,
             book_chirho: &str,
@@ -1286,53 +1450,31 @@ mod bible_engine_chirho {
             // Try to get from SWORD module first
             if let Some(mgr_chirho) = &self.manager_chirho {
                 if let Ok(loaded_module_chirho) = mgr_chirho.load_module_chirho(&self.current_module_chirho) {
-                    let mut verses_chirho = Vec::new();
+                    // Use batch reading for efficiency (single module driver instance)
+                    match loaded_module_chirho.read_chapter_batch_chirho(
+                        book_chirho,
+                        chapter_chirho as u32,
+                        200, // max verses safety limit
+                    ) {
+                        Ok(raw_verses_chirho) => {
+                            let verses_chirho: Vec<(String, String)> = raw_verses_chirho
+                                .into_iter()
+                                .map(|(verse_num_chirho, text_chirho)| {
+                                    // Apply OSIS filter to strip markup
+                                    let filtered_text_chirho = self.osis_filter_chirho
+                                        .process_chirho(&text_chirho)
+                                        .unwrap_or_else(|_| text_chirho.clone());
+                                    (verse_num_chirho.to_string(), filtered_text_chirho)
+                                })
+                                .collect();
 
-                    // Safety limit for verse iteration
-                    let max_verse_chirho = 200;
-                    let mut last_text_chirho: Option<String> = None;
-                    let mut consecutive_empty_or_dup_chirho = 0;
-
-                    for verse_num_chirho in 1..=max_verse_chirho {
-                        let ref_str_chirho = format!("{} {}:{}", book_chirho, chapter_chirho, verse_num_chirho);
-
-                        match loaded_module_chirho.read_entry_chirho(&ref_str_chirho) {
-                            Ok(text_chirho) if !text_chirho.trim().is_empty() => {
-                                // Check for duplicate content (indicates we've gone past valid verses)
-                                if let Some(ref last_chirho) = last_text_chirho {
-                                    if text_chirho.trim() == last_chirho.trim() {
-                                        consecutive_empty_or_dup_chirho += 1;
-                                        // After 2 consecutive duplicates, we're likely past the chapter end
-                                        if consecutive_empty_or_dup_chirho >= 2 {
-                                            break;
-                                        }
-                                        continue;
-                                    }
-                                }
-                                consecutive_empty_or_dup_chirho = 0;
-                                last_text_chirho = Some(text_chirho.clone());
-
-                                // Apply OSIS filter to strip markup
-                                let filtered_text_chirho = self.osis_filter_chirho
-                                    .process_chirho(&text_chirho)
-                                    .unwrap_or_else(|_| text_chirho.clone());
-                                verses_chirho.push((
-                                    verse_num_chirho.to_string(),
-                                    filtered_text_chirho,
-                                ));
-                            }
-                            _ => {
-                                // No more verses in this chapter
-                                consecutive_empty_or_dup_chirho += 1;
-                                if consecutive_empty_or_dup_chirho >= 2 || verse_num_chirho > 1 {
-                                    break;
-                                }
+                            if !verses_chirho.is_empty() {
+                                return verses_chirho;
                             }
                         }
-                    }
-
-                    if !verses_chirho.is_empty() {
-                        return verses_chirho;
+                        Err(e_chirho) => {
+                            debug!("Batch chapter read failed: {}, falling back to sample", e_chirho);
+                        }
                     }
                 }
             }
@@ -1342,57 +1484,42 @@ mod bible_engine_chirho {
         }
 
         /// Get verses for a chapter from a specific module (for parallel view)
+        ///
+        /// Uses batch reading for efficiency - creates only ONE module driver
+        /// instance per chapter instead of one per verse.
         pub fn get_chapter_verses_for_module_chirho(
             &self,
             module_name_chirho: &str,
             book_chirho: &str,
             chapter_chirho: i32,
         ) -> Vec<(String, String)> {
-            // Try to get from SWORD module
+            // Try to get from SWORD module using batch reading
             if let Some(mgr_chirho) = &self.manager_chirho {
                 if let Ok(loaded_module_chirho) = mgr_chirho.load_module_chirho(module_name_chirho) {
-                    let mut verses_chirho = Vec::new();
-                    let max_verse_chirho = 200;
-                    let mut last_text_chirho: Option<String> = None;
-                    let mut consecutive_empty_or_dup_chirho = 0;
+                    // Use batch reading for efficiency (single module driver instance)
+                    match loaded_module_chirho.read_chapter_batch_chirho(
+                        book_chirho,
+                        chapter_chirho as u32,
+                        200, // max verses safety limit
+                    ) {
+                        Ok(raw_verses_chirho) => {
+                            let verses_chirho: Vec<(String, String)> = raw_verses_chirho
+                                .into_iter()
+                                .map(|(verse_num_chirho, text_chirho)| {
+                                    let filtered_text_chirho = self.osis_filter_chirho
+                                        .process_chirho(&text_chirho)
+                                        .unwrap_or_else(|_| text_chirho.clone());
+                                    (verse_num_chirho.to_string(), filtered_text_chirho)
+                                })
+                                .collect();
 
-                    for verse_num_chirho in 1..=max_verse_chirho {
-                        let ref_str_chirho = format!("{} {}:{}", book_chirho, chapter_chirho, verse_num_chirho);
-
-                        match loaded_module_chirho.read_entry_chirho(&ref_str_chirho) {
-                            Ok(text_chirho) if !text_chirho.trim().is_empty() => {
-                                // Check for duplicate content (indicates we've gone past valid verses)
-                                if let Some(ref last_chirho) = last_text_chirho {
-                                    if text_chirho.trim() == last_chirho.trim() {
-                                        consecutive_empty_or_dup_chirho += 1;
-                                        if consecutive_empty_or_dup_chirho >= 2 {
-                                            break;
-                                        }
-                                        continue;
-                                    }
-                                }
-                                consecutive_empty_or_dup_chirho = 0;
-                                last_text_chirho = Some(text_chirho.clone());
-
-                                let filtered_text_chirho = self.osis_filter_chirho
-                                    .process_chirho(&text_chirho)
-                                    .unwrap_or_else(|_| text_chirho.clone());
-                                verses_chirho.push((
-                                    verse_num_chirho.to_string(),
-                                    filtered_text_chirho,
-                                ));
-                            }
-                            _ => {
-                                consecutive_empty_or_dup_chirho += 1;
-                                if consecutive_empty_or_dup_chirho >= 2 || verse_num_chirho > 1 {
-                                    break;
-                                }
+                            if !verses_chirho.is_empty() {
+                                return verses_chirho;
                             }
                         }
-                    }
-
-                    if !verses_chirho.is_empty() {
-                        return verses_chirho;
+                        Err(e_chirho) => {
+                            debug!("Batch chapter read failed for {}: {}", module_name_chirho, e_chirho);
+                        }
                     }
                 }
             }
@@ -1454,12 +1581,46 @@ mod bible_engine_chirho {
         }
 
         /// Search for verses containing the query
-        /// Searches only through sample verses for demo/fallback mode
+        /// Searches through all books and chapters in the SWORD module
         pub fn search_chirho(&self, query_chirho: &str, max_results_chirho: usize) -> Vec<(String, String)> {
             let query_lower_chirho = query_chirho.to_lowercase();
             let mut results_chirho = Vec::new();
 
-            // Sample chapters to search (those with sample data)
+            // If we have a SWORD module, search through the entire Bible
+            if let Some(mgr_chirho) = &self.manager_chirho {
+                if let Ok(loaded_module_chirho) = mgr_chirho.load_module_chirho(&self.current_module_chirho) {
+                    // Search through all books and chapters
+                    for (book_chirho, chapter_count_chirho) in BIBLE_BOOKS_CHIRHO.iter() {
+                        for chapter_chirho in 1..=*chapter_count_chirho {
+                            // Use batch reading for efficiency
+                            if let Ok(verses_chirho) = loaded_module_chirho.read_chapter_batch_chirho(
+                                book_chirho,
+                                chapter_chirho as u32,
+                                200,
+                            ) {
+                                for (verse_num_chirho, text_chirho) in verses_chirho {
+                                    // Apply OSIS filter and search
+                                    let filtered_text_chirho = self.osis_filter_chirho
+                                        .process_chirho(&text_chirho)
+                                        .unwrap_or_else(|_| text_chirho.clone());
+
+                                    if filtered_text_chirho.to_lowercase().contains(&query_lower_chirho) {
+                                        let reference_chirho = format!("{} {}:{}", book_chirho, chapter_chirho, verse_num_chirho);
+                                        results_chirho.push((reference_chirho, filtered_text_chirho));
+
+                                        if results_chirho.len() >= max_results_chirho {
+                                            return results_chirho;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return results_chirho;
+                }
+            }
+
+            // Fallback: Search through sample chapters if no module available
             let sample_chapters_chirho: &[(&str, i32)] = &[
                 ("Genesis", 1),
                 ("John", 1),
@@ -1467,7 +1628,6 @@ mod bible_engine_chirho {
                 ("Psalms", 23),
             ];
 
-            // Search through sample chapters
             for (book_chirho, chapter_chirho) in sample_chapters_chirho {
                 let verses_chirho = self.get_chapter_verses_chirho(book_chirho, *chapter_chirho);
                 for (verse_num_chirho, text_chirho) in verses_chirho {
@@ -1973,7 +2133,28 @@ impl AppBackendChirho {
             chapter_chirho,
         );
 
+        // Preload adjacent chapters for smooth navigation
+        self.preload_adjacent_chapters_chirho(book_chirho, chapter_chirho);
+
         debug!("Navigated to {} {}", book_chirho, chapter_chirho);
+    }
+
+    /// Preload adjacent chapters for smooth navigation.
+    ///
+    /// This preloads the previous and next chapters into cache so that
+    /// chapter navigation feels instant.
+    fn preload_adjacent_chapters_chirho(&mut self, book_chirho: &str, chapter_chirho: i32) {
+        let (prev_chirho, next_chirho) = self.bible_engine_chirho.get_adjacent_chapters_chirho(book_chirho, chapter_chirho);
+
+        // Preload previous chapter
+        if let Some((prev_book_chirho, prev_chapter_chirho)) = prev_chirho {
+            self.bible_engine_chirho.preload_chapter_chirho(&prev_book_chirho, prev_chapter_chirho);
+        }
+
+        // Preload next chapter
+        if let Some((next_book_chirho, next_chapter_chirho)) = next_chirho {
+            self.bible_engine_chirho.preload_chapter_chirho(&next_book_chirho, next_chapter_chirho);
+        }
     }
 
     /// Toggle highlight state for a verse
@@ -2218,7 +2399,7 @@ fn main() -> Result<(), slint::PlatformError> {
             }
 
             let backend_ref_chirho = backend_clone_chirho.borrow();
-            let search_results_chirho = backend_ref_chirho.bible_engine_chirho.search_chirho(&query_chirho, 50);
+            let search_results_chirho = backend_ref_chirho.bible_engine_chirho.search_chirho(&query_chirho, 500);
 
             if let Some(window_chirho) = window_weak_chirho.upgrade() {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
@@ -2266,11 +2447,135 @@ fn main() -> Result<(), slint::PlatformError> {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
                 state_chirho.set_current_module_chirho(module_chirho.clone());
 
-                // Reload verses with new module
-                let verses_chirho = backend_mut_chirho.get_verses_chirho();
-                state_chirho.set_verses_chirho(Rc::new(slint::VecModel::from(verses_chirho)).into());
+                // Check if this is a general book module
+                let module_type_chirho = backend_mut_chirho.bible_engine_chirho.get_current_module_type_chirho();
+                let is_genbook_chirho = module_type_chirho == "General Book";
+                state_chirho.set_is_genbook_chirho(is_genbook_chirho);
+                state_chirho.set_genbook_module_type_chirho(module_type_chirho.clone().into());
 
-                state_chirho.set_status_message_chirho(format!("Loaded module: {}", module_chirho).into());
+                if is_genbook_chirho {
+                    // Load root entries for general book
+                    let entries_chirho = backend_mut_chirho.bible_engine_chirho.get_genbook_entries_chirho(None);
+                    let genbook_entries_chirho: Vec<GenBookEntryChirho> = entries_chirho
+                        .into_iter()
+                        .map(|(key_chirho, name_chirho)| {
+                            let children_chirho = backend_mut_chirho.bible_engine_chirho.get_genbook_entries_chirho(Some(&key_chirho));
+                            GenBookEntryChirho {
+                                key_chirho: key_chirho.into(),
+                                name_chirho: name_chirho.into(),
+                                has_children_chirho: !children_chirho.is_empty(),
+                            }
+                        })
+                        .collect();
+                    state_chirho.set_genbook_entries_chirho(Rc::new(slint::VecModel::from(genbook_entries_chirho)).into());
+                    state_chirho.set_genbook_current_key_chirho("".into());
+                    state_chirho.set_genbook_breadcrumbs_chirho(Rc::new(slint::VecModel::<SharedString>::default()).into());
+                    state_chirho.set_status_message_chirho(format!("Loaded general book: {}", module_chirho).into());
+                } else {
+                    // Regular Bible/Commentary - load verses
+                    let verses_chirho = backend_mut_chirho.get_verses_chirho();
+                    state_chirho.set_verses_chirho(Rc::new(slint::VecModel::from(verses_chirho)).into());
+                    state_chirho.set_status_message_chirho(format!("Loaded module: {}", module_chirho).into());
+                }
+            }
+        });
+    }
+
+    // Set up genbook entry loading callback
+    {
+        let backend_clone_chirho = backend_chirho.clone();
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_load_genbook_entries_chirho(move |parent_key_chirho| {
+            let parent_key_opt_chirho = if parent_key_chirho.is_empty() {
+                None
+            } else {
+                Some(parent_key_chirho.as_str())
+            };
+
+            let backend_ref_chirho = backend_clone_chirho.borrow();
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+
+                let entries_chirho = backend_ref_chirho.bible_engine_chirho.get_genbook_entries_chirho(parent_key_opt_chirho);
+                let genbook_entries_chirho: Vec<GenBookEntryChirho> = entries_chirho
+                    .into_iter()
+                    .map(|(key_chirho, name_chirho)| {
+                        let children_chirho = backend_ref_chirho.bible_engine_chirho.get_genbook_entries_chirho(Some(&key_chirho));
+                        GenBookEntryChirho {
+                            key_chirho: key_chirho.into(),
+                            name_chirho: name_chirho.into(),
+                            has_children_chirho: !children_chirho.is_empty(),
+                        }
+                    })
+                    .collect();
+
+                state_chirho.set_genbook_entries_chirho(Rc::new(slint::VecModel::from(genbook_entries_chirho)).into());
+                state_chirho.set_genbook_current_key_chirho(parent_key_chirho.clone());
+
+                // Update breadcrumbs
+                let parts_chirho: Vec<SharedString> = parent_key_chirho
+                    .split('/')
+                    .filter(|s_chirho| !s_chirho.is_empty())
+                    .map(|s_chirho| SharedString::from(s_chirho))
+                    .collect();
+                state_chirho.set_genbook_breadcrumbs_chirho(Rc::new(slint::VecModel::from(parts_chirho)).into());
+            }
+        });
+    }
+
+    // Set up genbook content loading callback
+    {
+        let backend_clone_chirho = backend_chirho.clone();
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_load_genbook_content_chirho(move |key_chirho| {
+            let backend_ref_chirho = backend_clone_chirho.borrow();
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+
+                if let Some(content_chirho) = backend_ref_chirho.bible_engine_chirho.read_genbook_entry_chirho(&key_chirho) {
+                    state_chirho.set_genbook_current_content_chirho(content_chirho.into());
+
+                    // Extract title from key
+                    let title_chirho = key_chirho
+                        .rsplit('/')
+                        .next()
+                        .unwrap_or(&key_chirho);
+                    state_chirho.set_genbook_current_title_chirho(title_chirho.into());
+                } else {
+                    state_chirho.set_genbook_current_content_chirho("".into());
+                    state_chirho.set_genbook_current_title_chirho("".into());
+                }
+            }
+        });
+    }
+
+    // Set up genbook navigate up callback
+    {
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_genbook_navigate_up_chirho(move || {
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+                let current_key_chirho: String = state_chirho.get_genbook_current_key_chirho().to_string();
+
+                // Go up one level
+                let parent_key_chirho = if current_key_chirho.is_empty() {
+                    String::new()
+                } else {
+                    let parts_chirho: Vec<&str> = current_key_chirho.split('/').filter(|s_chirho| !s_chirho.is_empty()).collect();
+                    if parts_chirho.len() <= 1 {
+                        String::new()
+                    } else {
+                        format!("/{}", parts_chirho[..parts_chirho.len()-1].join("/"))
+                    }
+                };
+
+                // Trigger reload with parent key
+                state_chirho.invoke_load_genbook_entries_chirho(parent_key_chirho.into());
             }
         });
     }
@@ -5212,11 +5517,14 @@ fn parse_reference_chirho(reference_chirho: &str) -> Option<(String, i32, i32)> 
                 }
 
                 let cv_parts_chirho: Vec<&str> = cv_str_chirho.split(':').collect();
-                if let Ok(chapter_chirho) = cv_parts_chirho.first()
-                    .unwrap_or(&"")
-                    .trim()
-                    .parse::<i32>()
-                {
+                // Handle chapter ranges like "1-3" by extracting the start chapter
+                let chapter_str_chirho = cv_parts_chirho.first().unwrap_or(&"").trim();
+                let chapter_start_chirho = chapter_str_chirho
+                    .split('-')
+                    .next()
+                    .and_then(|c_chirho| c_chirho.trim().parse::<i32>().ok());
+
+                if let Some(chapter_chirho) = chapter_start_chirho {
                     // Handle verse ranges like "1-10" by extracting the start verse
                     let verse_str_chirho = cv_parts_chirho.get(1).map(|s_chirho| s_chirho.trim()).unwrap_or("1");
                     let verse_start_chirho = verse_str_chirho
@@ -6314,6 +6622,24 @@ mod tests_chirho {
         assert_eq!(book_chirho, "John");
         assert_eq!(chapter_chirho, 3);
         assert_eq!(verse_chirho, 16);
+    }
+
+    #[test]
+    fn test_parse_reference_chapter_range_chirho() {
+        // Test chapter range like "Genesis 1-3" (used in reading plans)
+        let result_chirho = parse_reference_chirho("Genesis 1-3");
+        assert!(result_chirho.is_some(), "Genesis 1-3 should parse successfully");
+        let (book_chirho, chapter_chirho, verse_chirho) = result_chirho.unwrap();
+        assert_eq!(book_chirho, "Genesis");
+        assert_eq!(chapter_chirho, 1); // Start chapter
+        assert_eq!(verse_chirho, 1); // Default verse
+
+        // Test another chapter range
+        let result_chirho = parse_reference_chirho("Matthew 5-7");
+        assert!(result_chirho.is_some(), "Matthew 5-7 should parse successfully");
+        let (book_chirho, chapter_chirho, _) = result_chirho.unwrap();
+        assert_eq!(book_chirho, "Matthew");
+        assert_eq!(chapter_chirho, 5);
     }
 
     #[test]

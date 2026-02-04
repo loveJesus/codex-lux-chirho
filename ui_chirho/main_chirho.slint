@@ -12,19 +12,19 @@ export global LabelsChirho {
     out property <string> note-indicator-chirho: "N";
     out property <string> separator-chirho: "•";
     out property <string> app-name-chirho: "Codex Lux Chirho";
-    out property <string> app-icon-chirho: "+";
+    out property <string> app-icon-chirho: "✝";
     out property <string> menu-icon-chirho: "=";
-    out property <string> search-icon-chirho: "?";
-    out property <string> settings-icon-chirho: "*";
-    out property <string> close-icon-chirho: "x";
-    out property <string> nav-prev-chirho: "<";
-    out property <string> nav-next-chirho: ">";
+    out property <string> search-icon-chirho: "🔍";
+    out property <string> settings-icon-chirho: "⚙";
+    out property <string> close-icon-chirho: "×";
+    out property <string> nav-prev-chirho: "‹";
+    out property <string> nav-next-chirho: "›";
     out property <string> search-placeholder-chirho: "Search the Scriptures...";
     out property <string> search-button-chirho: "Search";
     out property <string> book-count-chirho: "66";
-    out property <string> theme-dark-icon-chirho: "D";
-    out property <string> theme-light-icon-chirho: "L";
-    out property <string> theme-sepia-icon-chirho: "S";
+    out property <string> theme-dark-icon-chirho: "🌙";
+    out property <string> theme-light-icon-chirho: "☀";
+    out property <string> theme-sepia-icon-chirho: "📜";
     out property <string> copy-icon-chirho: "Cp";
     out property <string> bookmark-icon-chirho: "Bk";
     out property <string> goto-icon-chirho: ">>";
@@ -315,6 +315,13 @@ export struct BookChirho {
     name-chirho: string,
     chapters-chirho: int,
     is-old-testament-chirho: bool,
+}
+
+// General book entry (for Josephus, Creeds, etc.)
+export struct GenBookEntryChirho {
+    key-chirho: string,       // Full key path (e.g., "/Book/Chapter")
+    name-chirho: string,      // Display name (e.g., "Chapter")
+    has-children-chirho: bool, // True if this entry has sub-entries
 }
 
 // Module info
@@ -764,6 +771,18 @@ export global AppStateChirho {
     in-out property <bool> interlinear-show-gloss-chirho: true; // Show gloss/meaning
     callback load-interlinear-chirho(string); // Load interlinear for a verse
     callback toggle-interlinear-display-chirho();
+
+    // General Book Support (non-Bible books like Josephus, Creeds, etc.)
+    in-out property <bool> is-genbook-chirho: false; // True when current module is a general book
+    in-out property <string> genbook-module-type-chirho: "Bible"; // "Bible", "Commentary", "Lexicon", "General Book"
+    in-out property <[GenBookEntryChirho]> genbook-entries-chirho: []; // Tree entries for current level
+    in-out property <string> genbook-current-key-chirho: ""; // Currently selected entry key path
+    in-out property <string> genbook-current-content-chirho: ""; // Content of selected entry
+    in-out property <string> genbook-current-title-chirho: ""; // Title of selected entry
+    in-out property <[string]> genbook-breadcrumbs-chirho: []; // Breadcrumb path for navigation
+    callback load-genbook-entries-chirho(string); // Load children of a key (empty for root)
+    callback load-genbook-content-chirho(string); // Load content for a key
+    callback genbook-navigate-up-chirho(); // Go up one level
 }
 
 // Icon button component with accessibility support
@@ -800,18 +819,18 @@ component IconButtonChirho inherits Rectangle {
         mouse-cursor: pointer;
     }
 
-    // Tooltip popup on hover (semi-transparent)
+    // Tooltip popup on hover (positioned below button to avoid adjacent button overlap)
     if tooltip-chirho != "" && touch-area-chirho.has-hover: Rectangle {
-        x: root.width + 4px;
-        y: (root.height - self.height) / 2;
-        height: 24px;
+        x: (root.width - self.width) / 2;  // Centered horizontally below button
+        y: root.height + 6px;  // Below the button with small gap
+        height: 26px;
         width: tooltip-text-chirho.preferred-width + 16px;
-        background: ThemeChirho.background-primary-chirho.with-alpha(0.2);
+        background: ThemeChirho.background-tertiary-chirho;
         border-radius: ThemeChirho.radius-sm-chirho;
         border-width: 1px;
-        border-color: ThemeChirho.border-chirho.with-alpha(0.3);
-        drop-shadow-blur: 4px;
-        drop-shadow-color: rgba(0, 0, 0, 0.2);
+        border-color: ThemeChirho.border-chirho;
+        drop-shadow-blur: 8px;
+        drop-shadow-color: rgba(0, 0, 0, 0.3);
 
         tooltip-text-chirho := Text {
             text: tooltip-chirho;
@@ -842,7 +861,7 @@ component NavButtonChirho inherits Rectangle {
 
     Text {
         text: label-chirho;
-        font-size: ThemeChirho.font-size-md-chirho;
+        font-size: 14px;
         font-weight: 500;
         color: disabled-chirho ? ThemeChirho.text-disabled-chirho : ThemeChirho.text-secondary-chirho;
         horizontal-alignment: center;
@@ -862,6 +881,7 @@ component SidebarChirho inherits Rectangle {
 
     Rectangle {
         x: parent.width - 1px;
+        y: 0px;
         width: 1px;
         height: 100%;
         background: ThemeChirho.border-chirho;
@@ -899,7 +919,7 @@ component SidebarChirho inherits Rectangle {
 
         HorizontalBox {
             Text {
-                text: LabelsChirho.books-label-chirho;
+                text: AppStateChirho.is-genbook-chirho ? "Contents" : LabelsChirho.books-label-chirho;
                 font-size: ThemeChirho.font-size-xs-chirho;
                 font-weight: 600;
                 color: ThemeChirho.text-muted-chirho;
@@ -907,7 +927,7 @@ component SidebarChirho inherits Rectangle {
             }
             Rectangle { horizontal-stretch: 1; }
             Text {
-                text: LabelsChirho.book-count-chirho;
+                text: AppStateChirho.is-genbook-chirho ? AppStateChirho.genbook-module-type-chirho : LabelsChirho.book-count-chirho;
                 font-size: ThemeChirho.font-size-xs-chirho;
                 color: ThemeChirho.text-disabled-chirho;
                 vertical-alignment: center;
@@ -920,37 +940,115 @@ component SidebarChirho inherits Rectangle {
             VerticalBox {
                 spacing: 2px;
 
-                // Old Testament Header
-                Rectangle {
-                    height: 32px;
-                    background: ThemeChirho.background-tertiary-chirho;
+                // General Book entries (when is-genbook is true)
+                if AppStateChirho.is-genbook-chirho: VerticalLayout {
+                    spacing: 2px;
 
-                    HorizontalLayout {
-                        padding-left: ThemeChirho.spacing-md-chirho;
-                        padding-right: ThemeChirho.spacing-md-chirho;
-                        padding-top: 6px;
-                        padding-bottom: 6px;
+                    // Breadcrumb navigation (go back up)
+                    if AppStateChirho.genbook-current-key-chirho != "": Rectangle {
+                        height: 36px;
+                        background: back-touch-chirho.has-hover ? ThemeChirho.background-tertiary-chirho : transparent;
+                        border-radius: ThemeChirho.radius-md-chirho;
 
-                        Text {
-                            text: LabelsChirho.old-testament-label-chirho;
-                            font-size: ThemeChirho.font-size-xs-chirho;
-                            font-weight: 700;
-                            color: ThemeChirho.text-muted-chirho;
-                            vertical-alignment: center;
-                            horizontal-stretch: 1;
-                            letter-spacing: 1px;
+                        back-touch-chirho := TouchArea {
+                            clicked => {
+                                AppStateChirho.genbook-navigate-up-chirho();
+                            }
+                            mouse-cursor: pointer;
                         }
 
-                        Text {
-                            text: LabelsChirho.ot-book-count-chirho;
-                            font-size: ThemeChirho.font-size-xs-chirho;
-                            color: ThemeChirho.text-disabled-chirho;
-                            vertical-alignment: center;
+                        HorizontalBox {
+                            padding-left: ThemeChirho.spacing-md-chirho;
+                            padding-right: ThemeChirho.spacing-md-chirho;
+
+                            Text {
+                                text: "← Back";
+                                color: ThemeChirho.accent-chirho;
+                                font-size: ThemeChirho.font-size-md-chirho;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+
+                    // Genbook entries list
+                    for entry-chirho in AppStateChirho.genbook-entries-chirho: Rectangle {
+                        height: 40px;
+                        background: genbook-touch-chirho.has-hover ? ThemeChirho.background-tertiary-chirho : transparent;
+                        border-radius: ThemeChirho.radius-md-chirho;
+
+                        animate background { duration: ThemeChirho.animation-fast-chirho; easing: ease-out; }
+
+                        genbook-touch-chirho := TouchArea {
+                            clicked => {
+                                if entry-chirho.has-children-chirho {
+                                    // Navigate into this entry
+                                    AppStateChirho.load-genbook-entries-chirho(entry-chirho.key-chirho);
+                                }
+                                // Always load content
+                                AppStateChirho.load-genbook-content-chirho(entry-chirho.key-chirho);
+                            }
+                            mouse-cursor: pointer;
+                        }
+
+                        HorizontalBox {
+                            padding-left: ThemeChirho.spacing-md-chirho;
+                            padding-right: ThemeChirho.spacing-md-chirho;
+
+                            Text {
+                                text: entry-chirho.name-chirho;
+                                color: ThemeChirho.text-primary-chirho;
+                                font-size: ThemeChirho.font-size-md-chirho;
+                                vertical-alignment: center;
+                                horizontal-stretch: 1;
+                            }
+
+                            if entry-chirho.has-children-chirho: Text {
+                                text: "›";
+                                color: ThemeChirho.text-muted-chirho;
+                                font-size: ThemeChirho.font-size-lg-chirho;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                }
+
+                // Bible books (when is-genbook is false)
+                if !AppStateChirho.is-genbook-chirho: VerticalLayout {
+                    spacing: 2px;
+
+                    // Old Testament Header
+                    Rectangle {
+                        height: 32px;
+                        background: ThemeChirho.background-tertiary-chirho;
+
+                        HorizontalLayout {
+                            padding-left: ThemeChirho.spacing-md-chirho;
+                            padding-right: ThemeChirho.spacing-md-chirho;
+                            padding-top: 6px;
+                            padding-bottom: 6px;
+
+                            Text {
+                                text: LabelsChirho.old-testament-label-chirho;
+                                font-size: ThemeChirho.font-size-xs-chirho;
+                                font-weight: 700;
+                                color: ThemeChirho.text-muted-chirho;
+                                vertical-alignment: center;
+                                horizontal-stretch: 1;
+                                letter-spacing: 1px;
+                            }
+
+                            Text {
+                                text: LabelsChirho.ot-book-count-chirho;
+                                font-size: ThemeChirho.font-size-xs-chirho;
+                                color: ThemeChirho.text-disabled-chirho;
+                                vertical-alignment: center;
+                            }
                         }
                     }
                 }
 
                 for book-chirho in AppStateChirho.books-chirho: VerticalLayout {
+                    visible: !AppStateChirho.is-genbook-chirho;
                     // New Testament Header (appears before Matthew)
                     if book-chirho.name-chirho == "Matthew": Rectangle {
                         height: 32px;
@@ -1034,7 +1132,7 @@ component SidebarChirho inherits Rectangle {
 
 // Chapter navigation bar
 component ChapterBarChirho inherits Rectangle {
-    height: 56px;
+    height: 44px;
     background: ThemeChirho.background-secondary-chirho;
 
     Rectangle {
@@ -1044,13 +1142,16 @@ component ChapterBarChirho inherits Rectangle {
     }
 
     HorizontalBox {
-        padding: ThemeChirho.spacing-md-chirho;
-        spacing: ThemeChirho.spacing-md-chirho;
+        padding-top: 6px;
+        padding-bottom: 6px;
+        padding-left: 12px;
+        padding-right: 12px;
+        spacing: 6px;
         alignment: center;
 
         // Previous book button
         NavButtonChirho {
-            label-chirho: "<<";
+            label-chirho: "«";
             clicked-chirho => {
                 AppStateChirho.navigate-prev-book-chirho();
             }
@@ -1059,7 +1160,6 @@ component ChapterBarChirho inherits Rectangle {
         // Previous chapter button
         NavButtonChirho {
             label-chirho: LabelsChirho.nav-prev-chirho;
-            disabled-chirho: AppStateChirho.current-chapter-chirho <= 1;
             clicked-chirho => {
                 if (AppStateChirho.current-chapter-chirho > 1) {
                     AppStateChirho.navigate-to-chirho(
@@ -1067,32 +1167,33 @@ component ChapterBarChirho inherits Rectangle {
                         AppStateChirho.current-chapter-chirho - 1,
                         1
                     );
+                } else {
+                    // At first chapter - go to previous book
+                    AppStateChirho.navigate-prev-book-chirho();
                 }
             }
         }
 
         Rectangle {
-            min-width: 200px;
-            height: 40px;
+            min-width: 160px;
+            height: 32px;
             background: chapter-display-touch-chirho.has-hover ? ThemeChirho.background-elevated-chirho : ThemeChirho.background-tertiary-chirho;
-            border-radius: ThemeChirho.radius-md-chirho;
+            border-radius: ThemeChirho.radius-sm-chirho;
             border-width: 1px;
             border-color: ThemeChirho.border-subtle-chirho;
 
             animate background { duration: ThemeChirho.animation-fast-chirho; }
 
             HorizontalLayout {
-                padding-left: ThemeChirho.spacing-lg-chirho;
-                padding-right: ThemeChirho.spacing-lg-chirho;
-                padding-top: 4px;
-                padding-bottom: 4px;
+                padding-left: 12px;
+                padding-right: 12px;
                 alignment: center;
-                spacing: ThemeChirho.spacing-xs-chirho;
+                spacing: 4px;
 
                 Text {
                     text: AppStateChirho.current-book-chirho + " " + AppStateChirho.current-chapter-chirho;
-                    font-size: ThemeChirho.font-size-lg-chirho;
-                    font-weight: 600;
+                    font-size: ThemeChirho.font-size-md-chirho;
+                    font-weight: 500;
                     color: ThemeChirho.text-primary-chirho;
                     vertical-alignment: center;
                     horizontal-alignment: center;
@@ -1100,7 +1201,7 @@ component ChapterBarChirho inherits Rectangle {
 
                 Text {
                     text: "▾";
-                    font-size: 10px;
+                    font-size: 9px;
                     color: ThemeChirho.text-muted-chirho;
                     vertical-alignment: center;
                 }
@@ -1117,18 +1218,24 @@ component ChapterBarChirho inherits Rectangle {
         // Next chapter button
         NavButtonChirho {
             label-chirho: LabelsChirho.nav-next-chirho;
+            disabled-chirho: AppStateChirho.current-chapter-chirho >= AppStateChirho.current-book-chapter-count-chirho;
             clicked-chirho => {
-                AppStateChirho.navigate-to-chirho(
-                    AppStateChirho.current-book-chirho,
-                    AppStateChirho.current-chapter-chirho + 1,
-                    1
-                );
+                if (AppStateChirho.current-chapter-chirho < AppStateChirho.current-book-chapter-count-chirho) {
+                    AppStateChirho.navigate-to-chirho(
+                        AppStateChirho.current-book-chirho,
+                        AppStateChirho.current-chapter-chirho + 1,
+                        1
+                    );
+                } else {
+                    // At last chapter - go to next book
+                    AppStateChirho.navigate-next-book-chirho();
+                }
             }
         }
 
         // Next book button
         NavButtonChirho {
-            label-chirho: ">>";
+            label-chirho: "»";
             clicked-chirho => {
                 AppStateChirho.navigate-next-book-chirho();
             }
@@ -1196,10 +1303,10 @@ component ContextMenuChirho inherits Rectangle {
             }
         }
 
-        // Menu popup
+        // Menu popup - clamped to stay within window bounds
         Rectangle {
-            x: menu-x-chirho;
-            y: menu-y-chirho;
+            x: min(menu-x-chirho, parent.width - 210px);
+            y: min(menu-y-chirho, parent.height - 300px);
             width: 200px;
             height: 292px;
             background: ThemeChirho.background-secondary-chirho;
@@ -1390,6 +1497,9 @@ component InlineInterlinearWordChirho inherits Rectangle {
 component VerseViewChirho inherits Rectangle {
     in property <VerseChirho> verse-chirho;
 
+    // Track if any part of the verse is hovered (verse text OR action buttons area)
+    property <bool> is-hovered-chirho: verse-touch-chirho.has-hover || actions-area-hover-chirho.has-hover;
+
     // Compute highlight color from name
     property <color> active-highlight-color-chirho:
         verse-chirho.highlight-color-chirho == "green" ? #34d399 :
@@ -1407,7 +1517,7 @@ component VerseViewChirho inherits Rectangle {
 
     background: verse-chirho.is-highlighted-chirho ?
         active-highlight-color-chirho.with-alpha(0.12) :
-        (verse-touch-chirho.has-hover ? ThemeChirho.background-tertiary-chirho.with-alpha(0.5) : transparent);
+        (is-hovered-chirho ? ThemeChirho.background-tertiary-chirho.with-alpha(0.5) : transparent);
     border-radius: ThemeChirho.radius-md-chirho;
 
     if verse-chirho.is-highlighted-chirho: Rectangle {
@@ -1420,6 +1530,26 @@ component VerseViewChirho inherits Rectangle {
     }
 
     animate background { duration: ThemeChirho.animation-fast-chirho; easing: ease-out; }
+
+    // TouchArea at bottom layer - allows action buttons to receive clicks on top
+    verse-touch-chirho := TouchArea {
+        clicked => {
+            // Only load verse info on click - highlighting is done via color buttons
+            AppStateChirho.load-verse-info-chirho(verse-chirho.reference-chirho);
+        }
+        pointer-event(event-chirho) => {
+            // Right-click to show context menu
+            if (event-chirho.button == PointerEventButton.right && event-chirho.kind == PointerEventKind.down) {
+                AppStateChirho.context-menu-visible-chirho = true;
+                // Use absolute position of the verse element plus mouse position within it
+                AppStateChirho.context-menu-x-chirho = self.absolute-position.x + self.mouse-x;
+                AppStateChirho.context-menu-y-chirho = self.absolute-position.y + self.mouse-y;
+                AppStateChirho.context-menu-verse-ref-chirho = AppStateChirho.current-book-chirho + " " + AppStateChirho.current-chapter-chirho + ":" + verse-chirho.reference-chirho;
+                AppStateChirho.context-menu-verse-text-chirho = verse-chirho.text-chirho;
+            }
+        }
+        mouse-cursor: pointer;
+    }
 
     VerticalLayout {
         spacing: 0px;
@@ -1535,10 +1665,33 @@ component VerseViewChirho inherits Rectangle {
                     color: ThemeChirho.text-muted-chirho;
                 }
             }
+        } // Close HorizontalLayout containing verse content
+    } // Close VerticalLayout
 
-        // Action buttons (visible on hover)
-        if verse-touch-chirho.has-hover: HorizontalLayout {
+    // Action buttons as overlay (positioned absolutely, doesn't affect text flow)
+    // Always rendered but visibility controlled by opacity
+    Rectangle {
+        x: parent.width - 220px;
+        y: 4px;
+        width: 210px;
+        height: 32px;
+        background: is-hovered-chirho ? ThemeChirho.background-secondary-chirho.with-alpha(0.95) : transparent;
+        border-radius: ThemeChirho.radius-md-chirho;
+        opacity: is-hovered-chirho ? 1.0 : 0.0;
+
+        animate opacity { duration: 100ms; }
+        animate background { duration: 100ms; }
+
+        // Hover tracking area INSIDE the action buttons - contributes to is-hovered-chirho
+        actions-area-hover-chirho := TouchArea {
+            // This TouchArea covers the entire action buttons area
+            // and its has-hover contributes to is-hovered-chirho
+        }
+
+        HorizontalLayout {
+            padding: 4px;
             spacing: 4px;
+            alignment: center;
 
             // Copy button
             Rectangle {
@@ -1656,43 +1809,26 @@ component VerseViewChirho inherits Rectangle {
                     mouse-cursor: pointer;
                 }
             }
-        }
+        } // Close action buttons HorizontalLayout
+    } // Close action buttons Rectangle
 
-        if verse-chirho.has-note-chirho: Rectangle {
-            width: 20px;
-            height: 20px;
-            background: ThemeChirho.highlight-chirho;
-            border-radius: 10px;
+    // Note indicator (positioned absolutely in top-left)
+    if verse-chirho.has-note-chirho: Rectangle {
+        x: 4px;
+        y: 4px;
+        width: 16px;
+        height: 16px;
+        background: ThemeChirho.highlight-chirho;
+        border-radius: 8px;
 
-            Text {
-                text: LabelsChirho.note-indicator-chirho;
-                font-size: 10px;
-                color: #1e1e2e;
-                horizontal-alignment: center;
-                vertical-alignment: center;
-            }
+        Text {
+            text: "N";
+            font-size: 9px;
+            font-weight: 600;
+            color: #1e1e2e;
+            horizontal-alignment: center;
+            vertical-alignment: center;
         }
-        } // Close HorizontalLayout
-    } // Close VerticalLayout
-
-    verse-touch-chirho := TouchArea {
-        clicked => {
-            AppStateChirho.toggle-highlight-chirho(verse-chirho.reference-chirho);
-            // Also update info panel with this verse's details
-            AppStateChirho.load-verse-info-chirho(verse-chirho.reference-chirho);
-        }
-        pointer-event(event-chirho) => {
-            // Right-click to show context menu
-            if (event-chirho.button == PointerEventButton.right && event-chirho.kind == PointerEventKind.down) {
-                AppStateChirho.context-menu-visible-chirho = true;
-                // Use absolute position of the verse element plus mouse position within it
-                AppStateChirho.context-menu-x-chirho = self.absolute-position.x + self.mouse-x;
-                AppStateChirho.context-menu-y-chirho = self.absolute-position.y + self.mouse-y;
-                AppStateChirho.context-menu-verse-ref-chirho = AppStateChirho.current-book-chirho + " " + AppStateChirho.current-chapter-chirho + ":" + verse-chirho.reference-chirho;
-                AppStateChirho.context-menu-verse-text-chirho = verse-chirho.text-chirho;
-            }
-        }
-        mouse-cursor: pointer;
     }
 }
 
@@ -1701,7 +1837,34 @@ component BibleViewChirho inherits Rectangle {
     background: ThemeChirho.background-primary-chirho;
 
     VerticalLayout {
-        ChapterBarChirho {}
+        // Show chapter bar only for Bible modules
+        if !AppStateChirho.is-genbook-chirho: ChapterBarChirho {}
+
+        // Genbook header (show title when viewing general book content)
+        if AppStateChirho.is-genbook-chirho && AppStateChirho.genbook-current-title-chirho != "": Rectangle {
+            height: 52px;
+            background: ThemeChirho.background-secondary-chirho;
+
+            Rectangle {
+                y: parent.height - 1px;
+                height: 1px;
+                background: ThemeChirho.border-chirho;
+            }
+
+            HorizontalLayout {
+                padding-left: 24px;
+                padding-right: 24px;
+                alignment: center;
+
+                Text {
+                    text: AppStateChirho.genbook-current-title-chirho;
+                    font-size: ThemeChirho.font-size-lg-chirho;
+                    font-weight: 600;
+                    color: ThemeChirho.text-primary-chirho;
+                    vertical-alignment: center;
+                }
+            }
+        }
 
         ScrollView {
             vertical-stretch: 1;
@@ -1713,8 +1876,38 @@ component BibleViewChirho inherits Rectangle {
                 padding-right: 24px;
                 spacing: 2px;
 
-                for verse-chirho in AppStateChirho.verses-chirho: VerseViewChirho {
-                    verse-chirho: verse-chirho;
+                // Bible verses (when not a genbook)
+                if !AppStateChirho.is-genbook-chirho: VerticalLayout {
+                    spacing: 2px;
+
+                    for verse-chirho in AppStateChirho.verses-chirho: VerseViewChirho {
+                        verse-chirho: verse-chirho;
+                    }
+                }
+
+                // Genbook content (when is a genbook)
+                if AppStateChirho.is-genbook-chirho: VerticalLayout {
+                    spacing: ThemeChirho.spacing-md-chirho;
+
+                    // Show placeholder if no content selected
+                    if AppStateChirho.genbook-current-content-chirho == "": Text {
+                        text: "Select an entry from the sidebar to view its content.";
+                        font-size: ThemeChirho.font-size-md-chirho;
+                        color: ThemeChirho.text-muted-chirho;
+                        horizontal-alignment: center;
+                        wrap: word-wrap;
+                    }
+
+                    // Show genbook content
+                    if AppStateChirho.genbook-current-content-chirho != "": Text {
+                        text: AppStateChirho.genbook-current-content-chirho;
+                        font-size: ThemeChirho.font-size-scripture-chirho * AppStateChirho.font-scale-chirho;
+                        font-family: AppStateChirho.font-family-index-chirho == 1 ? "Georgia, Times New Roman, serif" :
+                                     AppStateChirho.font-family-index-chirho == 2 ? "Helvetica, Arial, sans-serif" :
+                                     "system-ui";
+                        color: ThemeChirho.text-primary-chirho;
+                        wrap: word-wrap;
+                    }
                 }
 
                 Rectangle { height: 48px; }
@@ -1736,6 +1929,7 @@ component ParallelPaneChirho inherits Rectangle {
     // Left border separator
     Rectangle {
         x: 0px;
+        y: 0px;
         width: 1px;
         height: 100%;
         background: ThemeChirho.border-chirho;
@@ -2597,8 +2791,12 @@ component ToolbarChirho inherits Rectangle {
     }
 
     HorizontalLayout {
-        padding: ThemeChirho.spacing-md-chirho;
+        padding-left: ThemeChirho.spacing-md-chirho;
+        padding-right: ThemeChirho.spacing-md-chirho;
+        padding-top: 8px;
+        padding-bottom: 8px;
         spacing: ThemeChirho.spacing-sm-chirho;
+        alignment: center;
 
         // Books panel toggle
         IconButtonChirho {
@@ -2611,39 +2809,53 @@ component ToolbarChirho inherits Rectangle {
         }
 
         // App branding
-        Text {
-            text: LabelsChirho.app-icon-chirho + " " + LabelsChirho.app-name-chirho;
-            font-size: ThemeChirho.font-size-lg-chirho;
-            font-weight: 700;
-            color: ThemeChirho.text-primary-chirho;
-            vertical-alignment: center;
+        HorizontalLayout {
+            spacing: 6px;
+            alignment: center;
+
+            Text {
+                text: LabelsChirho.app-icon-chirho;
+                font-size: 18px;
+                color: ThemeChirho.accent-chirho;
+                vertical-alignment: center;
+            }
+            Text {
+                text: LabelsChirho.app-name-chirho;
+                font-size: ThemeChirho.font-size-md-chirho;
+                font-weight: 600;
+                color: ThemeChirho.text-primary-chirho;
+                vertical-alignment: center;
+            }
         }
 
         Rectangle { horizontal-stretch: 1; }
 
         // Font size controls
-        Text {
-            text: "A";
-            font-size: 12px;
-            color: ThemeChirho.text-muted-chirho;
-            vertical-alignment: center;
-        }
+        HorizontalLayout {
+            spacing: 6px;
+            alignment: center;
 
-        Rectangle {
-            width: 80px;
-            height: 24px;
+            Text {
+                text: "A";
+                font-size: 11px;
+                color: ThemeChirho.text-muted-chirho;
+                vertical-alignment: center;
+            }
+
             Slider {
+                width: 80px;
                 minimum: 0.8;
                 maximum: 1.5;
                 value <=> AppStateChirho.font-scale-chirho;
             }
-        }
 
-        Text {
-            text: "A";
-            font-size: 18px;
-            color: ThemeChirho.text-muted-chirho;
-            vertical-alignment: center;
+            Text {
+                text: "A";
+                font-size: 16px;
+                font-weight: 600;
+                color: ThemeChirho.text-muted-chirho;
+                vertical-alignment: center;
+            }
         }
 
         // Search
@@ -2776,6 +2988,14 @@ component SettingsPanelChirho inherits Rectangle {
 
     animate background { duration: ThemeChirho.animation-normal-chirho; }
 
+    // Backdrop click to close - MUST be before modal content so content is on top
+    TouchArea {
+        enabled: visible-chirho;
+        clicked => {
+            AppStateChirho.settings-visible-chirho = false;
+        }
+    }
+
     if visible-chirho: Rectangle {
         x: (parent.width - self.width) / 2;
         y: (parent.height - self.height) / 2;
@@ -2787,6 +3007,9 @@ component SettingsPanelChirho inherits Rectangle {
         border-color: ThemeChirho.border-chirho;
         drop-shadow-blur: 20px;
         drop-shadow-color: #00000040;
+
+        // Block clicks from reaching backdrop
+        TouchArea { }
 
         VerticalLayout {
             padding: ThemeChirho.spacing-lg-chirho;
@@ -3613,14 +3836,6 @@ component SettingsPanelChirho inherits Rectangle {
             }
         }
     }
-
-    // Close when clicking outside
-    TouchArea {
-        enabled: visible-chirho;
-        clicked => {
-            root.visible-chirho = false;
-        }
-    }
 }
 
 // Goto verse dialog component
@@ -4256,7 +4471,13 @@ component VotdDialogChirho inherits Rectangle {
 
                     goto-touch-chirho := TouchArea {
                         clicked => {
+                            // Close any panels that might block the Bible view
+                            AppStateChirho.search-active-chirho = false;
+                            AppStateChirho.chapter-selector-visible-chirho = false;
+                            AppStateChirho.context-menu-visible-chirho = false;
+                            // Navigate to the verse
                             AppStateChirho.goto-votd-chirho();
+                            // Close the dialog
                             AppStateChirho.votd-dialog-visible-chirho = false;
                         }
                         mouse-cursor: pointer;
@@ -4558,6 +4779,8 @@ component BookmarksPanelChirho inherits Rectangle {
     animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
 
     Rectangle {
+        x: 0px;
+        y: 0px;
         width: 1px;
         height: 100%;
         background: ThemeChirho.border-chirho;
@@ -4677,6 +4900,8 @@ component HighlightsPanelChirho inherits Rectangle {
     animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
 
     Rectangle {
+        x: 0px;
+        y: 0px;
         width: 1px;
         height: 100%;
         background: ThemeChirho.border-chirho;
@@ -4855,6 +5080,8 @@ component NotesPanelChirho inherits Rectangle {
     animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
 
     Rectangle {
+        x: 0px;
+        y: 0px;
         width: 1px;
         height: 100%;
         background: ThemeChirho.border-chirho;
@@ -4978,15 +5205,21 @@ component InfoPanelChirho inherits Rectangle {
 
     animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
 
+    // Left border
     Rectangle {
+        x: 0px;
+        y: 0px;
         width: 1px;
         height: 100%;
         background: ThemeChirho.border-chirho;
     }
 
-    VerticalLayout {
-        padding: ThemeChirho.spacing-lg-chirho;
-        spacing: ThemeChirho.spacing-md-chirho;
+    // Main content - positioned after the border
+    HorizontalLayout {
+        padding-left: 1px; // Account for border
+        VerticalLayout {
+            padding: ThemeChirho.spacing-lg-chirho;
+            spacing: ThemeChirho.spacing-md-chirho;
 
         // Header
         HorizontalLayout {
@@ -5035,6 +5268,7 @@ component InfoPanelChirho inherits Rectangle {
             vertical-stretch: 1;
 
             VerticalLayout {
+                alignment: start;  // Align content to top
                 spacing: ThemeChirho.spacing-lg-chirho;
 
                 // Reference section
@@ -5194,7 +5428,8 @@ component InfoPanelChirho inherits Rectangle {
                 Rectangle { height: 48px; }
             }
         }
-    }
+        }  // Close VerticalLayout
+    }  // Close HorizontalLayout
 }
 
 // Statistics Panel - reading progress and study stats
@@ -5208,6 +5443,8 @@ component StatisticsPanelChirho inherits Rectangle {
     animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
 
     Rectangle {
+        x: 0px;
+        y: 0px;
         width: 1px;
         height: 100%;
         background: ThemeChirho.border-chirho;
@@ -5909,6 +6146,8 @@ component JournalPanelChirho inherits Rectangle {
     animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
 
     Rectangle {
+        x: 0px;
+        y: 0px;
         width: 1px;
         height: 100%;
         background: ThemeChirho.border-chirho;
@@ -6313,6 +6552,8 @@ component PrayerPanelChirho inherits Rectangle {
     animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
 
     Rectangle {
+        x: 0px;
+        y: 0px;
         width: 1px;
         height: 100%;
         background: ThemeChirho.border-chirho;
@@ -7367,6 +7608,8 @@ component ModuleManagerPanelChirho inherits Rectangle {
     animate width { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
 
     Rectangle {
+        x: 0px;
+        y: 0px;
         width: 1px;
         height: 100%;
         background: ThemeChirho.border-chirho;
@@ -8438,16 +8681,24 @@ export component MainWindowChirho inherits Window {
                         AppStateChirho.current-chapter-chirho - 1,
                         1
                     );
+                } else {
+                    // At first chapter - go to previous book
+                    AppStateChirho.navigate-prev-book-chirho();
                 }
                 return accept;
             }
             // Right arrow: Next chapter
             if (event-chirho.text == Key.RightArrow && !event-chirho.modifiers.control) {
-                AppStateChirho.navigate-to-chirho(
-                    AppStateChirho.current-book-chirho,
-                    AppStateChirho.current-chapter-chirho + 1,
-                    1
-                );
+                if (AppStateChirho.current-chapter-chirho < AppStateChirho.current-book-chapter-count-chirho) {
+                    AppStateChirho.navigate-to-chirho(
+                        AppStateChirho.current-book-chirho,
+                        AppStateChirho.current-chapter-chirho + 1,
+                        1
+                    );
+                } else {
+                    // At last chapter - go to next book
+                    AppStateChirho.navigate-next-book-chirho();
+                }
                 return accept;
             }
             // Ctrl+F: Toggle search
@@ -8778,8 +9029,9 @@ export component MainWindowChirho inherits Window {
         }
 
         // Toolbar dropdown menus (positioned at top level for proper z-order)
+        // Menu positions are clamped to prevent going off the right edge
         if AppStateChirho.study-menu-visible-chirho: Rectangle {
-            x: AppStateChirho.study-dropdown-x-chirho;
+            x: min(AppStateChirho.study-dropdown-x-chirho, root.width - 230px);
             y: AppStateChirho.toolbar-y-offset-chirho;
             width: 220px;
             background: ThemeChirho.background-secondary-chirho;
@@ -8874,7 +9126,7 @@ export component MainWindowChirho inherits Window {
         }
 
         if AppStateChirho.personal-menu-visible-chirho: Rectangle {
-            x: AppStateChirho.personal-dropdown-x-chirho;
+            x: min(AppStateChirho.personal-dropdown-x-chirho, root.width - 210px);
             y: AppStateChirho.toolbar-y-offset-chirho;
             width: 200px;
             background: ThemeChirho.background-secondary-chirho;
@@ -8966,7 +9218,7 @@ export component MainWindowChirho inherits Window {
         }
 
         if AppStateChirho.reading-menu-visible-chirho: Rectangle {
-            x: AppStateChirho.reading-dropdown-x-chirho;
+            x: min(AppStateChirho.reading-dropdown-x-chirho, root.width - 210px);
             y: AppStateChirho.toolbar-y-offset-chirho;
             width: 200px;
             background: ThemeChirho.background-secondary-chirho;
