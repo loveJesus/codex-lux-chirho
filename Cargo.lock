@@ -964,7 +964,7 @@ dependencies = [
 
 [[package]]
 name = "codex_lux_chirho"
-version = "0.1.10"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -4443,7 +4443,9 @@ checksum = "6c20b6793b5c2fa6553b250154b78d6d0db37e72700ae35fad9387a46f487c97"
 
 [[package]]
 name = "rsword_chirho"
-version = "0.2.1"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b6dc5fd5c3668bd39dee67c9dfa6aa097dbc7530f2e01a8681add07fd6b61ca"
 dependencies = [
  "anyhow",
  "bitflags 2.10.0",

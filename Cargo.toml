@@ -4,7 +4,7 @@
 
 [package]
 name = "codex_lux_chirho"
-version = "0.1.10"
+version = "0.2.0"
 edition = "2021"
 description = "Cross-platform Bible study application - Codex of Light"
 license = "GPL-2.0-or-later"
@@ -18,7 +18,7 @@ categories = ["gui"]
 slint = "1.9"
 
 # Bible Engine
-rsword_chirho = { path = "../rsword-chirho/crates/rsword_chirho" }
+rsword_chirho = "0.3.0"
 
 # Async runtime
 tokio = { version = "1.43", features = ["rt", "macros"] }
@@ -80,9 +80,42 @@ opt-level = 3
 lto = true
 strip = true
 
-# Mac App Store settings
+# Mac App Store settings (using cargo-bundle)
+# Install: cargo install cargo-bundle
+# Build: cargo bundle --release
 [package.metadata.bundle]
 name = "Codex Lux"
 identifier = "com.rsword.codexlux"
 icon = ["icons/icon.icns"]
+version = "0.2.0"
+copyright = "2024-2025 rsword-chirho contributors"
 category = "Reference"
+short_description = "Cross-platform Bible study application"
+long_description = """
+Codex Lux Chirho is a powerful Bible study application built with Rust and Slint UI.
+
+Features:
+• Read multiple Bible translations (KJV, ESV, NASB, etc.)
+• Commentary support (Matthew Henry, etc.)
+• Strong's dictionary lookup
+• Bookmarks, highlights, and notes
+• Search across modules
+• Reading plans and verse of the day
+• Dark/light/sepia themes
+• Cross-references and parallel view
+
+Powered by rsword_chirho, a pure Rust port of the SWORD Bible library.
+"""
+osx_minimum_system_version = "10.15"
+osx_frameworks = []
+
+# For notarization (requires Apple Developer account)
+# Run: xcrun notarytool submit target/release/bundle/osx/Codex\ Lux.app.zip --apple-id YOUR_APPLE_ID --team-id YOUR_TEAM_ID
+
+# Windows settings
+[package.metadata.bundle.windows]
+wix = "C:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
+
+# Linux settings
+[package.metadata.bundle.linux]
+desktop_file = "codex_lux_chirho.desktop"
