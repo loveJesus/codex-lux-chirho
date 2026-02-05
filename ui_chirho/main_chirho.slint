@@ -6,7 +6,7 @@ import { VerticalBox, HorizontalBox, ScrollView, Button, ComboBox, LineEdit, Sli
 
 // UI Label Constants
 export global LabelsChirho {
-    out property <string> translation-label-chirho: "TRANSLATION";
+    out property <string> translation-label-chirho: "TRANSLATION / BOOK";
     out property <string> books-label-chirho: "BOOKS";
     out property <string> search-label-chirho: "SEARCH";
     out property <string> note-indicator-chirho: "N";
@@ -476,6 +476,7 @@ export global AppStateChirho {
     in-out property <bool> paragraph-mode-chirho: false;
     in-out property <float> line-height-chirho: 1.5;
     in-out property <int> font-family-index-chirho: 0; // 0=System, 1=Serif, 2=Sans
+    in-out property <bool> show-verse-numbers-chirho: true; // Show verse numbers in reading view
 
     // Bookmarks panel
     in-out property <bool> bookmarks-visible-chirho: false;
@@ -1609,8 +1610,8 @@ component VerseViewChirho inherits Rectangle {
                 width: poetry-indent-amount-chirho;
             }
 
-            // Verse number - fixed width column
-            Rectangle {
+            // Verse number - fixed width column (only shown when setting enabled)
+            if AppStateChirho.show-verse-numbers-chirho: Rectangle {
                 width: 32px;
 
                 Text {
@@ -2102,7 +2103,7 @@ component ParallelPaneChirho inherits Rectangle {
                         padding-bottom: ThemeChirho.spacing-sm-chirho;
                         spacing: ThemeChirho.spacing-sm-chirho;
 
-                        Text {
+                        if AppStateChirho.show-verse-numbers-chirho: Text {
                             text: verse-chirho.reference-chirho;
                             font-size: 14px * AppStateChirho.font-scale-chirho;
                             font-weight: 600;
@@ -3318,6 +3319,47 @@ component SettingsPanelChirho inherits Rectangle {
                             }
                         }
 
+                        // Show Verse Numbers toggle
+                        HorizontalLayout {
+                            spacing: ThemeChirho.spacing-md-chirho;
+                            height: 40px;
+
+                            Text {
+                                text: "Show Verse Numbers";
+                                font-size: ThemeChirho.font-size-md-chirho;
+                                color: ThemeChirho.text-primary-chirho;
+                                vertical-alignment: center;
+                                horizontal-stretch: 1;
+                            }
+
+                            Rectangle {
+                                width: 50px;
+                                height: 26px;
+                                background: AppStateChirho.show-verse-numbers-chirho ? ThemeChirho.accent-chirho : ThemeChirho.background-tertiary-chirho;
+                                border-radius: 13px;
+                                border-width: 1px;
+                                border-color: ThemeChirho.border-chirho;
+
+                                Rectangle {
+                                    x: AppStateChirho.show-verse-numbers-chirho ? 26px : 2px;
+                                    y: 2px;
+                                    width: 22px;
+                                    height: 22px;
+                                    background: white;
+                                    border-radius: 11px;
+
+                                    animate x { duration: ThemeChirho.animation-normal-chirho; easing: ease-out; }
+                                }
+
+                                TouchArea {
+                                    clicked => {
+                                        AppStateChirho.show-verse-numbers-chirho = !AppStateChirho.show-verse-numbers-chirho;
+                                    }
+                                    mouse-cursor: pointer;
+                                }
+                            }
+                        }
+
                         // Versification System selector
                         HorizontalLayout {
                             spacing: ThemeChirho.spacing-md-chirho;
@@ -4396,6 +4438,14 @@ component VotdDialogChirho inherits Rectangle {
 
     animate background { duration: ThemeChirho.animation-normal-chirho; }
 
+    // Close when clicking outside (background overlay)
+    TouchArea {
+        enabled: visible-chirho;
+        clicked => {
+            AppStateChirho.votd-dialog-visible-chirho = false;
+        }
+    }
+
     if visible-chirho: Rectangle {
         x: (parent.width - self.width) / 2;
         y: (parent.height - self.height) / 2;
@@ -4407,6 +4457,9 @@ component VotdDialogChirho inherits Rectangle {
         border-color: ThemeChirho.border-chirho;
         drop-shadow-blur: 20px;
         drop-shadow-color: #00000040;
+
+        // Absorb clicks on the dialog itself (prevent closing)
+        TouchArea { }
 
         VerticalLayout {
             padding: ThemeChirho.spacing-xl-chirho;
@@ -4550,14 +4603,6 @@ component VotdDialogChirho inherits Rectangle {
                     }
                 }
             }
-        }
-    }
-
-    // Close when clicking outside
-    TouchArea {
-        enabled: visible-chirho;
-        clicked => {
-            AppStateChirho.votd-dialog-visible-chirho = false;
         }
     }
 }
@@ -5899,10 +5944,14 @@ component ReadingPlanPanelChirho inherits Rectangle {
 
     width: visible-chirho ? 380px : 0px;
     background: ThemeChirho.background-secondary-chirho;
+    clip: true;
 
-    // Left border (using a child rectangle)
+    // Left border - positioned absolutely
     Rectangle {
+        x: 0px;
+        y: 0px;
         width: 1px;
+        height: 100%;
         background: ThemeChirho.border-chirho;
     }
 
@@ -7045,9 +7094,12 @@ component CommentaryPanelChirho inherits Rectangle {
     background: ThemeChirho.background-secondary-chirho;
     clip: true;
 
-    // Left border
+    // Left border - positioned absolutely
     Rectangle {
+        x: 0px;
+        y: 0px;
         width: 1px;
+        height: 100%;
         background: ThemeChirho.border-chirho;
     }
 
@@ -7086,37 +7138,49 @@ component CommentaryPanelChirho inherits Rectangle {
         }
 
         // Commentary module selector (if multiple available)
-        if AppStateChirho.commentary-modules-chirho.length > 1: HorizontalLayout {
-            spacing: ThemeChirho.spacing-sm-chirho;
+        if AppStateChirho.commentary-modules-chirho.length > 0: VerticalLayout {
+            spacing: ThemeChirho.spacing-xs-chirho;
 
             Text {
                 text: "Source:";
                 font-size: ThemeChirho.font-size-sm-chirho;
                 color: ThemeChirho.text-secondary-chirho;
-                vertical-alignment: center;
             }
 
-            for module-chirho in AppStateChirho.commentary-modules-chirho: Rectangle {
-                width: 80px;
-                height: 28px;
-                background: AppStateChirho.commentary-module-chirho == module-chirho ?
-                    ThemeChirho.accent-chirho : ThemeChirho.background-tertiary-chirho;
-                border-radius: ThemeChirho.radius-sm-chirho;
+            // Scrollable module list for when there are many modules
+            ScrollView {
+                height: min(80px, AppStateChirho.commentary-modules-chirho.length * 32px);
 
-                Text {
-                    text: module-chirho;
-                    font-size: ThemeChirho.font-size-xs-chirho;
-                    color: AppStateChirho.commentary-module-chirho == module-chirho ?
-                        white : ThemeChirho.text-secondary-chirho;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
-                }
+                VerticalLayout {
+                    spacing: ThemeChirho.spacing-xs-chirho;
 
-                TouchArea {
-                    clicked => {
-                        AppStateChirho.select-commentary-module-chirho(module-chirho);
+                    for module-chirho in AppStateChirho.commentary-modules-chirho: Rectangle {
+                        height: 28px;
+                        background: AppStateChirho.commentary-module-chirho == module-chirho ?
+                            ThemeChirho.accent-chirho : ThemeChirho.background-tertiary-chirho;
+                        border-radius: ThemeChirho.radius-sm-chirho;
+
+                        HorizontalLayout {
+                            padding-left: ThemeChirho.spacing-sm-chirho;
+                            padding-right: ThemeChirho.spacing-sm-chirho;
+
+                            Text {
+                                text: module-chirho;
+                                font-size: ThemeChirho.font-size-sm-chirho;
+                                color: AppStateChirho.commentary-module-chirho == module-chirho ?
+                                    white : ThemeChirho.text-secondary-chirho;
+                                vertical-alignment: center;
+                                overflow: elide;
+                            }
+                        }
+
+                        TouchArea {
+                            clicked => {
+                                AppStateChirho.select-commentary-module-chirho(module-chirho);
+                            }
+                            mouse-cursor: pointer;
+                        }
                     }
-                    mouse-cursor: pointer;
                 }
             }
         }
@@ -7172,9 +7236,12 @@ component LexiconPanelChirho inherits Rectangle {
     background: ThemeChirho.background-secondary-chirho;
     clip: true;
 
-    // Left border
+    // Left border - positioned absolutely
     Rectangle {
+        x: 0px;
+        y: 0px;
         width: 1px;
+        height: 100%;
         background: ThemeChirho.border-chirho;
     }
 

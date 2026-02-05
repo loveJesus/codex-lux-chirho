@@ -1159,6 +1159,48 @@ mod bible_engine_chirho {
         max_cache_size_chirho: usize,
     }
 
+    /// Extract Strong's numbers from OSIS/SWORD markup text
+    /// Returns (has_strongs, strongs_display_text)
+    #[allow(dead_code)]
+    fn extract_strongs_from_markup_chirho(raw_text_chirho: &str) -> (bool, String) {
+        let mut strongs_nums_chirho: Vec<String> = Vec::new();
+
+        // Simple parsing for lemma="strong:G26" or lemma="G26" patterns
+        let mut pos_chirho = 0;
+        while let Some(start_chirho) = raw_text_chirho[pos_chirho..].find("lemma=\"") {
+            let abs_start_chirho = pos_chirho + start_chirho + 7; // skip past 'lemma="'
+            if let Some(end_chirho) = raw_text_chirho[abs_start_chirho..].find('"') {
+                let lemma_chirho = &raw_text_chirho[abs_start_chirho..abs_start_chirho + end_chirho];
+
+                // Handle "strong:G26" or just "G26"
+                let num_chirho = if lemma_chirho.starts_with("strong:") {
+                    &lemma_chirho[7..]
+                } else {
+                    lemma_chirho
+                };
+
+                // Check if it's a valid Strong's number (G/H followed by digits)
+                if (num_chirho.starts_with('G') || num_chirho.starts_with('H'))
+                    && num_chirho.len() > 1
+                    && num_chirho[1..].chars().all(|c_chirho| c_chirho.is_ascii_digit())
+                {
+                    let s_chirho = num_chirho.to_string();
+                    if !strongs_nums_chirho.contains(&s_chirho) {
+                        strongs_nums_chirho.push(s_chirho);
+                    }
+                }
+                pos_chirho = abs_start_chirho + end_chirho + 1;
+            } else {
+                break;
+            }
+        }
+
+        let has_strongs_chirho = !strongs_nums_chirho.is_empty();
+        let display_chirho = strongs_nums_chirho.join(", ");
+
+        (has_strongs_chirho, display_chirho)
+    }
+
     impl BibleEngineChirho {
         /// Create a new Bible engine
         pub fn new_chirho() -> Self {
@@ -1191,6 +1233,31 @@ mod bible_engine_chirho {
                     .into_iter()
                     .map(|s_chirho| s_chirho.to_string())
                     .collect(),
+                None => vec![
+                    DEFAULT_MODULE_CHIRHO.to_string(),
+                    "SBLGNT".to_string(),
+                    "WLC".to_string(),
+                ],
+            }
+        }
+
+        /// Get list of readable module names (Bibles, Commentaries, GenBooks - NOT lexicons)
+        /// These are modules that can be navigated by book/chapter or have content to browse
+        pub fn get_readable_module_names_chirho(&self) -> Vec<String> {
+            match &self.manager_chirho {
+                Some(mgr_chirho) => {
+                    mgr_chirho.get_modules_chirho()
+                        .iter()
+                        .filter(|(_, config_chirho)| {
+                            // Include Bibles, Commentaries, and GenBooks
+                            // Exclude Lexicons (they're for word lookup, not reading)
+                            config_chirho.is_bible_chirho() ||
+                            config_chirho.is_commentary_chirho() ||
+                            config_chirho.is_genbook_chirho()
+                        })
+                        .map(|(name_chirho, _)| name_chirho.clone())
+                        .collect()
+                }
                 None => vec![
                     DEFAULT_MODULE_CHIRHO.to_string(),
                     "SBLGNT".to_string(),
@@ -1462,6 +1529,7 @@ mod bible_engine_chirho {
         ///
         /// Uses batch reading for efficiency - creates only ONE module driver
         /// instance per chapter instead of one per verse.
+        /// For commentary modules, deduplicates pericope blocks to avoid repetition.
         fn load_chapter_from_module_chirho(
             &self,
             book_chirho: &str,
@@ -1469,6 +1537,11 @@ mod bible_engine_chirho {
         ) -> Vec<(String, String)> {
             // Try to get from SWORD module first
             if let Some(mgr_chirho) = &self.manager_chirho {
+                // Check if current module is a commentary (needs deduplication)
+                let is_commentary_chirho = mgr_chirho.get_module_chirho(&self.current_module_chirho)
+                    .map(|c_chirho| c_chirho.is_commentary_chirho())
+                    .unwrap_or(false);
+
                 if let Ok(loaded_module_chirho) = mgr_chirho.load_module_chirho(&self.current_module_chirho) {
                     // Use batch reading for efficiency (single module driver instance)
                     match loaded_module_chirho.read_chapter_batch_chirho(
@@ -1477,6 +1550,16 @@ mod bible_engine_chirho {
                         200, // max verses safety limit
                     ) {
                         Ok(raw_verses_chirho) => {
+                            if is_commentary_chirho {
+                                // Commentary: deduplicate pericope blocks
+                                return self.deduplicate_commentary_verses_chirho(
+                                    raw_verses_chirho,
+                                    book_chirho,
+                                    chapter_chirho,
+                                );
+                            }
+
+                            // Bible/other: return all verses normally
                             let verses_chirho: Vec<(String, String)> = raw_verses_chirho
                                 .into_iter()
                                 .map(|(verse_num_chirho, text_chirho)| {
@@ -1503,10 +1586,77 @@ mod bible_engine_chirho {
             get_sample_verses_chirho(book_chirho, chapter_chirho)
         }
 
+        /// Deduplicate commentary verses into pericope blocks
+        /// Returns (verse_range, content) pairs where verse_range is like "16-21"
+        fn deduplicate_commentary_verses_chirho(
+            &self,
+            raw_verses_chirho: Vec<(u32, String)>,
+            book_chirho: &str,
+            chapter_chirho: i32,
+        ) -> Vec<(String, String)> {
+            use std::collections::hash_map::DefaultHasher;
+            use std::hash::{Hash, Hasher};
+
+            // Track unique content blocks with their verse ranges
+            // Key: content hash, Value: (first_verse, last_verse, filtered_content)
+            let mut seen_content_chirho: std::collections::HashMap<u64, (u32, u32, String)> = std::collections::HashMap::new();
+            let mut order_chirho: Vec<u64> = Vec::new();
+
+            for (verse_num_chirho, text_chirho) in raw_verses_chirho {
+                if text_chirho.trim().is_empty() {
+                    continue;
+                }
+
+                // Apply OSIS filter
+                let filtered_chirho = self.osis_filter_chirho
+                    .process_chirho(&text_chirho)
+                    .unwrap_or_else(|_| text_chirho.clone());
+
+                // Use content hash for deduplication
+                let mut hasher_chirho = DefaultHasher::new();
+                filtered_chirho.hash(&mut hasher_chirho);
+                let hash_chirho = hasher_chirho.finish();
+
+                if let Some((_first_chirho, last_chirho, _)) = seen_content_chirho.get_mut(&hash_chirho) {
+                    // Already seen - extend verse range
+                    *last_chirho = verse_num_chirho;
+                } else {
+                    // New content
+                    seen_content_chirho.insert(hash_chirho, (verse_num_chirho, verse_num_chirho, filtered_chirho));
+                    order_chirho.push(hash_chirho);
+                }
+            }
+
+            // Build result with verse range headers
+            let mut result_chirho: Vec<(String, String)> = Vec::new();
+            for hash_chirho in order_chirho {
+                if let Some((first_chirho, last_chirho, content_chirho)) = seen_content_chirho.remove(&hash_chirho) {
+                    // Create verse range string (e.g., "16" or "16-21")
+                    let verse_range_chirho = if first_chirho == last_chirho {
+                        format!("{}", first_chirho)
+                    } else {
+                        format!("{}-{}", first_chirho, last_chirho)
+                    };
+
+                    // Format with a pericope header
+                    let formatted_content_chirho = format!(
+                        "【{} {}:{}】\n\n{}",
+                        book_chirho, chapter_chirho, verse_range_chirho, content_chirho
+                    );
+
+                    result_chirho.push((verse_range_chirho, formatted_content_chirho));
+                }
+            }
+
+            info!("Deduplicated commentary: {} unique pericope blocks", result_chirho.len());
+            result_chirho
+        }
+
         /// Get verses for a chapter from a specific module (for parallel view)
         ///
         /// Uses batch reading for efficiency - creates only ONE module driver
         /// instance per chapter instead of one per verse.
+        /// For commentary modules, deduplicates pericope blocks to avoid repetition.
         pub fn get_chapter_verses_for_module_chirho(
             &self,
             module_name_chirho: &str,
@@ -1515,6 +1665,11 @@ mod bible_engine_chirho {
         ) -> Vec<(String, String)> {
             // Try to get from SWORD module using batch reading
             if let Some(mgr_chirho) = &self.manager_chirho {
+                // Check if module is a commentary (needs deduplication)
+                let is_commentary_chirho = mgr_chirho.get_module_chirho(module_name_chirho)
+                    .map(|c_chirho| c_chirho.is_commentary_chirho())
+                    .unwrap_or(false);
+
                 if let Ok(loaded_module_chirho) = mgr_chirho.load_module_chirho(module_name_chirho) {
                     // Use batch reading for efficiency (single module driver instance)
                     match loaded_module_chirho.read_chapter_batch_chirho(
@@ -1523,6 +1678,16 @@ mod bible_engine_chirho {
                         200, // max verses safety limit
                     ) {
                         Ok(raw_verses_chirho) => {
+                            if is_commentary_chirho {
+                                // Commentary: deduplicate pericope blocks
+                                return self.deduplicate_commentary_verses_chirho(
+                                    raw_verses_chirho,
+                                    book_chirho,
+                                    chapter_chirho,
+                                );
+                            }
+
+                            // Bible/other: return all verses normally
                             let verses_chirho: Vec<(String, String)> = raw_verses_chirho
                                 .into_iter()
                                 .map(|(verse_num_chirho, text_chirho)| {
@@ -1681,20 +1846,134 @@ mod bible_engine_chirho {
         /// Returns None if module not found or no commentary for verse
         #[allow(dead_code)]
         pub fn get_commentary_chirho(&self, module_name_chirho: &str, verse_ref_chirho: &str) -> Option<String> {
+            info!("get_commentary_chirho: module={}, ref={}", module_name_chirho, verse_ref_chirho);
             if let Some(mgr_chirho) = &self.manager_chirho {
-                if let Ok(loaded_module_chirho) = mgr_chirho.load_module_chirho(module_name_chirho) {
-                    if let Ok(text_chirho) = loaded_module_chirho.read_entry_chirho(verse_ref_chirho) {
-                        if !text_chirho.trim().is_empty() {
-                            // Filter OSIS markup
-                            let filtered_chirho = self.osis_filter_chirho
-                                .process_chirho(&text_chirho)
-                                .unwrap_or(text_chirho);
-                            return Some(filtered_chirho);
+                match mgr_chirho.load_module_chirho(module_name_chirho) {
+                    Ok(loaded_module_chirho) => {
+                        info!("  Module loaded: {:?}", loaded_module_chirho.driver_type_chirho);
+                        match loaded_module_chirho.read_entry_chirho(verse_ref_chirho) {
+                            Ok(text_chirho) => {
+                                info!("  Read entry returned {} chars", text_chirho.len());
+                                if !text_chirho.trim().is_empty() {
+                                    // Filter OSIS markup
+                                    let filtered_chirho = self.osis_filter_chirho
+                                        .process_chirho(&text_chirho)
+                                        .unwrap_or(text_chirho);
+                                    return Some(filtered_chirho);
+                                } else {
+                                    info!("  Entry is empty");
+                                }
+                            }
+                            Err(e_chirho) => {
+                                info!("  read_entry error: {:?}", e_chirho);
+                            }
                         }
                     }
+                    Err(e_chirho) => {
+                        info!("  load_module error: {:?}", e_chirho);
+                    }
                 }
+            } else {
+                info!("  No manager available");
             }
             // No module available - caller should use sample data
+            None
+        }
+
+        /// Get deduplicated chapter commentary from a SWORD module
+        /// Many commentaries (like MHCC) store commentary by pericope (passage section),
+        /// so multiple verses return the same content. This function deduplicates them
+        /// and returns formatted commentary with verse range headers.
+        #[allow(dead_code)]
+        pub fn get_chapter_commentary_chirho(&self, module_name_chirho: &str, book_chirho: &str, chapter_chirho: i32) -> Option<String> {
+            info!("get_chapter_commentary_chirho: module={}, book={}, chapter={}", module_name_chirho, book_chirho, chapter_chirho);
+
+            if let Some(mgr_chirho) = &self.manager_chirho {
+                match mgr_chirho.load_module_chirho(module_name_chirho) {
+                    Ok(loaded_module_chirho) => {
+                        // Track unique commentary blocks with their verse ranges
+                        // Key: content hash, Value: (first_verse, last_verse, content)
+                        let mut seen_content_chirho: std::collections::HashMap<u64, (i32, i32, String)> = std::collections::HashMap::new();
+                        let mut order_chirho: Vec<u64> = Vec::new(); // Track order of first appearance
+
+                        // Try verses 1-200 (most chapters have fewer)
+                        for verse_num_chirho in 1..=200 {
+                            let verse_ref_chirho = format!("{} {}:{}", book_chirho, chapter_chirho, verse_num_chirho);
+
+                            match loaded_module_chirho.read_entry_chirho(&verse_ref_chirho) {
+                                Ok(text_chirho) => {
+                                    if text_chirho.trim().is_empty() {
+                                        // Empty verse - might be end of chapter or sparse commentary
+                                        if verse_num_chirho > 50 {
+                                            // After 50 verses, empty likely means end of chapter
+                                            break;
+                                        }
+                                        continue;
+                                    }
+
+                                    // Filter OSIS markup
+                                    let filtered_chirho = self.osis_filter_chirho
+                                        .process_chirho(&text_chirho)
+                                        .unwrap_or(text_chirho);
+
+                                    // Use content hash for deduplication
+                                    use std::collections::hash_map::DefaultHasher;
+                                    use std::hash::{Hash, Hasher};
+                                    let mut hasher_chirho = DefaultHasher::new();
+                                    filtered_chirho.hash(&mut hasher_chirho);
+                                    let hash_chirho = hasher_chirho.finish();
+
+                                    if let Some((_first_chirho, last_chirho, _)) = seen_content_chirho.get_mut(&hash_chirho) {
+                                        // Already seen this content - extend the verse range
+                                        *last_chirho = verse_num_chirho;
+                                    } else {
+                                        // New content - record it
+                                        seen_content_chirho.insert(hash_chirho, (verse_num_chirho, verse_num_chirho, filtered_chirho));
+                                        order_chirho.push(hash_chirho);
+                                    }
+                                }
+                                Err(_) => {
+                                    // Error reading - might be end of chapter
+                                    if verse_num_chirho > 50 {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if seen_content_chirho.is_empty() {
+                            return None;
+                        }
+
+                        // Build formatted output with verse range headers
+                        let mut result_chirho = String::new();
+                        for hash_chirho in order_chirho {
+                            if let Some((first_chirho, last_chirho, content_chirho)) = seen_content_chirho.get(&hash_chirho) {
+                                // Add verse range header
+                                let range_header_chirho = if first_chirho == last_chirho {
+                                    format!("━━━ {} {}:{} ━━━\n\n", book_chirho, chapter_chirho, first_chirho)
+                                } else {
+                                    format!("━━━ {} {}:{}-{} ━━━\n\n", book_chirho, chapter_chirho, first_chirho, last_chirho)
+                                };
+
+                                if !result_chirho.is_empty() {
+                                    result_chirho.push_str("\n\n");
+                                }
+                                result_chirho.push_str(&range_header_chirho);
+                                result_chirho.push_str(content_chirho);
+                            }
+                        }
+
+                        info!("  Returning {} unique commentary blocks", seen_content_chirho.len());
+                        return Some(result_chirho);
+                    }
+                    Err(e_chirho) => {
+                        info!("  load_module error: {:?}", e_chirho);
+                    }
+                }
+            } else {
+                info!("  No manager available");
+            }
             None
         }
 
@@ -1713,17 +1992,34 @@ mod bible_engine_chirho {
         /// Get lexicon entry for a key (e.g., "G26" for Strong's)
         #[allow(dead_code)]
         pub fn get_lexicon_entry_chirho(&self, module_name_chirho: &str, key_chirho: &str) -> Option<String> {
+            info!("get_lexicon_entry_chirho: module={}, key={}", module_name_chirho, key_chirho);
             if let Some(mgr_chirho) = &self.manager_chirho {
-                if let Ok(loaded_module_chirho) = mgr_chirho.load_module_chirho(module_name_chirho) {
-                    if let Ok(text_chirho) = loaded_module_chirho.read_entry_chirho(key_chirho) {
-                        if !text_chirho.trim().is_empty() {
-                            let filtered_chirho = self.osis_filter_chirho
-                                .process_chirho(&text_chirho)
-                                .unwrap_or(text_chirho);
-                            return Some(filtered_chirho);
+                match mgr_chirho.load_module_chirho(module_name_chirho) {
+                    Ok(loaded_module_chirho) => {
+                        info!("  Lexicon module loaded: {:?}", loaded_module_chirho.driver_type_chirho);
+                        match loaded_module_chirho.read_entry_chirho(key_chirho) {
+                            Ok(text_chirho) => {
+                                info!("  Read entry returned {} chars", text_chirho.len());
+                                if !text_chirho.trim().is_empty() {
+                                    let filtered_chirho = self.osis_filter_chirho
+                                        .process_chirho(&text_chirho)
+                                        .unwrap_or(text_chirho);
+                                    return Some(filtered_chirho);
+                                } else {
+                                    info!("  Entry is empty");
+                                }
+                            }
+                            Err(e_chirho) => {
+                                info!("  read_entry error: {:?}", e_chirho);
+                            }
                         }
                     }
+                    Err(e_chirho) => {
+                        info!("  load_module error: {:?}", e_chirho);
+                    }
                 }
+            } else {
+                info!("  No manager available");
             }
             None
         }
@@ -2264,14 +2560,16 @@ fn main() -> Result<(), slint::PlatformError> {
         .collect();
     app_state_chirho.set_books_chirho(Rc::new(slint::VecModel::from(books_model_chirho)).into());
 
-    // Initialize module names from actual available modules
+    // Initialize module names from actual available modules (excluding lexicons)
     {
         let backend_ref_chirho = backend_chirho.borrow();
         let module_names_chirho: Vec<slint::SharedString> = backend_ref_chirho
-            .get_module_names_chirho()
+            .bible_engine_chirho
+            .get_readable_module_names_chirho()
             .into_iter()
             .map(|s_chirho| s_chirho.into())
             .collect();
+        info!("Loaded {} readable modules (excluding lexicons)", module_names_chirho.len());
         app_state_chirho.set_module_names_chirho(Rc::new(slint::VecModel::from(module_names_chirho)).into());
 
         // Set current state from saved settings
@@ -2299,6 +2597,31 @@ fn main() -> Result<(), slint::PlatformError> {
         let backend_ref_chirho = backend_chirho.borrow();
         let bookmarks_chirho = load_bookmarks_for_ui_chirho(&backend_ref_chirho.db_conn_chirho);
         app_state_chirho.set_bookmarks_chirho(Rc::new(slint::VecModel::from(bookmarks_chirho)).into());
+    }
+
+    // Pre-load reading plans (so they're available when panel opens)
+    {
+        let plans_chirho = get_builtin_reading_plans_chirho();
+        info!("Pre-loaded {} reading plans", plans_chirho.len());
+        app_state_chirho.set_reading_plans_chirho(Rc::new(slint::VecModel::from(plans_chirho)).into());
+
+        // Also set today's reading
+        let today_reading_chirho = get_todays_reading_chirho();
+        app_state_chirho.set_today_reading_chirho(today_reading_chirho);
+    }
+
+    // Pre-load Verse of the Day
+    {
+        let (reference_chirho, text_chirho) = get_verse_of_the_day_chirho();
+        let now_chirho = std::time::SystemTime::now();
+        let since_epoch_chirho = now_chirho.duration_since(std::time::UNIX_EPOCH).unwrap_or_default();
+        let days_chirho = (since_epoch_chirho.as_secs() / 86400) as u32;
+        let date_str_chirho = format_date_chirho(days_chirho);
+
+        app_state_chirho.set_votd_reference_chirho(reference_chirho.into());
+        app_state_chirho.set_votd_text_chirho(text_chirho.into());
+        app_state_chirho.set_votd_date_chirho(date_str_chirho.into());
+        info!("Pre-loaded Verse of the Day");
     }
 
     // Set up navigation callback
@@ -2786,19 +3109,31 @@ fn main() -> Result<(), slint::PlatformError> {
 
         app_state_chirho.on_copy_verse_chirho(move |reference_chirho, text_chirho| {
             // Get copy format settings from app state
-            let format_index_chirho = if let Some(window_chirho) = window_weak_chirho.upgrade() {
+            let (format_index_chirho, include_numbers_chirho) = if let Some(window_chirho) = window_weak_chirho.upgrade() {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
-                state_chirho.get_copy_format_index_chirho()
+                (state_chirho.get_copy_format_index_chirho(), state_chirho.get_copy_include_verse_numbers_chirho())
             } else {
-                0
+                (0, true)
+            };
+
+            // Extract verse number from reference (e.g., "John 3:16" -> 16)
+            let verse_text_chirho = if include_numbers_chirho {
+                // Parse verse number from reference and prepend it
+                if let Some(verse_num_chirho) = reference_chirho.split(':').last().and_then(|v_chirho| v_chirho.trim().parse::<i32>().ok()) {
+                    format!("{}. {}", verse_num_chirho, text_chirho)
+                } else {
+                    text_chirho.to_string()
+                }
+            } else {
+                text_chirho.to_string()
             };
 
             // Format text based on settings:
             // 0 = "text - reference", 1 = "reference: text", 2 = "text only"
             let formatted_text_chirho = match format_index_chirho {
-                1 => format!("{}: {}", reference_chirho, text_chirho),
-                2 => text_chirho.to_string(),
-                _ => format!("{} - {}", text_chirho, reference_chirho), // default
+                1 => format!("{}: {}", reference_chirho, verse_text_chirho),
+                2 => verse_text_chirho,
+                _ => format!("{} - {}", verse_text_chirho, reference_chirho), // default
             };
 
             if copy_to_clipboard_chirho(&formatted_text_chirho) {
@@ -4167,8 +4502,11 @@ fn main() -> Result<(), slint::PlatformError> {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
                 let reference_chirho = state_chirho.get_votd_reference_chirho().to_string();
 
+                info!("VOTD reference: {}", reference_chirho);
+
                 // Parse the reference and navigate
                 if let Some((book_chirho, chapter_chirho, _verse_chirho)) = parse_reference_chirho(&reference_chirho) {
+                    info!("Parsed reference: book={}, chapter={}", book_chirho, chapter_chirho);
                     let mut backend_ref_chirho = backend_clone_chirho.borrow_mut();
                     backend_ref_chirho.navigate_to_chirho(&book_chirho, chapter_chirho);
 
@@ -4188,9 +4526,17 @@ fn main() -> Result<(), slint::PlatformError> {
                     let verses_chirho = backend_ref_chirho.get_verses_chirho();
                     state_chirho.set_verses_chirho(Rc::new(slint::VecModel::from(verses_chirho)).into());
 
+                    // Close any open side panels to focus on Bible content
+                    state_chirho.set_info_panel_visible_chirho(false);
+                    state_chirho.set_reading_plan_panel_visible_chirho(false);
+                    state_chirho.set_stats_panel_visible_chirho(false);
+
                     state_chirho.set_status_message_chirho(
                         format!("Navigated to {}", reference_chirho).into()
                     );
+                } else {
+                    warn!("Failed to parse VOTD reference: {}", reference_chirho);
+                    state_chirho.set_status_message_chirho("Could not navigate to verse".into());
                 }
             }
         });
@@ -4367,18 +4713,20 @@ fn main() -> Result<(), slint::PlatformError> {
 
         // Load reading plans
         app_state_chirho.on_load_reading_plans_chirho(move || {
+            info!("Loading reading plans callback triggered");
             if let Some(window_chirho) = window_weak_chirho.upgrade() {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
 
                 // Pre-built reading plans
                 let plans_chirho = get_builtin_reading_plans_chirho();
+                info!("Loaded {} reading plans", plans_chirho.len());
                 state_chirho.set_reading_plans_chirho(Rc::new(slint::VecModel::from(plans_chirho)).into());
 
                 // Set today's reading if there's an active plan
                 let today_reading_chirho = get_todays_reading_chirho();
                 state_chirho.set_today_reading_chirho(today_reading_chirho);
 
-                info!("Loaded reading plans");
+                info!("Reading plans set to UI state");
             }
         });
     }
@@ -4476,32 +4824,96 @@ fn main() -> Result<(), slint::PlatformError> {
     // Commentary callbacks
     {
         let window_weak_chirho = main_window_chirho.as_weak();
+        let backend_clone_chirho = backend_chirho.clone();
 
-        // Load commentary for a verse
+        // Load commentary for a chapter (verse_ref format: "Book Chapter:Verse")
         app_state_chirho.on_load_commentary_chirho(move |verse_ref_chirho| {
             info!("Loading commentary for: {}", verse_ref_chirho);
 
             if let Some(window_chirho) = window_weak_chirho.upgrade() {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
+                let backend_ref_chirho = backend_clone_chirho.borrow();
 
-                // Get sample commentary content
-                let (content_chirho, module_chirho) = get_sample_commentary_chirho(&verse_ref_chirho);
+                // Get available commentary modules from SWORD
+                let available_modules_chirho = backend_ref_chirho.bible_engine_chirho.get_commentary_modules_chirho();
+                info!("Available commentary modules: {:?}", available_modules_chirho);
 
-                state_chirho.set_commentary_verse_ref_chirho(verse_ref_chirho.clone());
+                let modules_chirho: Vec<slint::SharedString> = available_modules_chirho.iter()
+                    .map(|m_chirho| m_chirho.clone().into())
+                    .collect();
+
+                // Set the modules list
+                state_chirho.set_commentary_modules_chirho(Rc::new(slint::VecModel::from(modules_chirho.clone())).into());
+
+                // Get current selected module or use first available
+                let current_module_chirho = state_chirho.get_commentary_module_chirho().to_string();
+                let module_to_use_chirho = if !current_module_chirho.is_empty() && available_modules_chirho.contains(&current_module_chirho) {
+                    current_module_chirho
+                } else if !available_modules_chirho.is_empty() {
+                    available_modules_chirho[0].clone()
+                } else {
+                    String::new()
+                };
+
+                // Parse book and chapter from verse reference (format: "Book Chapter:Verse")
+                // Examples: "John 3:16" -> book="John", chapter=3
+                //           "1 Corinthians 13:1" -> book="1 Corinthians", chapter=13
+                let verse_ref_str_chirho = verse_ref_chirho.to_string();
+                let (book_chirho, chapter_chirho) = if let Some(colon_pos_chirho) = verse_ref_str_chirho.rfind(':') {
+                    // Find the last space before the colon (separates book from chapter:verse)
+                    let before_colon_chirho = &verse_ref_str_chirho[..colon_pos_chirho];
+                    if let Some(space_pos_chirho) = before_colon_chirho.rfind(' ') {
+                        let book_chirho = before_colon_chirho[..space_pos_chirho].to_string();
+                        let chapter_str_chirho = &before_colon_chirho[space_pos_chirho + 1..];
+                        let chapter_chirho = chapter_str_chirho.parse::<i32>().unwrap_or(1);
+                        (book_chirho, chapter_chirho)
+                    } else {
+                        // No space found - use whole thing as book, chapter 1
+                        (verse_ref_str_chirho.clone(), 1)
+                    }
+                } else {
+                    // No colon - might be just "Book Chapter" format
+                    if let Some(space_pos_chirho) = verse_ref_str_chirho.rfind(' ') {
+                        let book_chirho = verse_ref_str_chirho[..space_pos_chirho].to_string();
+                        let chapter_str_chirho = &verse_ref_str_chirho[space_pos_chirho + 1..];
+                        let chapter_chirho = chapter_str_chirho.parse::<i32>().unwrap_or(1);
+                        (book_chirho, chapter_chirho)
+                    } else {
+                        (verse_ref_str_chirho.clone(), 1)
+                    }
+                };
+
+                // Try to load deduplicated chapter commentary
+                let content_chirho = if !module_to_use_chirho.is_empty() {
+                    if let Some(text_chirho) = backend_ref_chirho.bible_engine_chirho.get_chapter_commentary_chirho(
+                        &module_to_use_chirho,
+                        &book_chirho,
+                        chapter_chirho
+                    ) {
+                        info!("Loaded chapter commentary from {}", module_to_use_chirho);
+                        text_chirho
+                    } else {
+                        // Fall back to sample data
+                        let (sample_chirho, _) = get_sample_commentary_chirho(&verse_ref_chirho);
+                        sample_chirho
+                    }
+                } else {
+                    let (sample_chirho, _) = get_sample_commentary_chirho(&verse_ref_chirho);
+                    sample_chirho
+                };
+
+                // Set the header to show chapter (not individual verse)
+                let chapter_ref_chirho = format!("{} {}", book_chirho, chapter_chirho);
+                state_chirho.set_commentary_verse_ref_chirho(chapter_ref_chirho.into());
                 state_chirho.set_commentary_content_chirho(content_chirho.into());
-                state_chirho.set_commentary_module_chirho(module_chirho.into());
-
-                // Set available commentary modules (sample list)
-                let modules_chirho: Vec<slint::SharedString> = vec![
-                    "MHCC".into(), "Gill".into(), "Barnes".into(), "Clarke".into()
-                ];
-                state_chirho.set_commentary_modules_chirho(Rc::new(slint::VecModel::from(modules_chirho)).into());
+                state_chirho.set_commentary_module_chirho(module_to_use_chirho.into());
             }
         });
     }
 
     {
         let window_weak_chirho = main_window_chirho.as_weak();
+        let backend_clone_chirho = backend_chirho.clone();
 
         // Select commentary module
         app_state_chirho.on_select_commentary_module_chirho(move |module_chirho| {
@@ -4509,11 +4921,36 @@ fn main() -> Result<(), slint::PlatformError> {
 
             if let Some(window_chirho) = window_weak_chirho.upgrade() {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
+                let backend_ref_chirho = backend_clone_chirho.borrow();
+
                 state_chirho.set_commentary_module_chirho(module_chirho.clone());
 
-                // Reload commentary for current verse with new module
-                let verse_ref_chirho = state_chirho.get_commentary_verse_ref_chirho();
-                let (content_chirho, _) = get_sample_commentary_chirho(&verse_ref_chirho);
+                // Reload commentary for current chapter with new module
+                // The verse_ref is now stored as "Book Chapter" format
+                let chapter_ref_chirho = state_chirho.get_commentary_verse_ref_chirho().to_string();
+
+                // Parse book and chapter from "Book Chapter" format
+                let (book_chirho, chapter_chirho) = if let Some(space_pos_chirho) = chapter_ref_chirho.rfind(' ') {
+                    let book_chirho = chapter_ref_chirho[..space_pos_chirho].to_string();
+                    let chapter_str_chirho = &chapter_ref_chirho[space_pos_chirho + 1..];
+                    let chapter_chirho = chapter_str_chirho.parse::<i32>().unwrap_or(1);
+                    (book_chirho, chapter_chirho)
+                } else {
+                    (chapter_ref_chirho.clone(), 1)
+                };
+
+                let content_chirho = if let Some(text_chirho) = backend_ref_chirho.bible_engine_chirho.get_chapter_commentary_chirho(
+                    &module_chirho,
+                    &book_chirho,
+                    chapter_chirho
+                ) {
+                    text_chirho
+                } else {
+                    let verse_ref_chirho = format!("{} {}:1", book_chirho, chapter_chirho);
+                    let (sample_chirho, _) = get_sample_commentary_chirho(&verse_ref_chirho);
+                    sample_chirho
+                };
+
                 state_chirho.set_commentary_content_chirho(content_chirho.into());
             }
         });
@@ -4522,6 +4959,7 @@ fn main() -> Result<(), slint::PlatformError> {
     // Lexicon callbacks
     {
         let window_weak_chirho = main_window_chirho.as_weak();
+        let backend_clone_chirho = backend_chirho.clone();
 
         // Search lexicon
         app_state_chirho.on_search_lexicon_chirho(move |query_chirho| {
@@ -4529,9 +4967,41 @@ fn main() -> Result<(), slint::PlatformError> {
 
             if let Some(window_chirho) = window_weak_chirho.upgrade() {
                 let state_chirho = window_chirho.global::<AppStateChirho>();
+                let backend_ref_chirho = backend_clone_chirho.borrow();
 
-                // Get sample lexicon entry
-                let (key_chirho, content_chirho) = get_sample_lexicon_entry_chirho(&query_chirho);
+                // Get available lexicon modules
+                let available_lexicons_chirho = backend_ref_chirho.bible_engine_chirho.get_lexicon_modules_chirho();
+                info!("Available lexicon modules: {:?}", available_lexicons_chirho);
+
+                // Set available modules for UI
+                let modules_chirho: Vec<slint::SharedString> = available_lexicons_chirho.iter()
+                    .map(|m_chirho| m_chirho.clone().into())
+                    .collect();
+                state_chirho.set_lexicon_modules_chirho(Rc::new(slint::VecModel::from(modules_chirho)).into());
+
+                // Get current module or select first available
+                let current_module_chirho = state_chirho.get_lexicon_module_chirho().to_string();
+                let module_to_use_chirho = if !current_module_chirho.is_empty() && available_lexicons_chirho.contains(&current_module_chirho) {
+                    current_module_chirho
+                } else if !available_lexicons_chirho.is_empty() {
+                    let first_chirho = available_lexicons_chirho[0].clone();
+                    state_chirho.set_lexicon_module_chirho(first_chirho.clone().into());
+                    first_chirho
+                } else {
+                    String::new()
+                };
+
+                // Try real lexicon entry
+                let (key_chirho, content_chirho) = if !module_to_use_chirho.is_empty() {
+                    if let Some(text_chirho) = backend_ref_chirho.bible_engine_chirho.get_lexicon_entry_chirho(&module_to_use_chirho, &query_chirho) {
+                        info!("Loaded lexicon entry from {}", module_to_use_chirho);
+                        (query_chirho.to_string(), text_chirho)
+                    } else {
+                        get_sample_lexicon_entry_chirho(&query_chirho)
+                    }
+                } else {
+                    get_sample_lexicon_entry_chirho(&query_chirho)
+                };
 
                 state_chirho.set_lexicon_current_entry_chirho(key_chirho.into());
                 state_chirho.set_lexicon_entry_content_chirho(content_chirho.into());
