@@ -1275,27 +1275,47 @@ mod bible_engine_chirho {
         /// Get the root-level entries for a general book module
         /// Returns a list of (key_path, display_name) pairs
         pub fn get_genbook_entries_chirho(&self, parent_key_chirho: Option<&str>) -> Vec<(String, String)> {
+            info!("get_genbook_entries_chirho called for module '{}', parent_key: {:?}",
+                  self.current_module_chirho, parent_key_chirho);
+
             if let Some(mgr_chirho) = &self.manager_chirho {
-                if let Ok(loaded_chirho) = mgr_chirho.load_module_chirho(&self.current_module_chirho) {
-                    if let Some(genbook_chirho) = loaded_chirho.as_genbook_chirho() {
-                        let entries_chirho = match parent_key_chirho {
-                            Some(key_chirho) => genbook_chirho.get_children_chirho(key_chirho),
-                            None => genbook_chirho.get_root_keys_chirho(),
-                        };
-                        return entries_chirho
-                            .into_iter()
-                            .map(|path_chirho| {
-                                // Extract display name from path (last component)
-                                let display_name_chirho = path_chirho
-                                    .rsplit('/')
-                                    .next()
-                                    .unwrap_or(&path_chirho)
-                                    .to_string();
-                                (path_chirho, display_name_chirho)
-                            })
-                            .collect();
+                match mgr_chirho.load_module_chirho(&self.current_module_chirho) {
+                    Ok(loaded_chirho) => {
+                        info!("  Loaded module, driver type: {:?}", loaded_chirho.driver_type_chirho);
+                        info!("  Data path: {:?}", loaded_chirho.data_path_chirho);
+
+                        if let Some(genbook_chirho) = loaded_chirho.as_genbook_chirho() {
+                            info!("  Got genbook wrapper successfully");
+                            let entries_chirho = match parent_key_chirho {
+                                Some(key_chirho) => genbook_chirho.get_children_chirho(key_chirho),
+                                None => genbook_chirho.get_root_keys_chirho(),
+                            };
+                            info!("  Found {} entries", entries_chirho.len());
+                            for entry_chirho in entries_chirho.iter().take(5) {
+                                info!("    Entry: {}", entry_chirho);
+                            }
+                            return entries_chirho
+                                .into_iter()
+                                .map(|path_chirho| {
+                                    // Extract display name from path (last component)
+                                    let display_name_chirho = path_chirho
+                                        .rsplit('/')
+                                        .next()
+                                        .unwrap_or(&path_chirho)
+                                        .to_string();
+                                    (path_chirho, display_name_chirho)
+                                })
+                                .collect();
+                        } else {
+                            info!("  as_genbook_chirho returned None");
+                        }
+                    }
+                    Err(e_chirho) => {
+                        info!("  Failed to load module: {:?}", e_chirho);
                     }
                 }
+            } else {
+                info!("  No manager available");
             }
             Vec::new()
         }
