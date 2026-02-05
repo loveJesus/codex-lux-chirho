@@ -1497,15 +1497,9 @@ component InlineInterlinearWordChirho inherits Rectangle {
 component VerseViewChirho inherits Rectangle {
     in property <VerseChirho> verse-chirho;
 
-    // Track if any part of the verse is hovered (verse text OR any button in action area)
-    // Include all named TouchAreas so buttons don't disappear when hovering over them
-    property <bool> is-hovered-chirho: verse-touch-chirho.has-hover ||
-        actions-area-hover-chirho.has-hover ||
-        copy-touch-chirho.has-hover ||
-        colors-area-touch-chirho.has-hover ||
-        bookmark-touch-chirho.has-hover ||
-        note-touch-chirho.has-hover ||
-        info-touch-chirho.has-hover;
+    // Track if any part of the verse is hovered (verse text OR action buttons area)
+    // Master touch area covers all action buttons, so we only need two checks
+    property <bool> is-hovered-chirho: verse-touch-chirho.has-hover || actions-master-touch-chirho.has-hover;
 
     // Compute highlight color from name
     property <color> active-highlight-color-chirho:
@@ -1676,122 +1670,75 @@ component VerseViewChirho inherits Rectangle {
         } // Close HorizontalLayout containing verse content
     } // Close VerticalLayout
 
-    // Action buttons as overlay (positioned absolutely, doesn't affect text flow)
-    // Always rendered but visibility controlled by opacity
+    // Action buttons as overlay - uses single master TouchArea for reliable hover
     Rectangle {
         x: parent.width - 220px;
         y: 4px;
         width: 210px;
         height: 32px;
-        background: is-hovered-chirho ? ThemeChirho.background-secondary-chirho.with-alpha(0.95) : transparent;
+        background: actions-master-touch-chirho.has-hover || verse-touch-chirho.has-hover ?
+            ThemeChirho.background-secondary-chirho.with-alpha(0.95) : transparent;
         border-radius: ThemeChirho.radius-md-chirho;
-        opacity: is-hovered-chirho ? 1.0 : 0.0;
+        opacity: actions-master-touch-chirho.has-hover || verse-touch-chirho.has-hover ? 1.0 : 0.0;
 
         animate opacity { duration: 100ms; }
         animate background { duration: 100ms; }
 
-        // Hover tracking area INSIDE the action buttons - contributes to is-hovered-chirho
-        actions-area-hover-chirho := TouchArea {
-            // This TouchArea covers the entire action buttons area
-            // and its has-hover contributes to is-hovered-chirho
-        }
+        // Button layout positions (for click detection):
+        // 4px padding, then: Copy(24px), 4px gap, 5 colors(20px each + 4px gaps = 116px), 4px gap, Bookmark(24px), 4px gap, Note(24px), 4px gap, Info(24px)
+        // Copy: 4-28, Colors: 32-148, Bookmark: 152-176, Note: 180-204, Info: 208-232
+        // Adjusted for centered layout within 210px width
 
+        // Visual-only button layout (no TouchAreas - master handles clicks)
         HorizontalLayout {
             padding: 4px;
             spacing: 4px;
             alignment: center;
 
-            // Copy button
+            // Copy button visual
             Rectangle {
                 width: 24px;
                 height: 24px;
-                background: copy-touch-chirho.has-hover ? ThemeChirho.accent-chirho : ThemeChirho.background-elevated-chirho;
+                background: ThemeChirho.background-elevated-chirho;
                 border-radius: 12px;
-
                 Text {
                     text: LabelsChirho.copy-icon-chirho;
                     font-size: 12px;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
-
-                copy-touch-chirho := TouchArea {
-                    clicked => {
-                        AppStateChirho.copy-verse-chirho(
-                            AppStateChirho.current-book-chirho + " " + AppStateChirho.current-chapter-chirho + ":" + verse-chirho.reference-chirho,
-                            verse-chirho.text-chirho
-                        );
-                    }
-                    mouse-cursor: pointer;
-                }
             }
 
-            // Highlight color buttons container (with hover tracking for parent)
-            Rectangle {
-                // Container for color buttons - tracks hover for the entire color area
-                colors-area-touch-chirho := TouchArea {
-                    // This TouchArea captures hover for all color buttons
-                }
-
-                HorizontalLayout {
-                    spacing: 4px;
-
-                    // Highlight color buttons (show available colors)
-                    for color-chirho in AppStateChirho.highlight-colors-chirho: Rectangle {
-                        width: 20px;
-                        height: 20px;
-                        background: color-touch-chirho.has-hover ? color-chirho.color-chirho.with-alpha(1.0) : color-chirho.color-chirho.with-alpha(0.7);
-                        border-radius: 10px;
-                        border-width: verse-chirho.highlight-color-chirho == color-chirho.name-chirho ? 2px : 0px;
-                        border-color: ThemeChirho.text-primary-chirho;
-
-                        animate background { duration: 100ms; }
-
-                        color-touch-chirho := TouchArea {
-                            clicked => {
-                                // If clicking same color as current highlight, remove the highlight
-                                if verse-chirho.highlight-color-chirho == color-chirho.name-chirho {
-                                    AppStateChirho.set-highlight-color-chirho(verse-chirho.reference-chirho, "");
-                                } else {
-                                    AppStateChirho.set-highlight-color-chirho(verse-chirho.reference-chirho, color-chirho.name-chirho);
-                                }
-                            }
-                            mouse-cursor: pointer;
-                        }
-                    }
-                }
+            // Color buttons visual
+            for color-chirho in AppStateChirho.highlight-colors-chirho: Rectangle {
+                width: 20px;
+                height: 20px;
+                background: color-chirho.color-chirho.with-alpha(0.7);
+                border-radius: 10px;
+                border-width: verse-chirho.highlight-color-chirho == color-chirho.name-chirho ? 2px : 0px;
+                border-color: ThemeChirho.text-primary-chirho;
             }
 
-            // Bookmark button
+            // Bookmark button visual
             Rectangle {
                 width: 24px;
                 height: 24px;
-                background: bookmark-touch-chirho.has-hover ? ThemeChirho.accent-chirho : ThemeChirho.background-elevated-chirho;
+                background: ThemeChirho.background-elevated-chirho;
                 border-radius: 12px;
-
                 Text {
                     text: LabelsChirho.bookmark-icon-chirho;
                     font-size: 12px;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
-
-                bookmark-touch-chirho := TouchArea {
-                    clicked => {
-                        AppStateChirho.toggle-bookmark-chirho(verse-chirho.reference-chirho);
-                    }
-                    mouse-cursor: pointer;
-                }
             }
 
-            // Note button
+            // Note button visual
             Rectangle {
                 width: 24px;
                 height: 24px;
-                background: note-touch-chirho.has-hover ? ThemeChirho.accent-chirho :
-                    (verse-chirho.has-note-chirho ? ThemeChirho.highlight-chirho : ThemeChirho.background-elevated-chirho);
+                background: verse-chirho.has-note-chirho ? ThemeChirho.highlight-chirho : ThemeChirho.background-elevated-chirho;
                 border-radius: 12px;
-
                 Text {
                     text: LabelsChirho.note-indicator-chirho;
                     font-size: 12px;
@@ -1799,42 +1746,87 @@ component VerseViewChirho inherits Rectangle {
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
-
-                note-touch-chirho := TouchArea {
-                    clicked => {
-                        // Open note dialog for this verse
-                        AppStateChirho.note-verse-ref-chirho = AppStateChirho.current-book-chirho + " " + AppStateChirho.current-chapter-chirho + ":" + verse-chirho.reference-chirho;
-                        AppStateChirho.get-note-chirho(verse-chirho.reference-chirho);
-                        AppStateChirho.note-dialog-visible-chirho = true;
-                    }
-                    mouse-cursor: pointer;
-                }
             }
 
-            // Info button
+            // Info button visual
             Rectangle {
                 width: 24px;
                 height: 24px;
-                background: info-touch-chirho.has-hover ? ThemeChirho.accent-chirho : ThemeChirho.background-elevated-chirho;
+                background: ThemeChirho.background-elevated-chirho;
                 border-radius: 12px;
-
                 Text {
                     text: "ℹ";
                     font-size: 12px;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
+            }
+        }
 
-                info-touch-chirho := TouchArea {
-                    clicked => {
-                        // Show info panel and load this verse's info
-                        AppStateChirho.info-panel-visible-chirho = true;
-                        AppStateChirho.load-verse-info-chirho(verse-chirho.reference-chirho);
+        // Master TouchArea on top - handles all hover and clicks
+        // Layout: |4px|Copy(24)|4|Y(20)|4|G(20)|4|B(20)|4|P(20)|4|O(20)|4|Bkmk(24)|4|Note(24)|4|Info(24)|4px|
+        // Total: 4+24+4+20+4+20+4+20+4+20+4+24+4+24+4+24+4 = 212px (close to 210)
+        actions-master-touch-chirho := TouchArea {
+            mouse-cursor: pointer;
+            clicked => {
+                // Determine which button was clicked based on mouse-x position
+                // Approximate positions (centered layout adjusts slightly):
+                if self.mouse-x < 32px {
+                    // Copy button (0-32)
+                    AppStateChirho.copy-verse-chirho(
+                        AppStateChirho.current-book-chirho + " " + AppStateChirho.current-chapter-chirho + ":" + verse-chirho.reference-chirho,
+                        verse-chirho.text-chirho
+                    );
+                } else if self.mouse-x < 56px {
+                    // Yellow highlight (32-56)
+                    if verse-chirho.highlight-color-chirho == "yellow" {
+                        AppStateChirho.set-highlight-color-chirho(verse-chirho.reference-chirho, "");
+                    } else {
+                        AppStateChirho.set-highlight-color-chirho(verse-chirho.reference-chirho, "yellow");
                     }
-                    mouse-cursor: pointer;
+                } else if self.mouse-x < 80px {
+                    // Green highlight (56-80)
+                    if verse-chirho.highlight-color-chirho == "green" {
+                        AppStateChirho.set-highlight-color-chirho(verse-chirho.reference-chirho, "");
+                    } else {
+                        AppStateChirho.set-highlight-color-chirho(verse-chirho.reference-chirho, "green");
+                    }
+                } else if self.mouse-x < 104px {
+                    // Blue highlight (80-104)
+                    if verse-chirho.highlight-color-chirho == "blue" {
+                        AppStateChirho.set-highlight-color-chirho(verse-chirho.reference-chirho, "");
+                    } else {
+                        AppStateChirho.set-highlight-color-chirho(verse-chirho.reference-chirho, "blue");
+                    }
+                } else if self.mouse-x < 128px {
+                    // Pink highlight (104-128)
+                    if verse-chirho.highlight-color-chirho == "pink" {
+                        AppStateChirho.set-highlight-color-chirho(verse-chirho.reference-chirho, "");
+                    } else {
+                        AppStateChirho.set-highlight-color-chirho(verse-chirho.reference-chirho, "pink");
+                    }
+                } else if self.mouse-x < 152px {
+                    // Orange highlight (128-152)
+                    if verse-chirho.highlight-color-chirho == "orange" {
+                        AppStateChirho.set-highlight-color-chirho(verse-chirho.reference-chirho, "");
+                    } else {
+                        AppStateChirho.set-highlight-color-chirho(verse-chirho.reference-chirho, "orange");
+                    }
+                } else if self.mouse-x < 180px {
+                    // Bookmark button (152-180)
+                    AppStateChirho.toggle-bookmark-chirho(verse-chirho.reference-chirho);
+                } else if self.mouse-x < 208px {
+                    // Note button (180-208)
+                    AppStateChirho.note-verse-ref-chirho = AppStateChirho.current-book-chirho + " " + AppStateChirho.current-chapter-chirho + ":" + verse-chirho.reference-chirho;
+                    AppStateChirho.get-note-chirho(verse-chirho.reference-chirho);
+                    AppStateChirho.note-dialog-visible-chirho = true;
+                } else {
+                    // Info button (208+)
+                    AppStateChirho.info-panel-visible-chirho = true;
+                    AppStateChirho.load-verse-info-chirho(verse-chirho.reference-chirho);
                 }
             }
-        } // Close action buttons HorizontalLayout
+        }
     } // Close action buttons Rectangle
 
     // Note indicator (positioned absolutely in top-left)
@@ -8695,6 +8687,7 @@ component OnboardingWizardChirho inherits Rectangle {
 // Main application window
 export component MainWindowChirho inherits Window {
     title: "Codex Lux Chirho";
+    icon: @image-url("../assets_chirho/icon_chirho.png");
     preferred-width: 1280px;
     preferred-height: 820px;
     background: ThemeChirho.background-primary-chirho;

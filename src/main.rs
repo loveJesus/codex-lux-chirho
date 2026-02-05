@@ -2455,7 +2455,12 @@ fn main() -> Result<(), slint::PlatformError> {
 
                 if is_genbook_chirho {
                     // Load root entries for general book
+                    info!("Loading genbook root entries for: {}", module_chirho);
                     let entries_chirho = backend_mut_chirho.bible_engine_chirho.get_genbook_entries_chirho(None);
+                    info!("Found {} root entries", entries_chirho.len());
+                    for (key_chirho, name_chirho) in &entries_chirho {
+                        info!("  Entry: key='{}', name='{}'", key_chirho, name_chirho);
+                    }
                     let genbook_entries_chirho: Vec<GenBookEntryChirho> = entries_chirho
                         .into_iter()
                         .map(|(key_chirho, name_chirho)| {
