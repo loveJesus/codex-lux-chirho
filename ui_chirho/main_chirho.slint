@@ -324,6 +324,13 @@ export struct GenBookEntryChirho {
     has-children-chirho: bool, // True if this entry has sub-entries
 }
 
+// General book section with content (for scrollable reading)
+export struct GenBookSectionChirho {
+    key-chirho: string,       // Full key path
+    title-chirho: string,     // Section title (e.g., "Section 1")
+    content-chirho: string,   // Section content HTML/text
+}
+
 // Module info
 export struct ModuleInfoChirho {
     name-chirho: string,
@@ -780,8 +787,10 @@ export global AppStateChirho {
     in-out property <string> genbook-current-content-chirho: ""; // Content of selected entry
     in-out property <string> genbook-current-title-chirho: ""; // Title of selected entry
     in-out property <[string]> genbook-breadcrumbs-chirho: []; // Breadcrumb path for navigation
+    in-out property <[GenBookSectionChirho]> genbook-sections-chirho: []; // All sections for scrollable view
     callback load-genbook-entries-chirho(string); // Load children of a key (empty for root)
     callback load-genbook-content-chirho(string); // Load content for a key
+    callback load-genbook-sections-chirho(string); // Load all sections under a key for scrollable view
     callback genbook-navigate-up-chirho(); // Go up one level
 }
 
@@ -981,11 +990,13 @@ component SidebarChirho inherits Rectangle {
                         genbook-touch-chirho := TouchArea {
                             clicked => {
                                 if entry-chirho.has-children-chirho {
-                                    // Navigate into this entry
+                                    // Navigate into this entry and load all sections for scrollable view
                                     AppStateChirho.load-genbook-entries-chirho(entry-chirho.key-chirho);
+                                    AppStateChirho.load-genbook-sections-chirho(entry-chirho.key-chirho);
+                                } else {
+                                    // Leaf node - load single content
+                                    AppStateChirho.load-genbook-content-chirho(entry-chirho.key-chirho);
                                 }
-                                // Always load content
-                                AppStateChirho.load-genbook-content-chirho(entry-chirho.key-chirho);
                             }
                             mouse-cursor: pointer;
                         }
@@ -1904,10 +1915,10 @@ component BibleViewChirho inherits Rectangle {
 
                 // Genbook content (when is a genbook)
                 if AppStateChirho.is-genbook-chirho: VerticalLayout {
-                    spacing: ThemeChirho.spacing-md-chirho;
+                    spacing: ThemeChirho.spacing-lg-chirho;
 
-                    // Show placeholder if no content selected
-                    if AppStateChirho.genbook-current-content-chirho == "": Text {
+                    // Show placeholder if no content selected and no sections
+                    if AppStateChirho.genbook-current-content-chirho == "" && AppStateChirho.genbook-sections-chirho.length == 0: Text {
                         text: "Select an entry from the sidebar to view its content.";
                         font-size: ThemeChirho.font-size-md-chirho;
                         color: ThemeChirho.text-muted-chirho;
@@ -1915,8 +1926,47 @@ component BibleViewChirho inherits Rectangle {
                         wrap: word-wrap;
                     }
 
-                    // Show genbook content
-                    if AppStateChirho.genbook-current-content-chirho != "": Text {
+                    // Show scrollable sections when available
+                    for section-chirho in AppStateChirho.genbook-sections-chirho: VerticalLayout {
+                        spacing: ThemeChirho.spacing-sm-chirho;
+
+                        // Section header
+                        Rectangle {
+                            height: 36px;
+                            background: ThemeChirho.background-tertiary-chirho;
+                            border-radius: 4px;
+
+                            HorizontalLayout {
+                                padding-left: ThemeChirho.spacing-md-chirho;
+                                alignment: start;
+
+                                Text {
+                                    text: section-chirho.title-chirho;
+                                    font-size: ThemeChirho.font-size-lg-chirho;
+                                    font-weight: 600;
+                                    color: ThemeChirho.accent-chirho;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
+
+                        // Section content
+                        Text {
+                            text: section-chirho.content-chirho;
+                            font-size: ThemeChirho.font-size-scripture-chirho * AppStateChirho.font-scale-chirho;
+                            font-family: AppStateChirho.font-family-index-chirho == 1 ? "Georgia, Times New Roman, serif" :
+                                         AppStateChirho.font-family-index-chirho == 2 ? "Helvetica, Arial, sans-serif" :
+                                         "system-ui";
+                            color: ThemeChirho.text-primary-chirho;
+                            wrap: word-wrap;
+                        }
+
+                        // Spacing between sections
+                        Rectangle { height: ThemeChirho.spacing-lg-chirho; }
+                    }
+
+                    // Show single content when no sections (leaf node)
+                    if AppStateChirho.genbook-current-content-chirho != "" && AppStateChirho.genbook-sections-chirho.length == 0: Text {
                         text: AppStateChirho.genbook-current-content-chirho;
                         font-size: ThemeChirho.font-size-scripture-chirho * AppStateChirho.font-scale-chirho;
                         font-family: AppStateChirho.font-family-index-chirho == 1 ? "Georgia, Times New Roman, serif" :
@@ -2865,6 +2915,7 @@ component ToolbarChirho inherits Rectangle {
 
             Slider {
                 width: 80px;
+                height: 20px;
                 minimum: 0.8;
                 maximum: 1.5;
                 value <=> AppStateChirho.font-scale-chirho;
@@ -3195,15 +3246,12 @@ component SettingsPanelChirho inherits Rectangle {
                                 horizontal-stretch: 1;
                             }
 
-                            Rectangle {
+                            Slider {
                                 width: 120px;
-                                height: 30px;
-
-                                Slider {
-                                    minimum: 0.8;
-                                    maximum: 1.5;
-                                    value <=> AppStateChirho.font-scale-chirho;
-                                }
+                                height: 24px;
+                                minimum: 0.8;
+                                maximum: 1.5;
+                                value <=> AppStateChirho.font-scale-chirho;
                             }
                         }
 
@@ -3220,15 +3268,12 @@ component SettingsPanelChirho inherits Rectangle {
                                 horizontal-stretch: 1;
                             }
 
-                            Rectangle {
+                            Slider {
                                 width: 120px;
-                                height: 30px;
-
-                                Slider {
-                                    minimum: 1.2;
-                                    maximum: 2.5;
-                                    value <=> AppStateChirho.line-height-chirho;
-                                }
+                                height: 24px;
+                                minimum: 1.2;
+                                maximum: 2.5;
+                                value <=> AppStateChirho.line-height-chirho;
                             }
                         }
 

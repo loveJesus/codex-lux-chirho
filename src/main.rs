@@ -2578,6 +2578,58 @@ fn main() -> Result<(), slint::PlatformError> {
         });
     }
 
+    // Set up genbook sections loading callback (for scrollable view)
+    {
+        let backend_clone_chirho = backend_chirho.clone();
+        let window_weak_chirho = main_window_chirho.as_weak();
+
+        app_state_chirho.on_load_genbook_sections_chirho(move |parent_key_chirho| {
+            let backend_ref_chirho = backend_clone_chirho.borrow();
+
+            if let Some(window_chirho) = window_weak_chirho.upgrade() {
+                let state_chirho = window_chirho.global::<AppStateChirho>();
+
+                // Get all child entries
+                let children_chirho = backend_ref_chirho.bible_engine_chirho.get_genbook_entries_chirho(Some(&parent_key_chirho));
+
+                // Load content for each child section
+                let sections_chirho: Vec<GenBookSectionChirho> = children_chirho
+                    .into_iter()
+                    .filter_map(|(key_chirho, name_chirho)| {
+                        // Only include leaf nodes (sections) that have actual content
+                        let sub_children_chirho = backend_ref_chirho.bible_engine_chirho.get_genbook_entries_chirho(Some(&key_chirho));
+                        if sub_children_chirho.is_empty() {
+                            // This is a leaf node - load its content
+                            if let Some(content_chirho) = backend_ref_chirho.bible_engine_chirho.read_genbook_entry_chirho(&key_chirho) {
+                                Some(GenBookSectionChirho {
+                                    key_chirho: key_chirho.into(),
+                                    title_chirho: name_chirho.into(),
+                                    content_chirho: content_chirho.into(),
+                                })
+                            } else {
+                                None
+                            }
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
+
+                state_chirho.set_genbook_sections_chirho(Rc::new(slint::VecModel::from(sections_chirho)).into());
+
+                // Clear single content view when showing sections
+                state_chirho.set_genbook_current_content_chirho("".into());
+
+                // Set title from the parent key
+                let title_chirho = parent_key_chirho
+                    .rsplit('/')
+                    .next()
+                    .unwrap_or(&parent_key_chirho);
+                state_chirho.set_genbook_current_title_chirho(title_chirho.into());
+            }
+        });
+    }
+
     // Set up genbook navigate up callback
     {
         let window_weak_chirho = main_window_chirho.as_weak();
